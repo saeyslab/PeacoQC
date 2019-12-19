@@ -1,0 +1,13 @@
+Package: PeacoQC
+Title: Peak-based selection of high quality cytometry data
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Annelies",
+           family = "Emmaneel",
+           role = c("aut", "cre"),
+           email = "annelies.emmaneel@hotmail.com")
+Description: This is a quality control algorithm that will first detect peaks in each channel of the data. It will remove anomalies based on the IsolationTree function and the MAD outlier detection method. This package can be used for both flow- and mass cytometry data. The output can be plotted in an overview figure.
+Encoding: UTF-8
+LazyData: true
+URL: http://github.com/saeyslab/PeacoQC
+BugReports: http://github.com/saeyslab/PeacoQC/issues
