@@ -1,78 +1,155 @@
+#' @title Remove margin events
+#'
+#' @description \code{RemoveMargins} will remove margin events from the flowframe based on the internal description of the fcs file.
+#'
+#' @usage RemoveMargins(ff, channels, channel_specifications = NULL, output = "frame")
+#'
+#' @param ff A flowframe
+#' @param channels The channels that have to be checked for margin events
+#' @param channel_specifications A list of lists with parameter specifications per channel. This parameter should only be used if the values in the internal parameters description is too strict. There should be one list per channel with first a minRange and then a maxRange value. This list should have the channel name.
+#' @param output If set to "full", a list with the filtered flowframe and the indices of the margin event is returned. If set to "frame", only the filtered flowframe is returned.
+#'
+#' @importFrom flowWorkspace pData
+#' @export
+
+RemoveMargins <- function(ff, channels, channel_specifications = NULL, output = "frame") {
+
+  if (!class(ff) == "flowFrame")
+    stop("ff should be a flowframe.")
+  if (!class(channel_specifications) == "list" & !is.null(channel_specifications))
+    stop("channel_specifications should be a list of lists.")
+  if(!all(lengths(channel_specifications) == 2) & !is.null(channel_specifications))
+    stop("channel_specifications should be a list of lists. Every list should have the channel name and should contain a minRange and maxRange value.")
+  if(is.null(names(channel_specifications)) & !is.null(channel_specifications))
+    stop("channel_specifications should be a list of named lists. Make sure that the names correspend with the channel names")
+  if(!all(names(channel_specifications) %in% colnames(ff@exprs)) & !is.null(channel_specifications))
+    stop("channel_specifications should be a list of named lists. Make sure that the names correspend with the channel names")
+  if(!all(channels %in% names(channel_specifications)) & !is.null(channel_specifications))
+    stop("Not all channels are represented in channel_specificiations. Make sure that you have a list with a  minRange and MaxRange for every channel specified in the channel parameter")
+  if(is.numeric(channels))
+    stop("Make sure that you use the channel names instead of the indices.")
 
 
+  if (class(channel_specifications) == "list"){
+      meta <- do.call(rbind, channel_specifications)
+      colnames(meta) <- c("minRange", "maxRange")
+  } else {
+
+    meta <- flowWorkspace::pData(ff@parameters)
+    rownames(meta) <- meta[, "name"]
+  }
+
+
+  # Initialize variables
+  selection <- rep(TRUE, times = dim(ff)[1])
+  e <- ff@exprs
+
+
+  # Make selection
+  for (d in channels) {
+
+        selection <- selection & e[, d] > max(min(meta[d, "minRange"], 0), min(e[, d])) & e[, d] < min(meta[d, "maxRange"], max(e[, d]))
+  }
+
+
+  if (length(which(selection == FALSE))/length(selection) > 0.1) {
+    warning(paste0("More then ", round(length(which(selection == FALSE))/length(selection) * 100, 2), "% is considered as a margin event. This should be verified."))
+  }
+  if (output == "full"){
+    return(list("flowframe" = ff[selection,], "indices_margins" = which(selection == FALSE)))
+  } else if (output == "frame"){
+    return(ff[selection,])
+  }
+}
+#' @title Peak-based detection of high quality cytometry data
+#'
+#' @description \code{PeacoQC} will determine peaks on the channels in the flowframe. Then it will remove anomalies caused by e.g. clogs, changes in speed etc. by using an IsolationTree and/or the MAD method.
+#'
+#' @usage
+#' PeacoQC(ff,channels, determine_good_cells = TRUE, plot = TRUE,
+#'         save_fcs = TRUE, output_directory = ".", events_per_bin = 2000,
+#'         MAD = 6, IT_limit = 0.55, consecutive_bins = 5, ...)
+#'
+#' @param ff A flowframe or the location of an fcs file
+#' @param channels Indices of the channels in the ff on which peaks have to be determined.
+#' @param determine_good_cells If set to FALSE, the algorithm will only determine peaks. If TRUE, the bad measurements will be filtered out. It can also be put to "MAD" or "IT" to only use one method of filtering.
+#' @param plot If set to TRUE, the \code{PlotPeacoQC} function is run to make an overview plot of the deleted measurements.
+#' @param save_fcs If set to TRUE, an fcs file will be saved in the \code{output_directory} as: filename_QC.fcs.
+#' @param output_directory Directory where the plots should be generated. Set to NULL if no plots need to be generated
+#' @param events_per_bin Number of events that are put in one bin. Default is 2000.
+#' @param MAD The MAD parameter. Default is 6. If this is increased, the algorithm becomes less strict.
+#' @param IT_limit The IsolationTree parameter. Default is 0.55. If this is increased, the algorithm becomes less strict.
+#' @param consecutive_bins If 'good' bins are located between bins that are removed, they will also be marked as 'bad'. The default is 5.
+#' @param ... Options to pass on to the \code{PlotPeacoQC} function
+#'
+#' @return This function returns a \code{list} with a number of items:
+#' .. MOET NOG AANGEVULD WORDEN
+#'
+#' @examples
+#' \dontrun{
+#' # Read in flowframe SHOULD BE  ADAPTED!!!!!!!!!!!
+#' ff <- read.FCS(file)
+#' # Determine the channels on which quality control should be performed
+#' channels <- colnames(ff@@exprs)[c(1,3,5:10)]
+#' peacoqc_res <- PeacoQC(ff = ff, channels = channels, determine_good_cells = TRUE,
+#'                        output_directory = ".", plot = TRUE)
+#'}
+#' @export
 PeacoQC <- function(ff,
-                    channels,
-                    # You could set this to "MAD" or "IT" you want to only use that outlier detection method
-                    determine_good_cells = TRUE,
-                    plot = FALSE,
-                    output_directory = NULL,
-                    MAD = 6,
-                    events_per_bin = 2000,
-                    IT_limit = 0.55,
-                    consecutive_bins = 5,
-                    plot_tree = F
+  channels,
+  determine_good_cells = TRUE,
+  plot = TRUE,
+  save_fcs = TRUE,
+  output_directory = ".",
+  events_per_bin = 2000,
+  MAD = 6,
+  IT_limit = 0.55,
+  consecutive_bins = 5,
+  ...
 ){
+
+  if(!class(ff) == "flowFrame" | is.null(ff))
+    stop("ff should be a flowFrame")
+  if(!is.numeric(channels)| is.null(channels))
+    stop("The channel parameter should consist out of indices that correspond to the channels in ff.")
 
   # Searching for the name of the ff
   if (length(ff@description$FILENAME)>0){
     message(paste0("Starting quality control analysis for ",
-                   basename(ff@description$FILENAME)))
+      basename(ff@description$FILENAME)))
   }
+
+  # Make an empty list for the eventual results
+  results <- list()
 
   # Timing everything
   start_time <- Sys.time()
 
-  # If no channels are given we will use all channels except for the time
-  if (missing(channels)){
-    time_index <- grep("Time",colnames(ff@exprs))
-    channels <- colnames(ff@exprs)[-time_index]
+  # Make sure that channels only consist out of the colnames of ff@exprs
+  results$Channels <- channels
+  channels <- colnames(ff@exprs)[channels]
 
-  } else if (is.numeric(channels)){ #If numbers are given we select the correct channel names
-    channels <- colnames(ff@exprs)[channels]
-  }
-
-  results <- list()
-
-  ff_orig <- ff
 
   # Split the ff up in bins (overlapping)
-  different_breaks <- splitWithOverlap(c(1:nrow(ff)),
-                                       events_per_bin,
-                                       ceiling(events_per_bin/2))
+  breaks <- SplitWithOverlap(c(1:nrow(ff)),
+    events_per_bin,
+    ceiling(events_per_bin/2))
 
-  names(different_breaks) <- seq_along(different_breaks)
+  names(breaks) <- seq_along(breaks)
 
 
   # If not enough bins are made, at least 100 should be present
-  if (length(different_breaks) < 100){
+  if (length(breaks) < 100){
     events_per_bin <- ceiling(nrow(ff)/100) *2
-    different_breaks <- splitWithOverlap(c(1:nrow(ff)),
-                                         events_per_bin,
-                                         ceiling(events_per_bin/2))
+    breaks <- SplitWithOverlap(c(1:nrow(ff)),
+      events_per_bin,
+      ceiling(events_per_bin/2))
 
-    names(different_breaks) <- seq_along(different_breaks)
+    names(breaks) <- seq_along(breaks)
 
   }
 
-  # This is purely for plotting purposes (Change to plotPeacoQC function?)
-  mid_breaks_channel <- splitWithOverlapMids(c(1:nrow(ff)),
-                                             events_per_bin,
-                                             ceiling(events_per_bin/2))
-  m <-  nrow(ff@exprs)%%events_per_bin
-
-
-  # if not zero, you have something to add to your sequence
-  if(m != 0) {
-
-    mid_breaks_channel = c(mid_breaks_channel, nrow(ff@exprs))
-  }
-
-
-
-  results$Breaks <- different_breaks
-
-  results$MidBreaks <- mid_breaks_channel
-
+  results$Breaks <- breaks
 
   # Check if there is an increasing or decreasing trent in the channels
   weird_channel_increasing <- NULL
@@ -81,36 +158,38 @@ PeacoQC <- function(ff,
 
   for (channel in channels){
 
-    channel_medians <- sapply(different_breaks,
-                              function(x){median(ff@exprs[x,channel])})
+    channel_medians <- sapply(breaks,
+      function(x){stats::median(ff@exprs[x,channel])})
 
-    smoothed <- ksmooth(seq_along(channel_medians),
-                        channel_medians,
-                        x.points = seq_along(channel_medians),
-                        bandwidth = 50)
+    smoothed <- stats::ksmooth(seq_along(channel_medians),
+      channel_medians,
+      x.points = seq_along(channel_medians),
+      bandwidth = 50)
 
     increasing <- cummax(smoothed$y) == smoothed$y
     decreasing <- cummin(smoothed$y) == smoothed$y
 
+    marker_name <- flowCore::getChannelMarker(ff, channel)$desc
+
     if (length(which(increasing)) > (1/2)*length(increasing)){
       warning(paste0("There seems to be an increasing trent in channel ",
-                     FlowSOM::get_markers(ff, channel),
-                     "for file ",basename(ff@description$FILENAME),
-                     ". Please inspect this before doing any further analysis"))
-      plot(channel_medians, main = FlowSOM::get_markers(ff, channel))
+        marker_name,
+        "for file ",basename(ff@description$FILENAME),
+        ". Please inspect this before doing any further analysis"))
+      plot(channel_medians, main = marker_name)
       weird_channel_increasing <- c(weird_channel_increasing, channel)
     } else if (length(which(decreasing)) > (1/2)*length(decreasing)){
       warning(paste0("There seems to be a decreasing trent in channel ",
-                     FlowSOM::get_markers(ff, channel),
-                     "for file ",basename(ff@description$FILENAME),
-                     ". Please inspect this before doing any further analysis"))
-      plot(channel_medians, main = FlowSOM::get_markers(ff, channel))
+        marker_name,
+        "for file ",basename(ff@description$FILENAME),
+        ". Please inspect this before doing any further analysis"))
+      plot(channel_medians, main = marker_name)
       weird_channel_decreasing <- c(weird_channel_decreasing, channel)
     }
   }
 
   results$WeirdChannels <- list("Increasing"= weird_channel_increasing,
-                                "Decreasing" = weird_channel_decreasing)
+    "Decreasing" = weird_channel_decreasing)
 
   peak_values_bin  <- list()
 
@@ -119,16 +198,16 @@ PeacoQC <- function(ff,
   i <- 0
   message("Calculating peaks")
   pb <-  utils::txtProgressBar(min = 0, max = length(channels), initial = 0,
-                               char = "+", style = 3, width = 50)
-  setTxtProgressBar(pb,i)
+    char = "+", style = 3, width = 50)
+  utils::setTxtProgressBar(pb,i)
 
   channel <- channels[2]
 
   for (channel in channels){
     i <- i +1
-    peak_frame <- DetermineAllPeaks(ff, channel, different_breaks)
+    peak_frame <- DetermineAllPeaks(ff, channel, breaks)
     if (class(peak_frame) == "logical"){
-      setTxtProgressBar(pb,i)
+      utils::setTxtProgressBar(pb,i)
       next()
     }
 
@@ -137,8 +216,8 @@ PeacoQC <- function(ff,
     for (peak in unique(peak_frame$Cluster)){
       peak_ind <- peak_frame$Cluster == peak
       peak_data <- peak_frame[peak_ind,]
-      peak_vector <- rep(median(peak_data$Peak),
-                         length(different_breaks))
+      peak_vector <- rep(stats::median(peak_data$Peak),
+        length(breaks))
 
       peak_vector[as.numeric(peak_data$Bin)] <- peak_data$Peak
 
@@ -152,7 +231,7 @@ PeacoQC <- function(ff,
 
     results[[channel]] <- peak_frame
 
-    setTxtProgressBar(pb,i)
+    utils::setTxtProgressBar(pb,i)
   }
 
   close(pb)
@@ -161,7 +240,7 @@ PeacoQC <- function(ff,
 
   all_peaks <- do.call(cbind, peak_values)
 
-  all_peaks <- all_peaks %>% as.data.frame()
+  all_peaks <- as.data.frame(all_peaks)
 
   rownames(all_peaks) <- names(peak_values[[1]])
 
@@ -176,33 +255,40 @@ PeacoQC <- function(ff,
 
     if (length(which(outlier_bins)) < 3){
       stop(paste0("There is an issue with file ",basename(ff@description$FILENAME),
-                  ". There are no good cells left to perform quality control."))
+        ". There are no good cells left to perform quality control."))
     }
 
     data_for_trees <- all_peaks[outlier_bins,]
 
-    tree <- isolationTreeSD(data_for_trees, gain_limit = IT_limit, plot = plot_tree)
+    tree <- isolationTreeSD(data_for_trees, gain_limit = IT_limit)
     results$IT <- tree
 
-    scores_to_use <- na.omit(tree$res[,c("n_datapoints", "anomaly_score")])
+    scores_to_use <- stats::na.omit(tree$res[,c("n_datapoints", "anomaly_score")])
     node_to_keep <- rownames(scores_to_use)[which.max(scores_to_use$n_datapoints)]
+
+    IT_cells <- rep(TRUE, nrow(ff))
+
 
     bins_isolated <- tree$selection[as.numeric(node_to_keep),]
     names(bins_isolated) <- which(outlier_bins == TRUE)
 
     outlier_bins[outlier_bins] <- bins_isolated
 
-    removed_cells_IT <- different_breaks[names(bins_isolated)
-                                         [which(bins_isolated == FALSE)]] %>%
-      unlist
+    removed_cells_IT <- unlist(breaks[names(bins_isolated)
+      [which(bins_isolated == FALSE)]])
     removed_cells_IT <- removed_cells_IT[!duplicated(removed_cells_IT)]
 
-    perc_IT <- length(removed_cells_IT)/nrow(ff_orig)
+    IT_cells[removed_cells_IT] <- FALSE
+
+    results$OutlierIT <- IT_cells
+
+
+    perc_IT <- length(removed_cells_IT)/nrow(ff)
     perc_IT <- perc_IT * 100
 
     message(paste0("IT analysis removed ",
-                   paste0(round(perc_IT,2),
-                          " % of the measurements" )))
+      paste0(round(perc_IT,2),
+        " % of the measurements" )))
 
     results$ITPercentage <- perc_IT
 
@@ -218,38 +304,37 @@ PeacoQC <- function(ff,
 
     if (length(which(outlier_bins)) < 3){
       stop(paste0("There is an issue with file ",basename(ff@description$FILENAME),
-                  ". There are no good cells left to perform quality control."))
+        ". There are no good cells left to perform quality control."))
     }
 
     perc_not_outliers <- length(which(outlier_bins == TRUE))/length(outlier_bins)
 
 
-    outlier_bins_df <- Flag.Outliers(all_peaks[outlier_bins,],MAD)
+    outlier_bins_df <- MADOutlierMethod(all_peaks[outlier_bins,],MAD)
 
     outlier_bins_MAD <- apply(outlier_bins_df, 1, any)
 
     names(outlier_bins_MAD) <- which(outlier_bins == TRUE)
 
     contribution_MAD <- apply(outlier_bins_df, 2,
-                              function(x){length(which(x == TRUE))/
-                                  (length(x)*perc_not_outliers)})
+      function(x){length(which(x == TRUE))/
+          (length(x)*perc_not_outliers)})
 
     contribution_MAD <- round(contribution_MAD*100,2)
 
-    mad_cells <- rep(TRUE, nrow(ff_orig))
+    mad_cells <- rep(TRUE, nrow(ff))
 
-    removed_cells_MAD <- different_breaks[names(outlier_bins_MAD)
-                                          [which(outlier_bins_MAD == TRUE)]] %>%
-      unlist
+    removed_cells_MAD <- unlist(breaks[names(outlier_bins_MAD)
+      [which(outlier_bins_MAD == TRUE)]])
     removed_cells_MAD <- removed_cells_MAD[!duplicated(removed_cells_MAD)]
 
-    perc_outliers <- length(removed_cells_MAD)/nrow(ff_orig)
+    perc_outliers <- length(removed_cells_MAD)/nrow(ff)
 
     perc_outliers <- perc_outliers * 100
 
     message(paste0("MAD analysis removed ",
-                   paste0(round(perc_outliers,2),
-                          " % of the measurements" )))
+      paste0(round(perc_outliers,2),
+        " % of the measurements" )))
 
     results$ContributionMad <- contribution_MAD
 
@@ -272,18 +357,17 @@ PeacoQC <- function(ff,
 
     # Determine which cells should also be removed because they fall inbetween FALSE regions
     outlier_bins_new <- inverse.rle(within.list(rle(outlier_bins),
-                                                values[lengths<consecutive_bins]
-                                                <- FALSE))
+      values[lengths<consecutive_bins]
+      <- FALSE))
 
-    consecutive_cells <- rep(TRUE, nrow(ff_orig))
+    consecutive_cells <- rep(TRUE, nrow(ff))
 
     consecutive_bins_to_remove <- !(outlier_bins_new == outlier_bins)
 
     names(consecutive_bins_to_remove) <- seq_along(outlier_bins_new)
 
-    removed_cells_consec <- different_breaks[names(consecutive_bins_to_remove)
-                                             [which(consecutive_bins_to_remove == TRUE)]] %>%
-      unlist
+    removed_cells_consec <- unlist(breaks[names(consecutive_bins_to_remove)
+      [which(consecutive_bins_to_remove == TRUE)]])
     removed_cells_consec <- removed_cells_consec[!duplicated(removed_cells_consec)]
 
 
@@ -297,39 +381,39 @@ PeacoQC <- function(ff,
     to_remove_bins <- which(outlier_bins == FALSE)
 
 
-    removed_cells <- different_breaks[to_remove_bins] %>% unlist
+    removed_cells <- unlist(breaks[to_remove_bins])
 
     removed_cells <- removed_cells[!duplicated(removed_cells)]
 
 
     # Summary of entire analysis
-    bad_cells <- rep(TRUE, nrow(ff_orig))
+    bad_cells <- rep(TRUE, nrow(ff))
 
     bad_cells[removed_cells] <- FALSE
 
-    ff_orig <- Append_GoodCells(ff_orig,  bad_cells)
+    ff_orig <- Append_GoodCells(ff,  bad_cells)
 
 
     percentage_removed <- (length(which(bad_cells == FALSE))/length(bad_cells))*100
 
     message(paste0("The algorithm removed ",
-                   round(percentage_removed,2),
-                   "% of the measurements"))
+      round(percentage_removed,2),
+      "% of the measurements"))
 
     results$remove_bins <- to_remove_bins
     results$GoodCells <- bad_cells
     results$PercentageRemoved <- percentage_removed
-    if(PercentageRemoved > 70){
+    if(percentage_removed > 70){
       warning(paste0("There was ", round(percentage_removed,3),
-                     "% of the measurements removed for file ",
-                     basename(ff@description$FILENAME)))
+        "% of the measurements removed for file ",
+        basename(ff@description$FILENAME)))
     }
   }
 
   # ----------------------- Final results ------------------------------------
 
   results$AllPeaks <- all_peaks
-  results$FinalFF <- ff_orig
+  results$FinalFF <- ff[results$GoodCells,]
   end_time <- Sys.time()
 
   results$Time <- end_time - start_time
@@ -338,454 +422,391 @@ PeacoQC <- function(ff,
 
   if (plot == TRUE){
     message("Plotting the results")
-    PlotPeacoQC(ff = results$FinalFF,
-                show_peaks = results,
-                output_directory = output_directory,
-                channels = channels,
-                acc_score = paste0(round(results$PercentageRemoved, 3),"% of the data was removed."))
+    PlotPeacoQC(ff = ff,
+      peaks = results,
+      output_directory = output_directory,
+      channels = results$Channels,
+      title_FR = paste0(round(results$PercentageRemoved, 3),"% of the data was removed."),
+      ...)
+  }
+
+  if (save_fcs == TRUE){
+    message("Saving fcs file")
+    flowCore::write.FCS(ff[results$GoodCells,],file.path(output_directory,
+      paste0(sub(".fcs", "", basename(ff@description$FILENAME)),"_QC.fcs")))
   }
 
   return(results)
 
 }
+#' @title Visualise deleted cells of PeacoQC
+#'
+#' @description \code{PlotPeacoQC} will generate a png file with on overview of the flow rate and the different selected channels. These will be annotated based on the measurements that were removed by PeacoQC. It is also possible to only display the quantiles and median or only the measurements without any annotation.
+#'
+#' @usage
+#' PlotPeacoQC(ff, channels, output_directory = ".", display_cells = 5000,
+#'             manual_cells = NULL, title_FR = NULL, peaks = TRUE,
+#'             prefix = "PeacoQC_")
+#'
+#' @param ff A flowframe
+#' @param channels Indices of the channels in the ff that have to be plotted
+#' @param output_directory Directory where the plots should be generated. Set to NULL if no plots need to be generated
+#' @param display_cells The number of measurements that should be displayed. (The number of dots that are displayed for every channel)
+#' @param manual_cells THIS HAS TO BE REMOVED FOR THE FINAL VERSION
+#' @param title_FR The title that has to be displayed above the flow rate figure
+#' @param peaks If set to TRUE: \code{PeacoQC} will be run and the peaks will be displayed. If the result of \code{PeacoQC} is given, all the quality control results will be visualised.
+#' @param prefix The prefix that will be given to the generated png file
+#'
+#' @return This function returns nothing but generates a png file in the output_directory
+#'
+#' @import ggplot2
+#'
+#' @examples
+#' \dontrun{
+#' # Read in flowframe SHOULD BE  ADAPTED!!!!!!!!!!!
+#' ff <- read.FCS(file)
+#' # Determine the channels on which quality control should be performed
+#' channels <- colnames(ff@@exprs)[c(1,3,5:10)]
+#' peacoqc_res <- PeacoQC(ff = ff, channels = channels, determine_good_cells = TRUE,
+#'                        output_directory = ".", plot = TRUE)
+#'}
+#' @export
+PlotPeacoQC <- function(ff,
+  channels,
+  output_directory = ".",
+  display_cells = 5000,
+  manual_cells = NULL,
+  title_FR = NULL,
+  peaks = TRUE,
+  prefix = "PeacoQC_") {
+
+  requireNamespace("ggplot2")
 
 
-# ---------------------- PeacoQC: detection of peaks --------------------------
+  if(!class(ff) == "flowFrame" | is.null(ff))
+    stop("ff should be a flowFrame")
+  if(!is.numeric(channels)| is.null(channels))
+    stop("The channel parameter should consist out of indices that correspond to the channels in ff.")
+  if(is.null(output_directory))
+    stop("There should be a path given to the output_directory parameter.")
 
 
-DetermineAllPeaks <- function(ff, channel, different_breaks){
+  # Make folder
 
-  full_channel_peaks <- find_them_peaks(ff@exprs[,channel])$Peaks
+  suppressWarnings(dir.create(output_directory))
 
-  if (length(full_channel_peaks)<1){
-    # warning(paste0("There seems to be an issue in channel ", channel,
-    #                ". No peaks were found."))
-    # plot(density(ff@exprs[,channel]), main = paste0("Density: ", channel))
-    return(NA)
+  # Plot acc score if one is listed in given arguments
+  if (!is.null(title_FR)) {
+    scores_time <- title_FR
+  } else {
+    scores_time <- ""
+  }
+
+  filename <- basename(ff@description$FILENAME)
+
+  # Name to put on plotfile
+  name <- sub(".fcs", "", filename)
+
+  n_channels <- length(channels)
+  if (missing(channels)) {
+    time_index <- grep("Time", colnames(ff@exprs))
+    channels <- colnames(ff@exprs)[-time_index]
+
+  } else if (is.numeric(channels)) {
+    channels <- colnames(ff@exprs)[channels]
   }
 
 
-  peak_results <- list()
+  # Determining grid to plot
+  n_row <- floor(sqrt(n_channels + 2))
+  n_col <- ceiling((n_channels + 2)/n_row)
 
-  marker <- FlowSOM::get_markers(ff, channel)
-
-  minimum <- min(ff@exprs[,channel])
-  maximum <- max(ff@exprs[,channel])
-  range <- abs(minimum) + abs(maximum)
   set.seed(1)
-
-  splits <- lapply(different_breaks, function(x){find_them_peaks(ff@exprs[x,channel])})
-
-  peaks <- lapply(splits, with, Peaks)
-
-  names(peaks) <- seq_len(length(peaks))
-
-  peak_frame <- plyr::ldply(peaks, cbind)
-
-  colnames(peak_frame) <- c("Bin", "Peak")
-
-
-  # Remove NA values (bins where no peaks were found)
-
-  if (length(which(is.na(peak_frame$Peak))) > 0){
-
-    peak_frame <- peak_frame[!is.na(peak_frame[,2]),]
-    peaks <-peaks[!is.na(peaks)]
-
+  # Subset of points that will be plotted
+  if (nrow(ff) >= 50000) {
+    subset_timeplot <- sort(sample(seq_len(nrow(ff)), 50000))
+  } else {
+    subset_timeplot <- seq_len(nrow(ff))
   }
 
-  lengths <- sapply(peaks, length)
-
-
-  nr_peaks <- unique(lengths)
-  nr_peaks_in_bins <- tabulate(match(lengths, nr_peaks))
-
-
-  total_full_length_peaks <- length(full_channel_peaks)
-
-
-  most_occuring_peaks <- max(nr_peaks[which(tabulate(match(lengths, nr_peaks))
-                                            > (0.2)*length(lengths))])
-
-  ind_bins_nr_peaks <- lengths == most_occuring_peaks
-  limited_nr_peaks <- do.call(rbind, peaks[ind_bins_nr_peaks])
-  medians_to_use <- apply(limited_nr_peaks, 2, median)
-
-
-
-  # Trying to find the medians for the bins with the smaller amount of peaks
-  #and using these as initial cluster centra kmeans
-
-  if (length(medians_to_use) > 1) {
-
-    # peak_clustering <- kmeans(peak_frame[,2], centers = peaks_medians)
-    peak_clustering <- kmeans(peak_frame[,2], centers = medians_to_use)
-
-    cluster_medians <- peak_clustering$centers
-
-    names(cluster_medians) <- rownames(peak_clustering$centers)
-    peak_frame <- cbind(peak_frame, "Cluster"= factor(peak_clustering$cluster))
-
-    final_medians <- c()
-
-    to_use_clusters <- names(cluster_medians)[sapply(full_channel_peaks,
-                                                     function(x)which.min(abs(x-cluster_medians)))]
-
-    peak_frame <- peak_frame[peak_frame$Cluster %in% to_use_clusters,]
-
-    final_medians <- medians_to_use[which(names(cluster_medians) %in% to_use_clusters)]
-
-
-  } else { # If only one peak was found per bin, no kmeans has to happen
-    peak_frame <- cbind(peak_frame, "Cluster"= rep("1", dim(peak_frame)[1]))
-    final_medians <- median(peak_frame$Peak)
-
+  if (display_cells > nrow(ff)) {
+    print("There are less then the number of display cells available.
+      Setting the number of display cells to the number of measurements.")
+    display_cells <- nrow(ff)
   }
 
+  subset_signalplot <- sort(sample(seq_len(nrow(ff)), display_cells))
 
-  bin_list <- lapply(unique(peak_frame$Bin),
-                     DuplicatePeaks,
-                     peak_frame,
-                     final_medians)
-
-  peak_frame <- do.call(rbind, bin_list)
-  rownames(peak_frame) <- c(1:dim(peak_frame)[1])
-
-
-  #Removes clusters that are too small to be used for isolation forest (< 1/3 of the data)
-
-  peak_frame <- TooSmallClusters(peak_frame, peak_frame$Cluster)
-
-  return(peak_frame)
-
-}
+  # Calculating time breaks
+  breaks <- cut(ff@exprs[, "Time"],
+    breaks = seq(0, max(ff@exprs[, "Time"]) + 100, by = 100),
+    labels = FALSE)
+  mid_breaks <- seq(50, max(ff@exprs[, "Time"]) + 50, by = 100)
 
 
-# ----------------------------- Find them peaks -------------------------------
+  h <- graphics::hist(ff@exprs[subset_timeplot, "Time"],
+    breaks = seq(0, max(ff@exprs[, "Time"]) + 100, by = 100),
+    plot = FALSE)
+
+  idcs <- findInterval(ff@exprs[subset_timeplot, "Time"], h$breaks)
 
 
-find_them_peaks <- function (obj)
-{
-  x <- obj
-  n <- which(!is.na(x))
-  if (length(n) < 3) {
-    return(list(Peaks = NA, P.ind = 0, P.h = 0))
-  }
+  # Calculate backgroundvalues for points on plot, rectangle block and CV values after automated qc
 
-  data <- x
-
-  dens <- density(data[which(!is.na(data))], adjust = 1)
-  dens <- smooth.spline(dens$x, dens$y, spar = 0.6)
-  dens$y[which(dens$y < 0)] <- 0
-
-  all.peaks <- actual_find_them_peaks(dens$y)
-
-  peaks <- list("Heights" = all.peaks[,1], "Peaks" = dens$x[all.peaks[,2]])
-
-  return(peaks)
-}
+  if (!is.null(peaks$GoodCells)) {
 
 
-actual_find_them_peaks <- function (x, nups = 1, ndowns = nups,
-                                    minpeakheight = 1/4)
-{
-  # Eerste afgeleide
-  xc <- paste(as.character(sign(diff(x))), collapse = "")
-  xc <- gsub("1", "+", gsub("-1", "-", xc))
-  peakpat <- sprintf("[+]{%d,}[-]{%d,}", nups, ndowns)
-  rc <- gregexpr(peakpat, xc)[[1]]
+    # Make blocks for automated gated algorithms to display on plot
+    run_length <- rle(peaks$GoodCells)
 
-  if (rc[1] < 0)
-    return(NULL)
-  x1 <- rc
-  x2 <- rc + attr(rc, "match.length")
-  attributes(x1) <- NULL
-  attributes(x2) <- NULL
-  n <- length(x1)
-  xv <- xp <- numeric(n)
-  for (i in 1:n) {
-    xp[i] <- which.max(x[x1[i]:x2[i]]) + x1[i] - 1
-    xv[i] <- x[xp[i]]
-  }
-  minpeakheight <- max(x) * minpeakheight
-
-  inds <- which(xv >= minpeakheight & xv - pmax(x[x1], x[x2]) >=
-                  0)
-  X <- cbind(xv[inds], xp[inds], x1[inds], x2[inds])
-  if (length(X) == 0)
-    return(c())
-  return(X)
-}
+    full_QC_vector <- ifelse(peaks$GoodCells == TRUE, TRUE, FALSE)
 
 
-
-# ------------------------------- Remove duplicate peaks ----------------------
-
-DuplicatePeaks <- function(i, data, medians ){
-  to_use <- data[data$Bin == i,]
-  duplicates <- to_use$Cluster[ duplicated(to_use$Cluster)] %>% as.numeric()
-  for (duplex in duplicates){
-    ind <- which(to_use$Cluster == duplex)
-
-    diff <- abs(to_use$Peak[to_use$Cluster == duplex] - medians[duplex])
-    to_use <- to_use[-ind[which.max(diff)],]
-  }
-
-  to_use <- to_use[order(to_use$Cluster),]
-
-
-  return(to_use)
-}
-
-# ------------------------ Find the medians per cluster -----------------------
-
-clusterMedian = function(i, data, clusters) {
-  ind = (clusters == i)
-  mediancluster <-  median(data[ind])
-  names(mediancluster) <- i
-  return(mediancluster)
-}
-
-
-# ------------------------- Remove too small clusters -------------------------
-
-#if the cluster is smaller than 1/10th of the binnr, remove it!
-
-TooSmallClusters <- function(data, clusters ){
-  for (cluster in unique(clusters)){
-    if (length(which(clusters == cluster)) < length(unique(data$Bin))*(2/3)){
-      ind <-  which(clusters == cluster)
-      data <- data[-ind,]
+    consecutive_cells <- which(peaks$ConsecutiveCells == FALSE)
+    if (length(consecutive_cells) > 0) {
+      full_QC_vector[!peaks$ConsecutiveCells] <- "consecutive"
+      run_length <- rle(full_QC_vector)
 
     }
+
+    mad_cells <- which(peaks$OutlierMads == FALSE)
+    if (length(mad_cells) > 0) {
+      full_QC_vector[!peaks$OutlierMads] <- "mad"
+      run_length <- rle(full_QC_vector)
+
+    }
+
+    fill_blocks <- ifelse(run_length$values == TRUE, "Good values",
+      ifelse(run_length$values == "consecutive", "In consecutive bins",
+        ifelse(run_length$values ==
+            FALSE, "IT", "MAD")))
+
+    x_min <- c(1, cumsum(run_length$lengths)[-length(run_length$lengths)])
+    x_max <- cumsum(run_length$lengths)
+
+    overview_blocks <- data.frame(x_min = x_min,
+      x_max = x_max,
+      y_min = -Inf,
+      y_max = Inf,
+      fill_blocks = fill_blocks)
+
+    x_min <- ff@exprs[, "Time"][c(1, cumsum(run_length$lengths)[-length(run_length$lengths)])]
+    x_max <- ff@exprs[, "Time"][cumsum(run_length$lengths)]
+
+    overview_blocks_background <- data.frame(x_min = x_min,
+      x_max = x_max,
+      y_min = -Inf,
+      y_max = Inf,
+      fill_blocks = fill_blocks)
+
+
+
+
   }
-  return(data)
-}
+
+  # Make blocks for manual gates to display on signalplot + cv score after manual gating flowrate
+  if (!is.null(manual_cells)) {
+    run_length_man <- rle(manual_cells)
 
 
-# ---------------------------- Function to remove outliers based on mad -----
+    fill_blocks_man <- ifelse(run_length_man$values, "deepskyblue1", "indianred1")
+
+    x_min_man <- c(1, cumsum(run_length_man$lengths)[-length(run_length_man$lengths)])
+    x_max_man <- cumsum(run_length_man$lengths)
+
+    manual_blocks <- data.frame(x_min = x_min_man,
+      x_max = x_max_man,
+      y_min = -Inf,
+      y_max = Inf,
+      fill_blocks = fill_blocks_man)
+  }
 
 
-
-FlagOutliers <- function(peak, MAD) {
-
-
-  kernel <- ksmooth(seq_along(peak), peak, x.points = seq_along(peak), bandwidth = 50)
-  median_peak <- median(kernel$y, na.rm=TRUE)
-  mad_peak <- mad(kernel$y)
-
-  upper_interval <- median(median_peak, na.rm=TRUE)+MAD*(mad_peak)
-  lower_interval <- median(median_peak, na.rm=TRUE)-MAD*(mad_peak)
-
-  outliers <- ifelse(kernel$y > upper_interval, TRUE, ifelse(kernel$y < lower_interval, TRUE, FALSE))
-  return(outliers)}
-
-Flag.Outliers<- function(peak_frame, MAD) {
-  to_remove_bins_df <- apply(peak_frame, 2, FlagOutliers, MAD)
-
-  return(to_remove_bins_df)
-}
-
-
-# -------------------------------- Binning ------------------------------------
-
-splitWithOverlap <- function(vec, seg.length, overlap) {
-  starts = seq(1, length(vec), by=seg.length-overlap)
-  ends   = starts + seg.length - 1
-  ends[ends > length(vec)] = length(vec)
-
-  lapply(1:length(starts), function(i) vec[starts[i]:ends[i]])
-}
-
-splitWithOverlapMids <- function(vec, seg.length, overlap) {
-  starts = seq(1, length(vec), by=seg.length-overlap)
-  ends   = starts + seg.length - 1
-  ends[ends > length(vec)] = length(vec)
-
-  mids <- sapply(1:length(starts), function(i) starts[i] + ceiling(overlap/2))
-  mids <- mids[mids < max(vec)]
-  return(mids)
-}
-
-
-# ----------------------- Isolation Tree ------------------------------------
+  # Initiate empty lists for all plots
+  plot_list <- list()
 
 
 
-isolationTreeSD <- function(x, max_depth = as.integer(ceiling(log2(nrow(x)))),
-                            gain_limit = 0.55, plot = FALSE){
+  # Build time plot (FlowRate)
 
-  res <- data.frame(id = 1,
-                    left_child = NA,
-                    right_child = NA,
-                    gain = NA,
-                    split_column = NA,
-                    split_value = NA,
-                    depth = 0,
-                    to_split = TRUE,
-                    path_length = NA )
-  selection <- matrix(TRUE, ncol = nrow(x))
+  p_time <- ggplot() + theme_bw()
 
-
-  nodes_to_split <- which(res$to_split)
-
-  while(length(nodes_to_split) > 0){
-
-    node <- nodes_to_split[1]
-
-    rows <- which(selection[node, ])
-
-    if(length(rows) > 3 & res[node, "depth"] < max_depth){
-      gain_max <- gain_limit
-      split_value <- NA
-      split_col <- NA
-
-      col <- 1
-      for(col in seq_len(ncol(x))){
-        x_col <- sort(x[rows, col])
-        base_sd <- sd(x_col)
-        gain_max_col <- 0
-        split_v <- NA
-        mean_val <- c()
-        for(i in c(1:(length(x_col)-1))){
-
-          sd_1 <- sd(x_col[c(1:i)])
-          sd_2 <- sd(x_col[c((i+1):length(x_col))])
-          mean_val <- c(mean_val, mean(x_col[c(1:i)]))
-
-
-          if (i == 1){
-            sd_1 <- 0
-          } else if (i == length(x_col) - 1){
-            sd_2 <- 0
-          }
-          gain <- (base_sd - mean(c(sd_1,sd_2)))/base_sd
-
-          if (is.na(gain) == TRUE){
-            next()
-          }
-          if(gain >= gain_max_col){
-            gain_max_col <- gain
-            split_v <- x_col[i]
-          }
-        }
-        if(gain_max_col > gain_max){
-          gain_max <- gain_max_col
-          split_value <- split_v
-          split_col <- col
-        }
-      }
-
-      if(!is.na(split_value)) {
-        left_node <- selection[node, ] & x[ ,split_col] <= split_value
-        right_node <- selection[node, ] & x[ , split_col] > split_value
-
-        if(length(which(left_node)) == length(rows) ||
-           length(which(right_node)) == length(rows)){
-          res[node, "to_split"] <- FALSE
-          nodes_to_split <- which(res$to_split==TRUE)
-          n_datapoints <- length(which(selection[,node]))
-          res[node, "path_length"] <- avgPL(n_datapoints) + res[node, "depth"]
-
-
-          next()
-        }
-
-        max_node <- nrow(res)
-        left_id <- max_node + 1
-        right_id <- max_node + 2
-        res[node, c("left_child", "right_child", "gain",
-                    "split_column","split_value","to_split")] <- c(
-                      left_id, right_id, gain_max,
-                      colnames(x)[split_col], split_value, FALSE)
-        res <- rbind(res,
-                     data.frame(id = c(left_id, right_id),
-                                left_child = NA,
-                                right_child = NA,
-                                gain = NA,
-                                split_column = NA,
-                                split_value = NA,
-                                depth = res[node,"depth"]+1,
-                                to_split = TRUE,
-                                path_length = NA))
-
-
-        selection <- rbind(selection, left_node, right_node)
+  p_time <- p_time + theme(panel.grid = element_blank())
 
 
 
+  if (!is.null(peaks$GoodCells)) {
 
-      } else {
-        res[node, "to_split"] <- FALSE
-        n_datapoints <- length(which(selection[node,]))
-        res[node, "path_length"] <- avgPL(n_datapoints) + res[node, "depth"]
+    p_time <- p_time + geom_rect(data = overview_blocks_background,
+      mapping = aes(xmin = x_min,
+        xmax = x_max,
+        ymin = y_min,
+        ymax = y_max,
+        fill = fill_blocks),
+      alpha = 0.4,
+      show.legend = T) + scale_fill_manual(name = "",
+        values = c(IT = "indianred1",
+          MAD = "mediumpurple1",
+          `In consecutive bins` = "plum1",
+          `Good Values` = "white"),
+        guide = guide_legend(override.aes = list(alpha = 0.4)))
+    p_time <- p_time + theme(legend.key = element_rect(colour = "snow4"))
+
+  }
+
+  p_time <- p_time +
+    geom_point(aes(x = h$mids, y = h$counts)) +
+    ggtitle(scores_time) +
+    xlab("Time") + ylab("Nr of cells per second") +
+    theme(plot.title = element_text(size = 10))
 
 
-      }
+
+  # Save time plot in plot list
+  plot_list[["Time"]] <- p_time
+
+
+
+  # -------------------------------- Individual channels -----------------------
+
+  mid_breaks <- SplitWithOverlapMids(c(1:nrow(ff)),
+    events_per_bin,
+    ceiling(events_per_bin/2))
+  m <-  nrow(ff@exprs)%%events_per_bin
+
+
+  # if not zero, you have something to add to your sequence
+  if(m != 0) {
+
+    mid_breaks = c(mid_breaks, nrow(ff@exprs))
+  }
+
+  channel <- channels[2]
+
+
+  for (channel in channels) {
+
+    marker <- flowCore::getChannelMarker(ff, channel)$desc
+
+    minimum <- min(ff@exprs[, channel])
+    maximum <- max(ff@exprs[, channel])
+    range <- abs(minimum) + abs(maximum)
+
+
+    if (!is.null(peaks$GoodCells)) {
+
+      # Show contributions of every channel in MAD and IF
+
+      contribution_MAD <- sum(peaks$ContributionMad[grep(channel,
+        names(peaks$ContributionMad))])
+      contribution_IT <- ifelse(length(grep(channel, peaks$IT$res$split_column)) > 0, "+", "/")
+
+      contributions <- paste0(marker, "\n", "IT: ", contribution_IT, " MAD: ", contribution_MAD, "%")
+
+    } else (contributions <- marker)
+
+
+    if (length(grep(channel, peaks$WeirdChannels$Increasing)) > 0) {
+      contributions <- paste0(contributions, "\n", "WARNING: Increasing channel.")
+    } else if (length(grep(channel, peaks$WeirdChannels$Decreasing)) > 0) {
+      contributions <- paste0(contributions, "\n", "WARNING: Decreasing channel.")
+    }
+
+    flowdata <- data.frame(Cells = subset_signalplot, channel = ff@exprs[subset_signalplot, channel])
+
+
+    # Initial plot
+    p <- ggplot() + ylab("Value") + xlab("Cells") + theme_bw() + theme(plot.title = element_text(hjust = 0), panel.grid = element_blank())
+
+
+    if (!is.null(peaks$GoodCells)) {
+
+      p <- p + geom_rect(data = overview_blocks, mapping = aes(xmin = x_min,
+        xmax = x_max,
+        ymin = y_min,
+        ymax = y_max,
+        fill = fill_blocks),
+        alpha = 0.4,
+        show.legend = T) +
+        scale_fill_manual(name = "",
+          values = c(IT = "indianred1",
+            MAD = "mediumpurple1",
+            `In consecutive bins` = "plum1",
+            `Good Values` = "white"),
+          guide = guide_legend(override.aes = list(alpha = 0.4)))
+      p <- p + theme(legend.key = element_rect(colour = "snow4"))
+      p <- p + geom_point(data = flowdata,
+        aes(x = Cells, y = channel),
+        col = "snow4", size = 0.3)
 
     } else {
-      res[node, "to_split"] <- FALSE
-      n_datapoints <- length(which(selection[node,]))
-      res[node, "path_length"] <- avgPL(n_datapoints) + res[node, "depth"]
+      p <- p + geom_point(data = flowdata,
+        aes(x = Cells, y = channel),
+        size = 0.3,
+        col = "snow4")
+    }
 
+    peak_frame <- peaks[[channel]]
+
+    if (class(peak_frame) == "data.frame") {
+
+      peak_frame$Bin <- as.numeric(mid_breaks)[as.numeric(peak_frame$Bin)]
+
+      colours <- paste0("grey", c(1:20))[1:max(as.numeric(peak_frame[,"Cluster"]))]
+
+      p <- p + geom_line(data = peak_frame, aes(x = Bin,
+        y = Peak,
+        color = Cluster),
+        size = 1,
+        show.legend = FALSE) +
+        scale_color_manual(values = colours)
+    } else {
+      contributions <- paste0(contributions, " No peak was found!")
+    }
+
+    p <- p + ggtitle(contributions)
+
+
+    # Add manual blocks to plot
+    if (!is.null(manual_cells)) {
+
+      if (length(grep("SC", channel)) == 0) {
+
+        manual_blocks$y_min <- minimum - 1
+        manual_blocks$y_max <- minimum - 1.25
+      } else {
+        manual_blocks$y_min <- minimum - 45000
+        manual_blocks$y_max <- minimum - 58000
+      }
+      p <- p + geom_rect(data = manual_blocks,
+        mapping = aes(xmin = x_min,
+          xmax = x_max,
+          ymin = y_min,
+          ymax = y_max),
+        fill = manual_blocks$fill_blocks,
+        alpha = 1)
+
+      p <- p + theme(legend.position = "none")
 
     }
 
-    nodes_to_split <- which(res$to_split==TRUE)
+    p <- p + theme(plot.subtitle = element_text(size = 10, color = "black"))
+
+    # plot(p)
+    plot_list[[channel]] <- p
 
   }
 
-  res$n_datapoints = rowSums(selection)
-  res$anomaly_score = 2^(-(res$path_length)/(avgPL(sum(res$n_datapoints))))
+
+  # To make nice plots
+  g <- ggplotGrob(plot_list[[1]] + theme(legend.position = "bottom"))$grobs
+  legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
+  lheight <- sum(legend$height)
+  plots <- do.call(gridExtra::arrangeGrob, c(lapply(plot_list, function(x) x + theme(legend.position = "none")), nrow = n_row, ncol = n_col))
+  new <- gridExtra::arrangeGrob(plots, legend, heights = grid::unit.c(grid::unit(1, "npc") - lheight, lheight))
 
 
-  if (plot == TRUE){
-    relations <- data.frame(from = c(res$id, res$id),
-                            to = c(res$left_child, res$right_child))
-
-    relations <- na.omit(relations)
-
-    g_1 <- graph_from_data_frame(relations, directed = TRUE, vertices = res)
-    plot.igraph(g_1,
-                layout = layout_as_tree(g_1),
-                vertex.label = rowSums(selection))
-  }
-
-
-  return(list(res = res,
-              selection = selection))
-}
-
-
-
-# ----------------------------- avgPL -----------------------------------------
-
-avgPL <- function(n_datapoints){
-
-  if (n_datapoints -1 == 0){
-    AVG <- 0
-  } else {
-    AVG <- 2*(log(n_datapoints - 1) +  0.5772156649) -
-      (2*(n_datapoints -1))/(n_datapoints)
-  }
-
-  return (AVG)
-}
-
-
-# --------------------------- append column to ff -----------------------------
-
-Append_GoodCells <- function(ff, bad_cells){
-
-  pd <- pData(parameters(ff))
-  new_pd_name <-  ncol(ff@exprs) +1
-  new_pd_name <- paste0("$P", new_pd_name)
-  new_pd <- data.frame(name = "GoodCells", desc = "PeacoQC_Cells", range = 1,
-                       minRange = 0, maxRange = 1)
-  rownames(new_pd) <- new_pd_name
-  pd <- rbind(pd, new_pd)
-  ff@exprs <- cbind(ff@exprs, "GoodCells" = as.numeric(bad_cells))
-  pData(parameters(ff)) <- pd
-  ff
+  ggsave(paste0(output_directory, "/", prefix, name, ".png"),
+    new, width = n_col * 5, height = n_row * 3, limitsize = F)
 
 }
