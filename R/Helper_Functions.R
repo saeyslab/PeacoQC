@@ -133,7 +133,7 @@ FindThemPeaks <- function (channel_data)
   peaks.ind <- c()
   for (i in 1:(length(dens$y) - 2)) {
     if (dens$y[i + 1] > dens$y[(i + 2)] && dens$y[i +
-        1] > dens$y[i] && dens$y[i + 1] > 1/25 *
+        1] > dens$y[i] && dens$y[i + 1] > 0.1 *
         max(dens$y)) {
        peaks.ind <- c(peaks.ind, i + 1)
     }
