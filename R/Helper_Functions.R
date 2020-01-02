@@ -117,7 +117,7 @@ FindThemPeaks <- function (channel_data)
 {
   n <- which(!is.na(channel_data))
   if (length(n) < 3) {
-    return(list(Peaks = NA, P.ind = 0, P.h = 0))
+    return(NA)
   }
 
   dens <- stats::density(channel_data[which(!is.na(channel_data))], adjust = 1)
