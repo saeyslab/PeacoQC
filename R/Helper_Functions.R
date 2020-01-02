@@ -17,9 +17,7 @@ DetermineAllPeaks <- function(ff, channel, breaks){
 
   full_channel_peaks <- FindThemPeaks(ff@exprs[,channel])
 
-  if (length(full_channel_peaks)<1){
-    return(NA)
-  }
+  suppressWarnings(if(is.na(full_channel_peaks) == TRUE) return(NA))
 
 
   peak_results <- list()
@@ -129,57 +127,25 @@ FindThemPeaks <- function (channel_data)
   if (all(is.na(dens)))
     return(NA)
 
-
-  peaks.ind <- c()
-  for (i in 1:(length(dens$y) - 2)) {
-    if (dens$y[i + 1] > dens$y[(i + 2)] && dens$y[i +
-        1] > dens$y[i] && dens$y[i + 1] > 0.1 *
+  w <- 1
+  peaks <- c()
+  for (i in 1:(length(dens$y) - 2 * w)) {
+    if (dens$y[i + w] > dens$y[(i + w + 1):(i + 2 * w)] && dens$y[i +
+        w] > dens$y[i:(i + w - 1)] && dens$y[i + w] > 1/3 *
         max(dens$y)) {
-       peaks.ind <- c(peaks.ind, i + 1)
-    }
+      peaks <- c(peaks, dens$x[i + w])
+      }
   }
-  if (all(is.na(peaks.ind))) {
+  if (all(is.na(peaks))) {
     # warning("No peaks could be found, returning the maximum value of density.")
-    peaks.ind <- which.max(dens$y)
+    peaks <- dens$x[which.max(dens$y)]
+  }
+  if (any(peaks < 0) ){
+    return(NA)
   }
 
-  return(dens$x[peaks.ind])
+  return(peaks)
 }
-
-
-
-
-
-
-
-  # # Eerste afgeleide
-  # first_derivative <- paste(as.character(sign(diff(dens$y))), collapse = "")
-  # first_derivative <- gsub("1", "+", gsub("-1", "-", first_derivative))
-  # peak_attribute <- "[+]{1,}[-]{1,}"
-  # possible_peaks <- gregexpr(peak_attribute, first_derivative)[[1]]
-  #
-  # if (possible_peaks[1] < 0)
-  #   return(NA)
-  # x1 <- possible_peaks
-  # x2 <- possible_peaks + attr(possible_peaks, "match.length")
-  # attributes(x1) <- NULL
-  # attributes(x2) <- NULL
-  # n <- length(x1)
-  # peak_value <- peak_position <- numeric(n)
-  # for (i in 1:n) {
-  #   peak_position[i] <- which.max(dens$y[x1[i]:x2[i]]) + x1[i] - 1
-  #   peak_value[i] <- dens$y[peak_position[i]]
-  # }
-  # minpeakheight <- max(dens$y) * 0.1
-  #
-  # inds <- which(peak_value >= minpeakheight & peak_value - pmax(dens$y[x1], dens$y[x2]) >= 0)
-  # if (length(peak_value) == 0)
-  #   return(NA)
-  #
-  # peaks <- channel_data[peak_position[inds]]
-  #
-  # return(peaks)
-# }
 
 
 # ------------------------------- Remove duplicate peaks ----------------------
