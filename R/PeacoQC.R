@@ -149,6 +149,7 @@ PeacoQC <- function(ff,
 
   }
 
+  results$EventsPerBin <- events_per_bin
   results$Breaks <- breaks
 
   # Check if there is an increasing or decreasing trent in the channels
@@ -170,6 +171,8 @@ PeacoQC <- function(ff,
     decreasing <- cummin(smoothed$y) == smoothed$y
 
     marker_name <- flowCore::getChannelMarker(ff, channel)$desc
+    if(is.na(marker_name))
+      marker_name <- channel
 
     if (length(which(increasing)) > (1/2)*length(increasing)){
       warning(paste0("There seems to be an increasing trent in channel ",
@@ -203,9 +206,12 @@ PeacoQC <- function(ff,
 
   channel <- channels[2]
 
+
   for (channel in channels){
     i <- i +1
+
     peak_frame <- DetermineAllPeaks(ff, channel, breaks)
+
     if (class(peak_frame) == "logical"){
       utils::setTxtProgressBar(pb,i)
       next()
@@ -669,6 +675,8 @@ PlotPeacoQC <- function(ff,
 
   # -------------------------------- Individual channels -----------------------
 
+  events_per_bin <- peaks$EventsPerBin
+
   mid_breaks <- SplitWithOverlapMids(c(1:nrow(ff)),
     events_per_bin,
     ceiling(events_per_bin/2))
@@ -687,6 +695,8 @@ PlotPeacoQC <- function(ff,
   for (channel in channels) {
 
     marker <- flowCore::getChannelMarker(ff, channel)$desc
+    if(is.na(marker))
+      marker <- channel
 
     minimum <- min(ff@exprs[, channel])
     maximum <- max(ff@exprs[, channel])
