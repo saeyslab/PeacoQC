@@ -9,9 +9,9 @@ RemoveMargins(ff, channels, channel_specifications = NULL, output = "frame")
 \arguments{
 \item{ff}{A flowframe}
 
-\item{channels}{The channels that have to be checked for margin events}
+\item{channels}{The channel indices that have to be checked for margin events}
 
-\item{channel_specifications}{A list of lists with parameter specifications per channel. This parameter should only be used if the values in the internal parameters description is too strict. There should be one list per channel with first a minRange and then a maxRange value. This list should have the channel name.}
+\item{channel_specifications}{A list of lists with parameter specifications for certain channels. This parameter should only be used if the values in the internal parameters description is too strict or wrong for a number or all channels. This should be one list per channel with first a minRange and then a maxRange value. This list should have the channel name found back in \code{colnames(ff@exprs)}. If a channel is not listed in this parameter, its default internal values will be used.}
 
 \item{output}{If set to "full", a list with the filtered flowframe and the indices of the margin event is returned. If set to "frame", only the filtered flowframe is returned.}
 }

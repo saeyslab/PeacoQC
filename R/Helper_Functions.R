@@ -70,7 +70,6 @@ DetermineAllPeaks <- function(ff, channel, breaks){
 
   if (length(medians_to_use) > 1) {
 
-    # peak_clustering <- kmeans(peak_frame[,2], centers = peaks_medians)
     peak_clustering <- stats::kmeans(peak_frame[,2], centers = medians_to_use)
 
     cluster_medians <- peak_clustering$centers
@@ -149,15 +148,17 @@ FindThemPeaks <- function (channel_data)
 DuplicatePeaks <- function(i, data, medians ){
   to_use <- data[data$Bin == i,]
   duplicates <- as.numeric(to_use$Cluster[ duplicated(to_use$Cluster)])
-  for (duplex in duplicates){
-    ind <- which(to_use$Cluster == duplex)
+  if(length(duplicates)>0){
 
-    diff <- abs(to_use$Peak[to_use$Cluster == duplex] - medians[duplex])
-    to_use <- to_use[-ind[which.max(diff)],]
+    for (duplex in duplicates){
+      ind <- which(to_use$Cluster == duplex)
+
+      diff <- abs(to_use$Peak[to_use$Cluster == duplex] - medians[duplex])
+      to_use <- to_use[-ind[which.max(diff)],]
+    }
+
+    to_use <- to_use[order(to_use$Cluster),]
   }
-
-  to_use <- to_use[order(to_use$Cluster),]
-
 
   return(to_use)
 }
@@ -242,7 +243,7 @@ SplitWithOverlapMids <- function(vec, seg.length, overlap) {
 
 
 isolationTreeSD <- function(x, max_depth = as.integer(ceiling(log2(nrow(x)))),
-  gain_limit = 0.55){
+  gain_limit){
 
   res <- data.frame(id = 1,
     left_child = NA,
