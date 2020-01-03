@@ -115,27 +115,23 @@ DetermineAllPeaks <- function(ff, channel, breaks){
 
 FindThemPeaks <- function (channel_data)
 {
-  n <- which(!is.na(channel_data))
-  if (length(n) < 3) {
+  if (length(channel_data) < 3) {
     return(NA)
   }
 
-  dens <- stats::density(channel_data[which(!is.na(channel_data))], adjust = 1)
+  dens <- stats::density(channel_data[!is.na(channel_data)], adjust = 1)
   dens <- stats::smooth.spline(dens$x, dens$y, spar = 0.6)
   dens$y[which(dens$y < 0)] <- 0
 
   if (all(is.na(dens)))
     return(NA)
 
-  w <- 1
-  peaks <- c()
-  for (i in 1:(length(dens$y) - 2 * w)) {
-    if (dens$y[i + w] > dens$y[(i + w + 1):(i + 2 * w)] && dens$y[i +
-        w] > dens$y[i:(i + w - 1)] && dens$y[i + w] > 1/3 *
-        max(dens$y)) {
-      peaks <- c(peaks, dens$x[i + w])
-      }
-  }
+  n <- length(dens$y)
+  selection <- (dens$y[2:(n-1)] > dens$y[1:(n-2)]) &
+    (dens$y[2:(n-1)] > dens$y[3:n] ) &
+    (dens$y[2:(n-1)] > (1/3 * max(dens$y)))
+  peaks <- dens$x[-1][selection]
+
   if (all(is.na(peaks))) {
     # warning("No peaks could be found, returning the maximum value of density.")
     peaks <- dens$x[which.max(dens$y)]
