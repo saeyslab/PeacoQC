@@ -68,7 +68,7 @@ RemoveMargins <- function(ff, channels, channel_specifications = NULL, output = 
 #'
 #' @param ff A flowframe or the location of an fcs file
 #' @param channels Indices of the channels in the ff on which peaks have to be determined.
-#' @param determine_good_cells If set to FALSE, the algorithm will only determine peaks. If TRUE, the bad measurements will be filtered out. It can also be put to "MAD" or "IT" to only use one method of filtering.
+#' @param determine_good_cells If set to FALSE, the algorithm will only determine peaks. If it is set to "all", the bad measurements will be filtered out based on the MAD and IT analysis. It can also be put to "MAD" or "IT" to only use one method of filtering.
 #' @param plot If set to TRUE, the \code{PlotPeacoQC} function is run to make an overview plot of the deleted measurements.
 #' @param save_fcs If set to TRUE, the cleaned fcs file will be saved in the \code{output_directory} as: filename_QC.fcs.
 #' @param output_directory Directory where a new folder will be created that consists of the generated fcs files, plots and report. If set to NULL, nothing will be stored.
@@ -112,6 +112,12 @@ PeacoQC <- function(ff,
     stop("ff should be a flowFrame")
   if(!is.numeric(channels)| is.null(channels))
     stop("The channel parameter should consist out of indices that correspond to the channels in ff.")
+  if(is.null(output_directory) & save_fcs == TRUE)
+    warning("Since the output directory is NULL, no fcs files will be stored.")
+  if(is.null(output_directory) & report == TRUE)
+    warning("Since the output directory is NULL, no report will be generated.")
+  if(is.null(output_directory) & plot == TRUE)
+    warning("Since the output directory is NULL, no plots will be generated.")
 
 
   # Make a new directory where all results will be stored
@@ -121,6 +127,18 @@ PeacoQC <- function(ff,
     if (save_fcs == TRUE){
       fcs_directory <- file.path(storing_directory, "fcs_files")
       suppressWarnings(dir.create(fcs_directory))
+    }
+    if (report == TRUE){
+      report_location <- file.path(storing_directory, paste0("PeacoQC_report",
+        ".txt"))
+      if (!file.exists(report_location)) {
+        write.table(t(c("Filename", "Nr. Measurements",
+          "% removed measurements", "Analysis by", "% MAD analysis",
+          "% IT analysis", "MAD parameter","IT parameter", "Consecutive bins parameter",
+          "events_per_bin")),
+          report_location, sep = "\t", row.names = FALSE,
+          quote = FALSE, col.names = FALSE)
+      }
     }
   }
 
@@ -268,7 +286,7 @@ PeacoQC <- function(ff,
 
   # ------------------------ Isolation Tree  ----------------------------------
 
-  if (determine_good_cells == TRUE || determine_good_cells == "IT"){
+  if (determine_good_cells == "all" || determine_good_cells == "IT"){
 
     if (length(which(outlier_bins)) < 3){
       stop(paste0("There is an issue with file ",basename(ff@description$FILENAME),
@@ -317,7 +335,7 @@ PeacoQC <- function(ff,
   # Bins that were selected based on their mad
 
 
-  if (determine_good_cells == TRUE || determine_good_cells == "MAD"){
+  if (determine_good_cells == "all" || determine_good_cells == "MAD"){
 
     if (length(which(outlier_bins)) < 3){
       stop(paste0("There is an issue with file ",basename(ff@description$FILENAME),
@@ -370,7 +388,7 @@ PeacoQC <- function(ff,
   # ------------------------- indicate bad cells ----------------------------
 
 
-  if (determine_good_cells %in% c(TRUE, "IT", "MAD")){
+  if (determine_good_cells %in% c("all", "IT", "MAD")){
 
     # Determine which cells should also be removed because they fall inbetween FALSE regions
     outlier_bins_new <- inverse.rle(within.list(rle(outlier_bins),
@@ -425,6 +443,27 @@ PeacoQC <- function(ff,
         "% of the measurements removed for file ",
         basename(ff@description$FILENAME)))
     }
+
+
+
+
+    # -----------------  Does the file need to be saved in an fcs? --------------
+    if (save_fcs == TRUE & !is.null(output_directory)){
+      message("Saving fcs file")
+      flowCore::write.FCS(ff[results$GoodCells,],file.path(fcs_directory,
+        paste0(sub(".fcs", "", basename(ff@description$FILENAME)),"_QC.fcs")))
+    }
+
+
+    # ----------------- Does an overview file need to be generated? --------------
+
+    if (report == TRUE & !is.null(output_directory)){
+      write.table(t(c(basename(ff@description$FILENAME), nrow(ff),
+        results$PercentageRemoved, determine_good_cells, results$MADPercentage,
+        results$ITPercentage, MAD, IT_limit, consecutive_bins, events_per_bin)),
+        report_location, sep = "\t", append = TRUE, row.names = FALSE,
+        quote = FALSE, col.names = FALSE)
+    }
   }
 
   # ----------------------- Final results -------------------------------------
@@ -437,7 +476,7 @@ PeacoQC <- function(ff,
 
   #---------------- Does the file need to be plotted? -------------------------
 
-  if (plot == TRUE){
+  if (plot == TRUE & !is.null(output_directory)){
     message("Plotting the results")
     PlotPeacoQC(ff = ff,
       peaks = results,
@@ -448,26 +487,6 @@ PeacoQC <- function(ff,
   }
 
 
-  # -----------------  Does the file need to be saved in an fcs? --------------
-  if (save_fcs == TRUE){
-    message("Saving fcs file")
-    flowCore::write.FCS(ff[results$GoodCells,],file.path(fcs_directory,
-      paste0(sub(".fcs", "", basename(ff@description$FILENAME)),"_QC.fcs")))
-  }
-
-
-  # ----------------- Does an overview file need to be generated? --------------
-
-  minireport <- paste0(folder_results, mini_report,
-    ".txt")
-  if (!file.exists(minireport)) {
-    write.table(t(c("Name file", "n. of events",
-      "% anomalies", "analysis from", "% anomalies flow Rate",
-      "% anomalies Signal", "% anomalies Margins")),
-      minireport, sep = "\t", row.names = FALSE,
-      quote = FALSE, col.names = FALSE)
-
-  }
 
   return(results)
 
