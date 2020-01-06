@@ -5,8 +5,8 @@
 #' @usage RemoveMargins(ff, channels, channel_specifications = NULL, output = "frame")
 #'
 #' @param ff A flowframe
-#' @param channels The channels that have to be checked for margin events
-#' @param channel_specifications A list of lists with parameter specifications per channel. This parameter should only be used if the values in the internal parameters description is too strict. There should be one list per channel with first a minRange and then a maxRange value. This list should have the channel name.
+#' @param channels The channel indices that have to be checked for margin events
+#' @param channel_specifications A list of lists with parameter specifications for certain channels. This parameter should only be used if the values in the internal parameters description is too strict or wrong for a number or all channels. This should be one list per channel with first a minRange and then a maxRange value. This list should have the channel name found back in \code{colnames(ff@exprs)}. If a channel is not listed in this parameter, its default internal values will be used.
 #' @param output If set to "full", a list with the filtered flowframe and the indices of the margin event is returned. If set to "frame", only the filtered flowframe is returned.
 #'
 #' @importFrom flowWorkspace pData
@@ -21,30 +21,24 @@ RemoveMargins <- function(ff, channels, channel_specifications = NULL, output = 
   if(!all(lengths(channel_specifications) == 2) & !is.null(channel_specifications))
     stop("channel_specifications should be a list of lists. Every list should have the channel name and should contain a minRange and maxRange value.")
   if(is.null(names(channel_specifications)) & !is.null(channel_specifications))
-    stop("channel_specifications should be a list of named lists. Make sure that the names correspend with the channel names")
+    stop("channel_specifications should be a list of named lists. Make sure that the names correspend with the channel names.")
   if(!all(names(channel_specifications) %in% colnames(ff@exprs)) & !is.null(channel_specifications))
-    stop("channel_specifications should be a list of named lists. Make sure that the names correspend with the channel names")
-  if(!all(channels %in% names(channel_specifications)) & !is.null(channel_specifications))
-    stop("Not all channels are represented in channel_specificiations. Make sure that you have a list with a  minRange and MaxRange for every channel specified in the channel parameter")
-  if(is.numeric(channels))
-    stop("Make sure that you use the channel names instead of the indices.")
+    stop("channel_specifications should be a list of named lists. Make sure that the names correspend with the channel names.")
+  if(!is.numeric(channels))
+    stop("Make sure that you use indices to indicate which channels you want to use.")
 
+  meta <- flowWorkspace::pData(ff@parameters)
+  rownames(meta) <- meta[, "name"]
 
-  if (class(channel_specifications) == "list"){
-      meta <- do.call(rbind, channel_specifications)
-      colnames(meta) <- c("minRange", "maxRange")
-  } else {
-
-    meta <- flowWorkspace::pData(ff@parameters)
-    rownames(meta) <- meta[, "name"]
+  if(!is.null(channel_specifications)){
+    meta[names(channel_specifications), c("minRange", "maxRange")] <- do.call(rbind, channel_specifications)
   }
-
 
   # Initialize variables
   selection <- rep(TRUE, times = dim(ff)[1])
   e <- ff@exprs
 
-
+  channels <- colnames(ff@exprs)[channels]
   # Make selection
   for (d in channels) {
 
@@ -67,15 +61,19 @@ RemoveMargins <- function(ff, channels, channel_specifications = NULL, output = 
 #'
 #' @usage
 #' PeacoQC(ff,channels, determine_good_cells = TRUE, plot = TRUE,
-#'         save_fcs = TRUE, output_directory = ".", events_per_bin = 2000,
-#'         MAD = 6, IT_limit = 0.55, consecutive_bins = 5, ...)
+#'         save_fcs = TRUE, output_directory = ".",
+#'         name_directory = "PeacoQC_results", report = TRUE,
+#'         events_per_bin = 2000, MAD = 6, IT_limit = 0.55,
+#'         consecutive_bins = 5, ...)
 #'
 #' @param ff A flowframe or the location of an fcs file
 #' @param channels Indices of the channels in the ff on which peaks have to be determined.
 #' @param determine_good_cells If set to FALSE, the algorithm will only determine peaks. If TRUE, the bad measurements will be filtered out. It can also be put to "MAD" or "IT" to only use one method of filtering.
 #' @param plot If set to TRUE, the \code{PlotPeacoQC} function is run to make an overview plot of the deleted measurements.
-#' @param save_fcs If set to TRUE, an fcs file will be saved in the \code{output_directory} as: filename_QC.fcs.
-#' @param output_directory Directory where the plots should be generated. Set to NULL if no plots need to be generated
+#' @param save_fcs If set to TRUE, the cleaned fcs file will be saved in the \code{output_directory} as: filename_QC.fcs.
+#' @param output_directory Directory where a new folder will be created that consists of the generated fcs files, plots and report. If set to NULL, nothing will be stored.
+#' @param name_directory Name of folder that will be generated in \code{output_directory}.
+#' @param report Overview text report that is generated after PeacoQC is run. If set to FALSE, no report will be generated.
 #' @param events_per_bin Number of events that are put in one bin. Default is 2000.
 #' @param MAD The MAD parameter. Default is 6. If this is increased, the algorithm becomes less strict.
 #' @param IT_limit The IsolationTree parameter. Default is 0.55. If this is increased, the algorithm becomes less strict.
@@ -101,6 +99,8 @@ PeacoQC <- function(ff,
   plot = TRUE,
   save_fcs = TRUE,
   output_directory = ".",
+  name_directory = "PeacoQC_results",
+  report = TRUE,
   events_per_bin = 2000,
   MAD = 6,
   IT_limit = 0.55,
@@ -112,6 +112,17 @@ PeacoQC <- function(ff,
     stop("ff should be a flowFrame")
   if(!is.numeric(channels)| is.null(channels))
     stop("The channel parameter should consist out of indices that correspond to the channels in ff.")
+
+
+  # Make a new directory where all results will be stored
+  if(!is.null(output_directory)){
+    storing_directory <- file.path(output_directory, name_directory)
+    suppressWarnings(dir.create(storing_directory))
+    if (save_fcs == TRUE){
+      fcs_directory <- file.path(storing_directory, "fcs_files")
+      suppressWarnings(dir.create(fcs_directory))
+    }
+  }
 
   # Searching for the name of the ff
   if (length(ff@description$FILENAME)>0){
@@ -204,7 +215,7 @@ PeacoQC <- function(ff,
     char = "+", style = 3, width = 50)
   utils::setTxtProgressBar(pb,i)
 
-  channel <- channels[2]
+  channel <- channels[3]
 
 
   for (channel in channels){
@@ -416,7 +427,7 @@ PeacoQC <- function(ff,
     }
   }
 
-  # ----------------------- Final results ------------------------------------
+  # ----------------------- Final results -------------------------------------
 
   results$AllPeaks <- all_peaks
   results$FinalFF <- ff[results$GoodCells,]
@@ -424,7 +435,7 @@ PeacoQC <- function(ff,
 
   results$Time <- end_time - start_time
 
-  #---------------- Does the file needs to be plotted? -----------------------
+  #---------------- Does the file need to be plotted? -------------------------
 
   if (plot == TRUE){
     message("Plotting the results")
@@ -436,10 +447,26 @@ PeacoQC <- function(ff,
       ...)
   }
 
+
+  # -----------------  Does the file need to be saved in an fcs? --------------
   if (save_fcs == TRUE){
     message("Saving fcs file")
-    flowCore::write.FCS(ff[results$GoodCells,],file.path(output_directory,
+    flowCore::write.FCS(ff[results$GoodCells,],file.path(fcs_directory,
       paste0(sub(".fcs", "", basename(ff@description$FILENAME)),"_QC.fcs")))
+  }
+
+
+  # ----------------- Does an overview file need to be generated? --------------
+
+  minireport <- paste0(folder_results, mini_report,
+    ".txt")
+  if (!file.exists(minireport)) {
+    write.table(t(c("Name file", "n. of events",
+      "% anomalies", "analysis from", "% anomalies flow Rate",
+      "% anomalies Signal", "% anomalies Margins")),
+      minireport, sep = "\t", row.names = FALSE,
+      quote = FALSE, col.names = FALSE)
+
   }
 
   return(results)
@@ -497,10 +524,14 @@ PlotPeacoQC <- function(ff,
     stop("There should be a path given to the output_directory parameter.")
 
 
-  # Make folder
+  # Make a new directory where all results will be stored
+  if(!is.null(output_directory)){
+    storing_directory <- file.path(output_directory, name_directory)
+    suppressWarnings(dir.create(storing_directory))
 
-  suppressWarnings(dir.create(output_directory))
-
+    plot_directory <- file.path(storing_directory, "PeacoQC_plots")
+    suppressWarnings(dir.create(plot_directory))
+  }
   # Plot acc score if one is listed in given arguments
   if (!is.null(title_FR)) {
     scores_time <- title_FR
@@ -816,7 +847,7 @@ PlotPeacoQC <- function(ff,
   new <- gridExtra::arrangeGrob(plots, legend, heights = grid::unit.c(grid::unit(1, "npc") - lheight, lheight))
 
 
-  ggsave(paste0(output_directory, "/", prefix, name, ".png"),
+  ggsave(paste0(plot_directory, "/", prefix, name, ".png"),
     new, width = n_col * 5, height = n_row * 3, limitsize = F)
 
 }
