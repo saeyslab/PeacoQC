@@ -5,21 +5,27 @@
 \title{Peak-based detection of high quality cytometry data}
 \usage{
 PeacoQC(ff,channels, determine_good_cells = TRUE, plot = TRUE,
-        save_fcs = TRUE, output_directory = ".", events_per_bin = 2000,
-        MAD = 6, IT_limit = 0.55, consecutive_bins = 5, ...)
+        save_fcs = TRUE, output_directory = ".",
+        name_directory = "PeacoQC_results", report = TRUE,
+        events_per_bin = 2000, MAD = 6, IT_limit = 0.55,
+        consecutive_bins = 5, ...)
 }
 \arguments{
 \item{ff}{A flowframe or the location of an fcs file}
 
 \item{channels}{Indices of the channels in the ff on which peaks have to be determined.}
 
-\item{determine_good_cells}{If set to FALSE, the algorithm will only determine peaks. If TRUE, the bad measurements will be filtered out. It can also be put to "MAD" or "IT" to only use one method of filtering.}
+\item{determine_good_cells}{If set to FALSE, the algorithm will only determine peaks. If it is set to "all", the bad measurements will be filtered out based on the MAD and IT analysis. It can also be put to "MAD" or "IT" to only use one method of filtering.}
 
 \item{plot}{If set to TRUE, the \code{PlotPeacoQC} function is run to make an overview plot of the deleted measurements.}
 
-\item{save_fcs}{If set to TRUE, an fcs file will be saved in the \code{output_directory} as: filename_QC.fcs.}
+\item{save_fcs}{If set to TRUE, the cleaned fcs file will be saved in the \code{output_directory} as: filename_QC.fcs.}
 
-\item{output_directory}{Directory where the plots should be generated. Set to NULL if no plots need to be generated}
+\item{output_directory}{Directory where a new folder will be created that consists of the generated fcs files, plots and report. If set to NULL, nothing will be stored.}
+
+\item{name_directory}{Name of folder that will be generated in \code{output_directory}.}
+
+\item{report}{Overview text report that is generated after PeacoQC is run. If set to FALSE, no report will be generated.}
 
 \item{events_per_bin}{Number of events that are put in one bin. Default is 2000.}
 
