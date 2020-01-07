@@ -129,11 +129,15 @@ PeacoQC <- function(ff,
       suppressWarnings(dir.create(fcs_directory))
     }
     if (report == TRUE){
+      # Make initial percentages in case only one analysis is used
+      perc_IT <- "Not_used"
+      perc_MAD <- "Not_used"
+
       report_location <- file.path(storing_directory, paste0("PeacoQC_report",
         ".txt"))
       if (!file.exists(report_location)) {
         utils::write.table(t(c("Filename", "Nr. Measurements",
-          "% total removed", "Analysis by", "% MAD analysis",
+          "% Full analysis", "Analysis by", "% MAD analysis",
           "% IT analysis", "MAD","IT limit", "Consecutive bins",
           "events_per_bin")),
           report_location, sep = "\t", row.names = FALSE,
@@ -327,6 +331,8 @@ PeacoQC <- function(ff,
 
     results$ITPercentage <- perc_IT
 
+
+
   }
 
 
@@ -363,17 +369,17 @@ PeacoQC <- function(ff,
       [which(outlier_bins_MAD == TRUE)]])
     removed_cells_MAD <- removed_cells_MAD[!duplicated(removed_cells_MAD)]
 
-    perc_outliers <- length(removed_cells_MAD)/nrow(ff)
+    perc_MAD <- length(removed_cells_MAD)/nrow(ff)
 
-    perc_outliers <- perc_outliers * 100
+    perc_MAD <- perc_MAD * 100
 
     message(paste0("MAD analysis removed ",
-      paste0(round(perc_outliers,2),
+      paste0(round(perc_MAD,2),
         " % of the measurements" )))
 
     results$ContributionMad <- contribution_MAD
 
-    results$MADPercentage <- perc_outliers
+    results$MADPercentage <- perc_MAD
 
     mad_cells[removed_cells_MAD] <- FALSE
 
@@ -459,8 +465,8 @@ PeacoQC <- function(ff,
 
     if (report == TRUE & !is.null(output_directory)){
       utils::write.table(t(c(basename(ff@description$FILENAME), nrow(ff),
-        results$PercentageRemoved, determine_good_cells, results$MADPercentage,
-        results$ITPercentage, MAD, IT_limit, consecutive_bins, events_per_bin)),
+        percentage_removed, determine_good_cells,perc_MAD,
+        perc_IT, MAD, IT_limit, consecutive_bins, events_per_bin)),
         report_location, sep = "\t", append = TRUE, row.names = FALSE,
         quote = FALSE, col.names = FALSE)
     }
@@ -485,7 +491,7 @@ PeacoQC <- function(ff,
     message("Plotting the results")
     PlotPeacoQC(ff = ff,
       peaks = results,
-      output_directory = output_directory,
+      output_directory = storing_directory,
       channels = results$Channels,
       title_FR = title_FR,
       ...)
@@ -548,10 +554,8 @@ PlotPeacoQC <- function(ff,
 
   # Make a new directory where all results will be stored
   if(!is.null(output_directory)){
-    storing_directory <- file.path(output_directory, name_directory)
-    suppressWarnings(dir.create(storing_directory))
 
-    plot_directory <- file.path(storing_directory, "PeacoQC_plots")
+    plot_directory <- file.path(output_directory, "PeacoQC_plots")
     suppressWarnings(dir.create(plot_directory))
   }
   # Plot acc score if one is listed in given arguments
@@ -909,11 +913,14 @@ PeacoQCHeatmap <- function(
   latest_tests = FALSE,
   title = "PeacoQC report",
   ...){
-
+  set.seed(1)
   if (!file.exists(report_location))
     stop("The path specified in the report_location parameter is wrong or incomplete.")
 
-  report_table <- utils::read.delim(report_location, check.names = FALSE)
+  report_table <- utils::read.delim(report_location, check.names = FALSE, stringsAsFactors = FALSE)
+  report_table[report_table == "Not_used"] <- NA
+
+
 
   if (latest_tests == TRUE){
     report_table <- report_table[!rev(duplicated(report_table$Filename)),]
@@ -922,9 +929,9 @@ PeacoQCHeatmap <- function(
     rownames(report_table)  <- make.unique(as.character(report_table$Filename))
   }
   annotation_frame <- data.frame(
-    "Consecutive bins" = as.factor(report_table$`Consecutive bins parameter`),
-    "IT limit" = as.factor(report_table$`IT parameter`),
-    "MAD" = as.factor(report_table$`MAD parameter`))
+    "Consecutive bins" = factor(report_table$`Consecutive bins`),
+     "IT limit" = factor(report_table$`IT limit`),
+     "MAD" = factor(report_table$MAD))
 
   rownames(annotation_frame) <- rownames(report_table)
 
@@ -933,45 +940,72 @@ PeacoQCHeatmap <- function(
   t3  <- c("#83B692", "#F9ADA0", "#F9627D", "#C65B7C", "#5B3758")
 
 
-  col_cons <- sample(t1, length(unique(annotation_frame$Consecutive.bins)))
-  names(col_cons) <- unique(annotation_frame$Consecutive.bins)
+  col_cons <- sample(t1, length(unique(annotation_frame$`Consecutive bins`)))
+  names(col_cons) <- unique(annotation_frame$`Consecutive bins`)
   col_MAD <- sample(t2, length(unique(annotation_frame$MAD)))
   names(col_MAD) <- unique(annotation_frame$MAD)
-  col_IT <- sample(t3, length(unique(annotation_frame$IT.limit)))
-  names(col_IT) <- unique(annotation_frame$IT)
+  col_IT <- sample(t3, length(unique(annotation_frame$`IT limit`)))
+  names(col_IT) <- unique(annotation_frame$`IT limit`)
 
 
-  ha <- rowAnnotation("Consecutive bins" = annotation_frame$Consecutive.bins,
-    "MAD" = annotation_frame$MAD,
-    "IT limit" = annotation_frame$IT.limit,
-    annotation_legend_param = list(
-      "Consecutive bins" = list(nrow = 1),
-      "MAD" = list(nrow = 1),
-      "IT limit" = list(nrow = 1)
-    ), col = list("Consecutive bins" = col_cons,
-      "MAD" = col_MAD,
-      "IT limit" = col_IT))
+  analysis <- report_table$`Analysis by`
+
+  if("all" %in% analysis | all(c("IT", "MAD") %in% analysis)){
+    ha <- rowAnnotation("Consecutive bins" = annotation_frame$`Consecutive bins`,
+      "MAD" = annotation_frame$MAD,
+      "IT limit" = annotation_frame$`IT limit`,
+      annotation_legend_param = list(
+        "Consecutive bins" = list(nrow = 1),
+        "MAD" = list(nrow = 1),
+        "IT limit" = list(nrow = 1)
+      ), col = list("Consecutive bins" = col_cons,
+        "MAD" = col_MAD,
+        "IT limit" = col_IT))
+    report_matrix <- data.matrix(report_table[,c(3,5,6)])
+
+  } else if(length(unique(analysis)) == 1 & unique(analysis) == "IT"){
+    ha <- rowAnnotation("Consecutive bins" = annotation_frame$`Consecutive bins`,
+      "IT limit" = annotation_frame$`IT limit`,
+      annotation_legend_param = list(
+        "Consecutive bins" = list(nrow = 1),
+        "IT limit" = list(nrow = 1)
+      ), col = list("Consecutive bins" = col_cons,
+        "IT limit" = col_IT))
+    report_matrix <- data.matrix(report_table[,c(3,6)])
+  }else if(length(unique(analysis)) == 1 & unique(analysis) == "MAD"){
+    ha <- rowAnnotation("Consecutive bins" = annotation_frame$`Consecutive bins`,
+      "MAD" = annotation_frame$MAD,
+      annotation_legend_param = list(
+        "Consecutive bins" = list(nrow = 1),
+        "MAD" = list(nrow = 1)),
+      col = list("Consecutive bins" = col_cons,
+        "MAD" = col_MAD))
+
+    report_matrix <- data.matrix(report_table[,c(3,5)])
+       }
 
   if(show_values == TRUE){
     cell_fun = function(j, i, x, y, width, height, fill)
     {
-      grid:grid.text(sprintf("%.1f", as.matrix(report_table[,c(3,5,6)])[i, j]), x, y, gp = gpar(fontsize = 10))
+      grid.text(sprintf("%.1f", report_matrix[i, j]), x, y, gp = gpar(fontsize = 10))
     }
   } else{
     cell_fun = NULL
   }
 
 
-  ph <- Heatmap(as.matrix(report_table[,c(3,5,6)]),
+  ph <- Heatmap(report_matrix,
     cell_fun = cell_fun,
-    cluster_columns = F,
-    cluster_rows = F,
+    cluster_columns = FALSE,
+    cluster_rows = FALSE,
     column_title = title,
     column_title_gp = grid::gpar(fontface = "bold"),
-    col = circlize::colorRamp2(seq(min(0), max(100), length = 3), c("blue", "#EEEEEE", "red")),
+    col = circlize::colorRamp2(c(0,30,100), c("blue", "#EEEEEE", "red")),
     left_annotation = ha,
     heatmap_legend_param = list(direction = "horizontal"),
-    name = "Removed percentage",...)
+    name = "Removed percentage",
+    na_col = "Grey",
+    ...)
 
   draw(ph, annotation_legend_side = "bottom", heatmap_legend_side = "bottom")
 
