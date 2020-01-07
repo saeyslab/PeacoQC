@@ -14,14 +14,14 @@ URL: http://github.com/saeyslab/PeacoQC
 BugReports: http://github.com/saeyslab/PeacoQC/issues
 Depends: R (>= 3.2)
 Imports:
+  circlize,
+  ComplexHeatmap,
   flowCore,
   flowWorkspace,
   ggplot2,
-  graphics,
   grDevices,
   grid,
   gridExtra,
-  pheatmap,
   plyr,
   stats,
   utils
