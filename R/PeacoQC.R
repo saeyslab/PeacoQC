@@ -926,12 +926,23 @@ PeacoQCHeatmap <- function(
     report_table <- report_table[!rev(duplicated(report_table$Filename)),]
     rownames(report_table) <- report_table$Filename
   } else {
-    rownames(report_table)  <- make.unique(as.character(report_table$Filename))
+
+    # Find the duplicates and rename them
+
+    table_names <- report_table$Filename
+    y <- rle(table_names)
+    tmp <- !duplicated(table_names) & (table_names %in% y$values[y$lengths>1])
+    unique_table_names <- make.unique(table_names)
+
+    unique_table_names[tmp] <- paste0(unique_table_names[tmp], ".0")
+    unique_table_names <- sub("(.*.fcs)(\\.)(.*)", "\\1_\\3", unique_table_names)
+
+    rownames(report_table)  <- make.unique(unique_table_names)
   }
   annotation_frame <- data.frame(
     "Consecutive bins" = factor(report_table$`Consecutive bins`),
      "IT limit" = factor(report_table$`IT limit`),
-     "MAD" = factor(report_table$MAD))
+     "MAD" = factor(report_table$MAD), check.names = FALSE)
 
   rownames(annotation_frame) <- rownames(report_table)
 
@@ -957,8 +968,8 @@ PeacoQCHeatmap <- function(
       annotation_legend_param = list(
         "Consecutive bins" = list(nrow = 1),
         "MAD" = list(nrow = 1),
-        "IT limit" = list(nrow = 1)
-      ), col = list("Consecutive bins" = col_cons,
+        "IT limit" = list(nrow = 1)),
+      col = list("Consecutive bins" = col_cons,
         "MAD" = col_MAD,
         "IT limit" = col_IT))
     report_matrix <- data.matrix(report_table[,c(3,5,6)])
