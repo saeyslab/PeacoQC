@@ -5,7 +5,7 @@
 \title{Visualise deleted cells of PeacoQC}
 \usage{
 PlotPeacoQC(ff, channels, output_directory = ".", display_cells = 5000,
-            manual_cells = NULL, title_FR = NULL, peaks = TRUE,
+            manual_cells = NULL, title_FR = NULL, display_peaks = TRUE,
             prefix = "PeacoQC_")
 }
 \arguments{
@@ -21,9 +21,11 @@ PlotPeacoQC(ff, channels, output_directory = ".", display_cells = 5000,
 
 \item{title_FR}{The title that has to be displayed above the flow rate figure}
 
-\item{peaks}{If set to TRUE: \code{PeacoQC} will be run and the peaks will be displayed. If the result of \code{PeacoQC} is given, all the quality control results will be visualised.}
+\item{display_peaks}{If the result of \code{PeacoQC} is given, all the quality control results will be visualised. If set to TRUE: \code{PeacoQC} will be run and only the peaks will be displayed without any quality control. If set to FALSE, no peaks will be displayed and only the events will be displayed.}
 
 \item{prefix}{The prefix that will be given to the generated png file}
+
+\item{...}{Arguments to be given to \code{PeacoQC} if \code{display_peaks} is set to TRUE.}
 }
 \value{
 This function returns nothing but generates a png file in the output_directory

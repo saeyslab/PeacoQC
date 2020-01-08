@@ -128,7 +128,7 @@ PeacoQC <- function(ff,
       fcs_directory <- file.path(storing_directory, "fcs_files")
       suppressWarnings(dir.create(fcs_directory))
     }
-    if (report == TRUE){
+    if (report == TRUE & determine_good_cells %in% c("all", "IT", "MAD")){
       # Make initial percentages in case only one analysis is used
       perc_IT <- "Not_used"
       perc_MAD <- "Not_used"
@@ -154,6 +154,7 @@ PeacoQC <- function(ff,
 
   # Make an empty list for the eventual results
   results <- list()
+  results$Analysis <- determine_good_cells
 
   # Timing everything
   start_time <- Sys.time()
@@ -490,7 +491,7 @@ PeacoQC <- function(ff,
 
     message("Plotting the results")
     PlotPeacoQC(ff = ff,
-      peaks = results,
+      display_peaks = results,
       output_directory = storing_directory,
       channels = results$Channels,
       title_FR = title_FR,
@@ -506,7 +507,7 @@ PeacoQC <- function(ff,
 #'
 #' @usage
 #' PlotPeacoQC(ff, channels, output_directory = ".", display_cells = 5000,
-#'             manual_cells = NULL, title_FR = NULL, peaks = TRUE,
+#'             manual_cells = NULL, title_FR = NULL, display_peaks = TRUE,
 #'             prefix = "PeacoQC_")
 #'
 #' @param ff A flowframe
@@ -515,8 +516,9 @@ PeacoQC <- function(ff,
 #' @param display_cells The number of measurements that should be displayed. (The number of dots that are displayed for every channel)
 #' @param manual_cells THIS HAS TO BE REMOVED FOR THE FINAL VERSION
 #' @param title_FR The title that has to be displayed above the flow rate figure
-#' @param peaks If set to TRUE: \code{PeacoQC} will be run and the peaks will be displayed. If the result of \code{PeacoQC} is given, all the quality control results will be visualised.
+#' @param display_peaks If the result of \code{PeacoQC} is given, all the quality control results will be visualised. If set to TRUE: \code{PeacoQC} will be run and only the peaks will be displayed without any quality control. If set to FALSE, no peaks will be displayed and only the events will be displayed.
 #' @param prefix The prefix that will be given to the generated png file
+#' @param ... Arguments to be given to \code{PeacoQC} if \code{display_peaks} is set to TRUE.
 #'
 #' @return This function returns nothing but generates a png file in the output_directory
 #'
@@ -538,8 +540,9 @@ PlotPeacoQC <- function(ff,
   display_cells = 5000,
   manual_cells = NULL,
   title_FR = NULL,
-  peaks = TRUE,
-  prefix = "PeacoQC_") {
+  display_peaks = TRUE,
+  prefix = "PeacoQC_",
+  ...) {
 
   requireNamespace("ggplot2")
 
@@ -563,6 +566,16 @@ PlotPeacoQC <- function(ff,
     scores_time <- title_FR
   } else {
     scores_time <- ""
+  }
+
+  # If display_peaks == TRUE, the peaks should be calculated by using PeacoQC
+  if (class(display_peaks) == "logical" ){
+    if(display_peaks == TRUE){
+    display_peaks <- PeacoQC(ff,
+      channels,
+      determine_good_cells = FALSE,
+      output_directory = NULL, plot = F, save_fcs = F, report = F, ...)
+    }
   }
 
   filename <- basename(ff@description$FILENAME)
@@ -616,25 +629,25 @@ PlotPeacoQC <- function(ff,
 
   # Calculate backgroundvalues for points on plot, rectangle block and CV values after automated qc
 
-  if (!is.null(peaks$GoodCells)) {
+  if (!is.null(display_peaks$GoodCells)) {
 
 
     # Make blocks for automated gated algorithms to display on plot
-    run_length <- rle(peaks$GoodCells)
+    run_length <- rle(display_peaks$GoodCells)
 
-    full_QC_vector <- ifelse(peaks$GoodCells == TRUE, TRUE, FALSE)
+    full_QC_vector <- ifelse(display_peaks$GoodCells == TRUE, TRUE, FALSE)
 
 
-    consecutive_cells <- which(peaks$ConsecutiveCells == FALSE)
+    consecutive_cells <- which(display_peaks$ConsecutiveCells == FALSE)
     if (length(consecutive_cells) > 0) {
-      full_QC_vector[!peaks$ConsecutiveCells] <- "consecutive"
+      full_QC_vector[!display_peaks$ConsecutiveCells] <- "consecutive"
       run_length <- rle(full_QC_vector)
 
     }
 
-    mad_cells <- which(peaks$OutlierMads == FALSE)
+    mad_cells <- which(display_peaks$OutlierMads == FALSE)
     if (length(mad_cells) > 0) {
-      full_QC_vector[!peaks$OutlierMads] <- "mad"
+      full_QC_vector[!display_peaks$OutlierMads] <- "mad"
       run_length <- rle(full_QC_vector)
 
     }
@@ -698,7 +711,7 @@ PlotPeacoQC <- function(ff,
 
 
 
-  if (!is.null(peaks$GoodCells)) {
+  if (!is.null(display_peaks$GoodCells)) {
 
     p_time <- p_time + geom_rect(data = overview_blocks_background,
       mapping = aes(xmin = x_min,
@@ -732,7 +745,7 @@ PlotPeacoQC <- function(ff,
 
   # -------------------------------- Individual channels -----------------------
 
-  events_per_bin <- peaks$EventsPerBin
+  events_per_bin <- display_peaks$EventsPerBin
 
   mid_breaks <- SplitWithOverlapMids(c(1:nrow(ff)),
     events_per_bin,
@@ -760,22 +773,22 @@ PlotPeacoQC <- function(ff,
     range <- abs(minimum) + abs(maximum)
 
 
-    if (!is.null(peaks$GoodCells)) {
+    if (!is.null(display_peaks$GoodCells)) {
 
       # Show contributions of every channel in MAD and IF
 
-      contribution_MAD <- sum(peaks$ContributionMad[grep(channel,
-        names(peaks$ContributionMad))])
-      contribution_IT <- ifelse(length(grep(channel, peaks$IT$res$split_column)) > 0, "+", "/")
+      contribution_MAD <- sum(display_peaks$ContributionMad[grep(channel,
+        names(display_peaks$ContributionMad))])
+      contribution_IT <- ifelse(length(grep(channel, display_peaks$IT$res$split_column)) > 0, "+", "/")
 
       contributions <- paste0(marker, "\n", "IT: ", contribution_IT, " MAD: ", contribution_MAD, "%")
 
     } else (contributions <- marker)
 
 
-    if (length(grep(channel, peaks$WeirdChannels$Increasing)) > 0) {
+    if (length(grep(channel, display_peaks$WeirdChannels$Increasing)) > 0) {
       contributions <- paste0(contributions, "\n", "WARNING: Increasing channel.")
-    } else if (length(grep(channel, peaks$WeirdChannels$Decreasing)) > 0) {
+    } else if (length(grep(channel, display_peaks$WeirdChannels$Decreasing)) > 0) {
       contributions <- paste0(contributions, "\n", "WARNING: Decreasing channel.")
     }
 
@@ -786,7 +799,7 @@ PlotPeacoQC <- function(ff,
     p <- ggplot() + ylab("Value") + xlab("Cells") + theme_bw() + theme(plot.title = element_text(hjust = 0), panel.grid = element_blank())
 
 
-    if (!is.null(peaks$GoodCells)) {
+    if (!is.null(display_peaks$GoodCells)) {
 
       p <- p + geom_rect(data = overview_blocks, mapping = aes(xmin = x_min,
         xmax = x_max,
@@ -813,7 +826,7 @@ PlotPeacoQC <- function(ff,
         col = "snow4")
     }
 
-    peak_frame <- peaks[[channel]]
+    peak_frame <- display_peaks[[channel]]
 
     if (class(peak_frame) == "data.frame") {
 
@@ -867,11 +880,16 @@ PlotPeacoQC <- function(ff,
 
   # To make nice plots
   g <- ggplotGrob(plot_list[[1]] + theme(legend.position = "bottom"))$grobs
-  legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
-  lheight <- sum(legend$height)
-  plots <- do.call(gridExtra::arrangeGrob, c(lapply(plot_list, function(x) x + theme(legend.position = "none")), nrow = n_row, ncol = n_col))
-  new <- gridExtra::arrangeGrob(plots, legend, heights = grid::unit.c(grid::unit(1, "npc") - lheight, lheight))
 
+  if (!is.null(display_peaks$GoodCells)){
+    legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
+    lheight <- sum(legend$height)
+    plots <- do.call(gridExtra::arrangeGrob, c(lapply(plot_list, function(x) x + theme(legend.position = "none")), nrow = n_row, ncol = n_col))
+    new <- gridExtra::arrangeGrob(plots, legend, heights = grid::unit.c(grid::unit(1, "npc") - lheight, lheight))
+
+  } else {
+    plots <- do.call(gridExtra::arrangeGrob, c(lapply(plot_list, function(x) x), nrow = n_row, ncol = n_col))
+    new <- gridExtra::arrangeGrob(plots)}
 
   ggsave(paste0(plot_directory, "/", prefix, name, ".png"),
     new, width = n_col * 5, height = n_row * 3, limitsize = F)
@@ -972,7 +990,6 @@ PeacoQCHeatmap <- function(
       col = list("Consecutive bins" = col_cons,
         "MAD" = col_MAD,
         "IT limit" = col_IT))
-    report_matrix <- data.matrix(report_table[,c(3,5,6)])
 
   } else if(length(unique(analysis)) == 1 & unique(analysis) == "IT"){
     ha <- rowAnnotation("Consecutive bins" = annotation_frame$`Consecutive bins`,
@@ -982,7 +999,6 @@ PeacoQCHeatmap <- function(
         "IT limit" = list(nrow = 1)
       ), col = list("Consecutive bins" = col_cons,
         "IT limit" = col_IT))
-    report_matrix <- data.matrix(report_table[,c(3,6)])
   }else if(length(unique(analysis)) == 1 & unique(analysis) == "MAD"){
     ha <- rowAnnotation("Consecutive bins" = annotation_frame$`Consecutive bins`,
       "MAD" = annotation_frame$MAD,
@@ -992,8 +1008,9 @@ PeacoQCHeatmap <- function(
       col = list("Consecutive bins" = col_cons,
         "MAD" = col_MAD))
 
-    report_matrix <- data.matrix(report_table[,c(3,5)])
        }
+
+  report_matrix <- data.matrix(report_table)
 
   if(show_values == TRUE){
     cell_fun = function(j, i, x, y, width, height, fill)
