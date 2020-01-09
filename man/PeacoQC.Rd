@@ -4,7 +4,7 @@
 \alias{PeacoQC}
 \title{Peak-based detection of high quality cytometry data}
 \usage{
-PeacoQC(ff,channels, determine_good_cells = TRUE, plot = TRUE,
+PeacoQC(ff,channels, determine_good_cells = "all", plot = TRUE,
         save_fcs = TRUE, output_directory = ".",
         name_directory = "PeacoQC_results", report = TRUE,
         events_per_bin = 2000, MAD = 6, IT_limit = 0.55,

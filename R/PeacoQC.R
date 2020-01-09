@@ -60,7 +60,7 @@ RemoveMargins <- function(ff, channels, channel_specifications = NULL, output = 
 #' @description \code{PeacoQC} will determine peaks on the channels in the flowframe. Then it will remove anomalies caused by e.g. clogs, changes in speed etc. by using an IsolationTree and/or the MAD method.
 #'
 #' @usage
-#' PeacoQC(ff,channels, determine_good_cells = TRUE, plot = TRUE,
+#' PeacoQC(ff,channels, determine_good_cells = "all", plot = TRUE,
 #'         save_fcs = TRUE, output_directory = ".",
 #'         name_directory = "PeacoQC_results", report = TRUE,
 #'         events_per_bin = 2000, MAD = 6, IT_limit = 0.55,
@@ -95,7 +95,7 @@ RemoveMargins <- function(ff, channels, channel_specifications = NULL, output = 
 #' @export
 PeacoQC <- function(ff,
   channels,
-  determine_good_cells = TRUE,
+  determine_good_cells = "all",
   plot = TRUE,
   save_fcs = TRUE,
   output_directory = ".",
@@ -213,14 +213,14 @@ PeacoQC <- function(ff,
     if (length(which(increasing)) > (1/2)*length(increasing)){
       warning(paste0("There seems to be an increasing trent in channel ",
         marker_name,
-        "for file ",basename(ff@description$FILENAME),
+        " for file ",basename(ff@description$FILENAME),
         ". Please inspect this before doing any further analysis"))
       plot(channel_medians, main = marker_name)
       weird_channel_increasing <- c(weird_channel_increasing, channel)
     } else if (length(which(decreasing)) > (1/2)*length(decreasing)){
       warning(paste0("There seems to be a decreasing trent in channel ",
         marker_name,
-        "for file ",basename(ff@description$FILENAME),
+        " for file ",basename(ff@description$FILENAME),
         ". Please inspect this before doing any further analysis"))
       plot(channel_medians, main = marker_name)
       weird_channel_decreasing <- c(weird_channel_decreasing, channel)
