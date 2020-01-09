@@ -35,7 +35,7 @@ PeacoQC(ff,channels, determine_good_cells = TRUE, plot = TRUE,
 
 \item{consecutive_bins}{If 'good' bins are located between bins that are removed, they will also be marked as 'bad'. The default is 5.}
 
-\item{...}{Options to pass on to the \code{PlotPeacoQC} function}
+\item{...}{Options to pass on to the \code{PlotPeacoQC} function (display_cells, manual_cells, prefix)}
 }
 \value{
 This function returns a \code{list} with a number of items:

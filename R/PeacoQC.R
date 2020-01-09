@@ -78,7 +78,7 @@ RemoveMargins <- function(ff, channels, channel_specifications = NULL, output = 
 #' @param MAD The MAD parameter. Default is 6. If this is increased, the algorithm becomes less strict.
 #' @param IT_limit The IsolationTree parameter. Default is 0.55. If this is increased, the algorithm becomes less strict.
 #' @param consecutive_bins If 'good' bins are located between bins that are removed, they will also be marked as 'bad'. The default is 5.
-#' @param ... Options to pass on to the \code{PlotPeacoQC} function
+#' @param ... Options to pass on to the \code{PlotPeacoQC} function (display_cells, manual_cells, prefix)
 #'
 #' @return This function returns a \code{list} with a number of items:
 #' .. MOET NOG AANGEVULD WORDEN
@@ -118,6 +118,8 @@ PeacoQC <- function(ff,
     warning("Since the output directory is NULL, no report will be generated.")
   if(is.null(output_directory) & plot == TRUE)
     warning("Since the output directory is NULL, no plots will be generated.")
+  if(!(determine_good_cells %in% c("all", "IT", "MAD", FALSE)))
+    stop("The parameter determine_good_cells should be one of following values: all, IT or MAD")
 
 
   # Make a new directory where all results will be stored
@@ -508,7 +510,7 @@ PeacoQC <- function(ff,
 #' @usage
 #' PlotPeacoQC(ff, channels, output_directory = ".", display_cells = 5000,
 #'             manual_cells = NULL, title_FR = NULL, display_peaks = TRUE,
-#'             prefix = "PeacoQC_")
+#'             prefix = "PeacoQC_", ...)
 #'
 #' @param ff A flowframe
 #' @param channels Indices of the channels in the ff that have to be plotted
@@ -571,12 +573,14 @@ PlotPeacoQC <- function(ff,
   # If display_peaks == TRUE, the peaks should be calculated by using PeacoQC
   if (class(display_peaks) == "logical" ){
     if(display_peaks == TRUE){
-    display_peaks <- PeacoQC(ff,
+    message("Running PeacoQC to determine peaks")
+    peaks <- PeacoQC(ff,
       channels,
       determine_good_cells = FALSE,
-      output_directory = NULL, plot = F, save_fcs = F, report = F, ...)
-    }
-  }
+      output_directory = NULL, plot = F, save_fcs = F, report = F,
+      ...)
+    } else{peaks <- FALSE}
+  } else { peaks <- display_peaks}
 
   filename <- basename(ff@description$FILENAME)
 
@@ -629,25 +633,24 @@ PlotPeacoQC <- function(ff,
 
   # Calculate backgroundvalues for points on plot, rectangle block and CV values after automated qc
 
-  if (!is.null(display_peaks$GoodCells)) {
-
+  if (class(display_peaks) == "list"){
 
     # Make blocks for automated gated algorithms to display on plot
-    run_length <- rle(display_peaks$GoodCells)
+    run_length <- rle(peaks$GoodCells)
 
-    full_QC_vector <- ifelse(display_peaks$GoodCells == TRUE, TRUE, FALSE)
+    full_QC_vector <- ifelse(peaks$GoodCells == TRUE, TRUE, FALSE)
 
 
-    consecutive_cells <- which(display_peaks$ConsecutiveCells == FALSE)
+    consecutive_cells <- which(peaks$ConsecutiveCells == FALSE)
     if (length(consecutive_cells) > 0) {
-      full_QC_vector[!display_peaks$ConsecutiveCells] <- "consecutive"
+      full_QC_vector[!peaks$ConsecutiveCells] <- "consecutive"
       run_length <- rle(full_QC_vector)
 
     }
 
-    mad_cells <- which(display_peaks$OutlierMads == FALSE)
+    mad_cells <- which(peaks$OutlierMads == FALSE)
     if (length(mad_cells) > 0) {
-      full_QC_vector[!display_peaks$OutlierMads] <- "mad"
+      full_QC_vector[!peaks$OutlierMads] <- "mad"
       run_length <- rle(full_QC_vector)
 
     }
@@ -674,9 +677,6 @@ PlotPeacoQC <- function(ff,
       y_min = -Inf,
       y_max = Inf,
       fill_blocks = fill_blocks)
-
-
-
 
   }
 
@@ -710,23 +710,22 @@ PlotPeacoQC <- function(ff,
   p_time <- p_time + theme(panel.grid = element_blank())
 
 
+  if (class(display_peaks) == "list"){
 
-  if (!is.null(display_peaks$GoodCells)) {
-
-    p_time <- p_time + geom_rect(data = overview_blocks_background,
-      mapping = aes(xmin = x_min,
-        xmax = x_max,
-        ymin = y_min,
-        ymax = y_max,
-        fill = fill_blocks),
-      alpha = 0.4,
-      show.legend = T) + scale_fill_manual(name = "",
-        values = c(IT = "indianred1",
-          MAD = "mediumpurple1",
-          `In consecutive bins` = "plum1",
-          `Good Values` = "white"),
-        guide = guide_legend(override.aes = list(alpha = 0.4)))
-    p_time <- p_time + theme(legend.key = element_rect(colour = "snow4"))
+      p_time <- p_time + geom_rect(data = overview_blocks_background,
+        mapping = aes(xmin = x_min,
+          xmax = x_max,
+          ymin = y_min,
+          ymax = y_max,
+          fill = fill_blocks),
+        alpha = 0.4,
+        show.legend = T) + scale_fill_manual(name = "",
+          values = c(IT = "indianred1",
+            MAD = "mediumpurple1",
+            `In consecutive bins` = "plum1",
+            `Good Values` = "white"),
+          guide = guide_legend(override.aes = list(alpha = 0.4)))
+      p_time <- p_time + theme(legend.key = element_rect(colour = "snow4"))
 
   }
 
@@ -745,21 +744,23 @@ PlotPeacoQC <- function(ff,
 
   # -------------------------------- Individual channels -----------------------
 
-  events_per_bin <- display_peaks$EventsPerBin
-
-  mid_breaks <- SplitWithOverlapMids(c(1:nrow(ff)),
-    events_per_bin,
-    ceiling(events_per_bin/2))
-  m <-  nrow(ff@exprs)%%events_per_bin
-
-
-  # if not zero, you have something to add to your sequence
-  if(m != 0) {
-
-    mid_breaks = c(mid_breaks, nrow(ff@exprs))
-  }
-
   channel <- channels[2]
+
+  if(class(peaks) == "list"){
+    events_per_bin <- peaks$EventsPerBin
+
+    mid_breaks <- SplitWithOverlapMids(c(1:nrow(ff)),
+      events_per_bin,
+      ceiling(events_per_bin/2))
+    m <-  nrow(ff@exprs)%%events_per_bin
+
+
+    # if not zero, you have something to add to your sequence
+    if(m != 0) {
+
+      mid_breaks = c(mid_breaks, nrow(ff@exprs))
+    }
+  }
 
 
   for (channel in channels) {
@@ -772,34 +773,36 @@ PlotPeacoQC <- function(ff,
     maximum <- max(ff@exprs[, channel])
     range <- abs(minimum) + abs(maximum)
 
+    if (class(display_peaks) == "list"){
 
-    if (!is.null(display_peaks$GoodCells)) {
+        # Show contributions of every channel in MAD and IF
 
-      # Show contributions of every channel in MAD and IF
+        contribution_MAD <- sum(peaks$ContributionMad[grep(channel,
+          names(peaks$ContributionMad))])
+        contribution_IT <- ifelse(length(grep(channel, peaks$IT$res$split_column)) > 0, "+", "/")
 
-      contribution_MAD <- sum(display_peaks$ContributionMad[grep(channel,
-        names(display_peaks$ContributionMad))])
-      contribution_IT <- ifelse(length(grep(channel, display_peaks$IT$res$split_column)) > 0, "+", "/")
+        contributions <- paste0(marker, "\n", "IT: ", contribution_IT, " MAD: ", contribution_MAD, "%")
 
-      contributions <- paste0(marker, "\n", "IT: ", contribution_IT, " MAD: ", contribution_MAD, "%")
+      if (length(grep(channel, peaks$WeirdChannels$Increasing)) > 0) {
+        contributions <- paste0(contributions, "\n", "WARNING: Increasing channel.")
+      } else if (length(grep(channel, peaks$WeirdChannels$Decreasing)) > 0) {
+        contributions <- paste0(contributions, "\n", "WARNING: Decreasing channel.")
+      }
+    } else{contributions <- marker}
 
-    } else (contributions <- marker)
-
-
-    if (length(grep(channel, display_peaks$WeirdChannels$Increasing)) > 0) {
-      contributions <- paste0(contributions, "\n", "WARNING: Increasing channel.")
-    } else if (length(grep(channel, display_peaks$WeirdChannels$Decreasing)) > 0) {
-      contributions <- paste0(contributions, "\n", "WARNING: Decreasing channel.")
-    }
 
     flowdata <- data.frame(Cells = subset_signalplot, channel = ff@exprs[subset_signalplot, channel])
 
 
     # Initial plot
-    p <- ggplot() + ylab("Value") + xlab("Cells") + theme_bw() + theme(plot.title = element_text(hjust = 0), panel.grid = element_blank())
+    p <- ggplot() +
+      ylab("Value") +
+      xlab("Cells") +
+      theme_bw() +
+      theme(plot.title = element_text(hjust = 0),
+        panel.grid = element_blank())
 
-
-    if (!is.null(display_peaks$GoodCells)) {
+    if (class(display_peaks) == "list") {
 
       p <- p + geom_rect(data = overview_blocks, mapping = aes(xmin = x_min,
         xmax = x_max,
@@ -815,34 +818,35 @@ PlotPeacoQC <- function(ff,
             `Good Values` = "white"),
           guide = guide_legend(override.aes = list(alpha = 0.4)))
       p <- p + theme(legend.key = element_rect(colour = "snow4"))
-      p <- p + geom_point(data = flowdata,
-        aes(x = Cells, y = channel),
-        col = "snow4", size = 0.3)
 
-    } else {
-      p <- p + geom_point(data = flowdata,
-        aes(x = Cells, y = channel),
-        size = 0.3,
-        col = "snow4")
     }
 
-    peak_frame <- display_peaks[[channel]]
+    p <- p + geom_point(data = flowdata,
+      aes(x = Cells, y = channel),
+      size = 0.3,
+      col = "snow4")
 
-    if (class(peak_frame) == "data.frame") {
+    if(class(peaks) == "list"){
 
-      peak_frame$Bin <- as.numeric(mid_breaks)[as.numeric(peak_frame$Bin)]
+      peak_frame <- peaks[[channel]]
 
-      colours <- paste0("grey", c(1:20))[1:max(as.numeric(peak_frame[,"Cluster"]))]
+      if (class(peak_frame) == "data.frame") {
 
-      p <- p + geom_line(data = peak_frame, aes(x = Bin,
-        y = Peak,
-        color = Cluster),
-        size = 1,
-        show.legend = FALSE) +
-        scale_color_manual(values = colours)
-    } else {
-      contributions <- paste0(contributions, " No peak was found!")
+        peak_frame$Bin <- as.numeric(mid_breaks)[as.numeric(peak_frame$Bin)]
+
+        colours <- paste0("grey", c(1:20))[1:max(as.numeric(peak_frame[,"Cluster"]))]
+
+        p <- p + geom_line(data = peak_frame, aes(x = Bin,
+          y = Peak,
+          color = Cluster),
+          size = 1,
+          show.legend = FALSE) +
+          scale_color_manual(values = colours)
+      } else {
+        contributions <- paste0(contributions, " No peak was found.")
+      }
     }
+
 
     p <- p + ggtitle(contributions)
 
@@ -881,12 +885,19 @@ PlotPeacoQC <- function(ff,
   # To make nice plots
   g <- ggplotGrob(plot_list[[1]] + theme(legend.position = "bottom"))$grobs
 
-  if (!is.null(display_peaks$GoodCells)){
-    legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
-    lheight <- sum(legend$height)
-    plots <- do.call(gridExtra::arrangeGrob, c(lapply(plot_list, function(x) x + theme(legend.position = "none")), nrow = n_row, ncol = n_col))
-    new <- gridExtra::arrangeGrob(plots, legend, heights = grid::unit.c(grid::unit(1, "npc") - lheight, lheight))
 
+  # Use original argument to see if there was a list given or not
+  if (!(class(display_peaks) == "logical")){
+      legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
+      lheight <- sum(legend$height)
+      plots <- do.call(gridExtra::arrangeGrob,
+        c(lapply(plot_list, function(x) x + theme(legend.position = "none")),
+          nrow = n_row,
+          ncol = n_col))
+      new <- gridExtra::arrangeGrob(
+        plots,
+        legend,
+        heights = grid::unit.c(grid::unit(1, "npc") - lheight, lheight))
   } else {
     plots <- do.call(gridExtra::arrangeGrob, c(lapply(plot_list, function(x) x), nrow = n_row, ncol = n_col))
     new <- gridExtra::arrangeGrob(plots)}

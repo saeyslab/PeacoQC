@@ -6,7 +6,7 @@
 \usage{
 PlotPeacoQC(ff, channels, output_directory = ".", display_cells = 5000,
             manual_cells = NULL, title_FR = NULL, display_peaks = TRUE,
-            prefix = "PeacoQC_")
+            prefix = "PeacoQC_", ...)
 }
 \arguments{
 \item{ff}{A flowframe}
