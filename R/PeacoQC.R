@@ -976,9 +976,9 @@ PeacoQCHeatmap <- function(
 
   rownames(annotation_frame) <- rownames(report_table)
 
-  t1 <- c("#9AD5CA", "#B9314F", "#18206F", "#C4C6E7", "#BAA5FF")
-  t2  <- c("#FFC857", "#456990", "#087CA7", "#E9724C", "#05B2DC")
-  t3  <- c("#83B692", "#F9ADA0", "#F9627D", "#C65B7C", "#5B3758")
+  t1 <- c("#9AD5CA", "#B9314F", "#18206F", "#36494E", "#BAA5FF")
+  t2  <- c("#FFC857", "#456990", "#493843", "#E9724C", "#05B2DC")
+  t3  <- c("#83B692", "#F9ADA0", "#C2E7DA", "#C65B7C", "#5B3758")
 
 
   col_cons <- sample(t1, length(unique(annotation_frame$`Consecutive bins`)))
@@ -1022,7 +1022,7 @@ PeacoQCHeatmap <- function(
 
        }
 
-  report_matrix <- data.matrix(report_table)
+  report_matrix <- data.matrix(report_table[,c(3,5,6)])
 
   if(show_values == TRUE){
     cell_fun = function(j, i, x, y, width, height, fill)
