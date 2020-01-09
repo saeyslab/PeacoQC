@@ -47,7 +47,7 @@ RemoveMargins <- function(ff, channels, channel_specifications = NULL, output = 
 
 
   if (length(which(selection == FALSE))/length(selection) > 0.1) {
-    warning(paste0("More then ", round(length(which(selection == FALSE))/length(selection) * 100, 2), "% is considered as a margin event. This should be verified."))
+    warning(paste0("More then ", round(length(which(selection == FALSE))/length(selection) * 100, 2), "% is considered as a margin event in file ",basename(ff@description$FILENAME), ". This should be verified."))
   }
   if (output == "full"){
     return(list("flowframe" = ff[selection,], "indices_margins" = which(selection == FALSE)))
