@@ -45,12 +45,28 @@ This function returns a \code{list} with a number of items:
 \code{PeacoQC} will determine peaks on the channels in the flowframe. Then it will remove anomalies caused by e.g. clogs, changes in speed etc. by using an IsolationTree and/or the MAD method.
 }
 \examples{
-\dontrun{
-# Read in flowframe SHOULD BE  ADAPTED!!!!!!!!!!!
-ff <- read.FCS(file)
-# Determine the channels on which quality control should be performed
-channels <- colnames(ff@exprs)[c(1,3,5:10)]
-peacoqc_res <- PeacoQC(ff = ff, channels = channels, determine_good_cells = TRUE,
-                       output_directory = ".", plot = TRUE)
-}
+
+# General pipeline for preprocessing and quality control with PeacoQC
+
+# Read in raw data
+fileName <- system.file("extdata", "091.fcs", package = "PeacoQC")
+ff <- flowCore::read.FCS(fileName)
+
+# Define channels where the margin events should be removed
+# and on which the quality control should be done
+channels <- c(1,3,5:14,18:19,21:21)
+
+# Remove margins
+ff_cleaned <- RemoveMargins(ff, channels)
+
+# Compensate and transform the data
+ff_comp <- flowCore::compensate(ff_cleaned,ff@description$SPILL)
+ff_trans <- flowCore::transform(ff_comp,
+              flowCore::transformList(colnames(ff@description$SPILL),
+                         flowCore::logicleTransform()))
+
+#Run PeacoQC
+PeacoQC_res <- PeacoQC(ff, channels, determine_good_cells = "all", plot = TRUE,
+               save_fcs = TRUE)
+
 }

@@ -18,3 +18,21 @@ RemoveMargins(ff, channels, channel_specifications = NULL, output = "frame")
 \description{
 \code{RemoveMargins} will remove margin events from the flowframe based on the internal description of the fcs file.
 }
+\examples{
+# Read in raw data
+fileName <- system.file("extdata", "091.fcs", package = "PeacoQC")
+ff <- flowCore::read.FCS(fileName)
+
+# Define channels where the margin events should be removed
+channels <- c(1,3,5:14,18:19,21:21)
+
+# Remove margins
+
+ff_cleaned <- RemoveMargins(ff, channels)
+
+# If an internal value is wrong for a channels (e.g. FSC-A)
+
+channel_specifications <- list("FSC-A" = c(-111, 262144))
+ff_cleaned <- RemoveMargins(ff, channels, channel_specifications = channel_specifications)
+
+}
