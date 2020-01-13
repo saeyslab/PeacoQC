@@ -561,7 +561,7 @@ PeacoQC <- function(ff,
 #' @param channels Indices of the channels in the ff that have to be plotted
 #' @param output_directory Directory where the plots should be generated. Set to NULL if no plots need to be generated
 #' @param display_cells The number of measurements that should be displayed. (The number of dots that are displayed for every channel)
-#' @param manual_cells THIS HAS TO BE REMOVED FOR THE FINAL VERSION
+#' @param manual_cells Give a vector (TRUE/FALSE) with annotations for each cell to compare the automated QC with.
 #' @param title_FR The title that has to be displayed above the flow rate figure
 #' @param display_peaks If the result of \code{PeacoQC} is given, all the quality control results will be visualised. If set to TRUE: \code{PeacoQC} will be run and only the peaks will be displayed without any quality control. If set to FALSE, no peaks will be displayed and only the events will be displayed.
 #' @param prefix The prefix that will be given to the generated png file
@@ -572,14 +572,30 @@ PeacoQC <- function(ff,
 #' @import ggplot2
 #'
 #' @examples
-#' \dontrun{
-#' # Read in flowframe SHOULD BE  ADAPTED!!!!!!!!!!!
-#' ff <- read.FCS(file)
-#' # Determine the channels on which quality control should be performed
-#' channels <- colnames(ff@@exprs)[c(1,3,5:10)]
-#' peacoqc_res <- PeacoQC(ff = ff, channels = channels, determine_good_cells = TRUE,
-#'                        output_directory = ".", plot = TRUE)
-#'}
+#'
+#' ## Plotting the results of PeacoQC
+#'
+#' # Read in transformed and compensated data
+#' fileName <- system.file("extdata", "091_Compt_Trans.fcs", package = "PeacoQC")
+#' ff <- flowCore::read.FCS(fileName)
+#'
+#' # Define channels on which the quality control should be done and the plots should be made
+#' channels <- c(1,3,5:14,18:19,21:21)
+#'
+#' # Run PeacoQC
+#' PeacoQC_res <- PeacoQC(ff, channels, determine_good_cells = "all", plot = FALSE,
+#'                save_fcs = TRUE)
+#'
+#' # Run PlotPeacoQC
+#' PlotPeacoQC(ff, channels, display_peaks = PeacoQC_res)
+#'
+#'
+#' ## Plotting only the peaks (No quality control)
+#' PlotPeacoQC(ff, channels, display_peaks = TRUE)
+#'
+#' ## Plotting only the dots of the file
+#' PlotPeacoQC(ff, channels, display_peaks = FALSE)
+#'
 #' @export
 PlotPeacoQC <- function(ff,
   channels,
@@ -975,9 +991,20 @@ PlotPeacoQC <- function(ff,
 #' @importFrom grid grid.text gpar
 #'
 #' @examples
-#' \dontrun{
-#'SHOULD BE ADJUSTED
-#'}
+#'
+#' # Find path to PeacoQC report
+#' location <- system.file("extdata", "PeacoQC_report.txt", package = "PeacoQC")
+#'
+#' # Make heatmap overview of quality control run
+#' PeacoQCHeatmap(report_location = location)
+#'
+#' # Make heatmap with only latest tests
+#' PeacoQCHeatmap(report_location = location, latest_rests = TRUE)
+#'
+#' # Make heatmap with row annotation
+#' PeacoQCHeatmap(report_location = location, row_split = c("run1", "run2", rep("run3",18)))
+#'
+#'
 #' @export
 
 PeacoQCHeatmap <- function(
