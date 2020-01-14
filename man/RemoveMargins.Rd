@@ -20,11 +20,11 @@ RemoveMargins(ff, channels, channel_specifications = NULL, output = "frame")
 }
 \examples{
 # Read in raw data
-fileName <- system.file("extdata", "091.fcs", package = "PeacoQC")
+fileName <- system.file("extdata", "111.fcs", package = "PeacoQC")
 ff <- flowCore::read.FCS(fileName)
 
 # Define channels where the margin events should be removed
-channels <- c(1,3,5:14,18:19,21:21)
+channels <- c(1,3,5:14,18,21)
 
 # Remove margins
 

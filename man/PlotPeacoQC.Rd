@@ -17,7 +17,7 @@ PlotPeacoQC(ff, channels, output_directory = ".", display_cells = 5000,
 
 \item{display_cells}{The number of measurements that should be displayed. (The number of dots that are displayed for every channel)}
 
-\item{manual_cells}{THIS HAS TO BE REMOVED FOR THE FINAL VERSION}
+\item{manual_cells}{Give a vector (TRUE/FALSE) with annotations for each cell to compare the automated QC with.}
 
 \item{title_FR}{The title that has to be displayed above the flow rate figure}
 
@@ -34,12 +34,28 @@ This function returns nothing but generates a png file in the output_directory
 \code{PlotPeacoQC} will generate a png file with on overview of the flow rate and the different selected channels. These will be annotated based on the measurements that were removed by PeacoQC. It is also possible to only display the quantiles and median or only the measurements without any annotation.
 }
 \examples{
-\dontrun{
-# Read in flowframe SHOULD BE  ADAPTED!!!!!!!!!!!
-ff <- read.FCS(file)
-# Determine the channels on which quality control should be performed
-channels <- colnames(ff@exprs)[c(1,3,5:10)]
-peacoqc_res <- PeacoQC(ff = ff, channels = channels, determine_good_cells = TRUE,
-                       output_directory = ".", plot = TRUE)
-}
+
+## Plotting the results of PeacoQC
+
+# Read in transformed and compensated data
+fileName <- system.file("extdata", "111_Comp_Trans.fcs", package = "PeacoQC")
+ff <- flowCore::read.FCS(fileName)
+
+# Define channels on which the quality control should be done and the plots should be made
+channels <- c(1,3,5:14,18,21)
+
+# Run PeacoQC
+PeacoQC_res <- PeacoQC(ff, channels, determine_good_cells = "all", plot = FALSE,
+               save_fcs = TRUE)
+
+# Run PlotPeacoQC
+PlotPeacoQC(ff, channels, display_peaks = PeacoQC_res)
+
+
+## Plot only the peaks (No quality control)
+PlotPeacoQC(ff, channels, display_peaks = TRUE)
+
+## Plot only the dots of the file
+PlotPeacoQC(ff, channels, display_peaks = FALSE)
+
 }

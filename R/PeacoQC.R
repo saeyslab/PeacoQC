@@ -11,11 +11,11 @@
 #'
 #' @examples
 #' # Read in raw data
-#' fileName <- system.file("extdata", "091.fcs", package = "PeacoQC")
+#' fileName <- system.file("extdata", "111.fcs", package = "PeacoQC")
 #' ff <- flowCore::read.FCS(fileName)
 #'
 #' # Define channels where the margin events should be removed
-#' channels <- c(1,3,5:14,18:19,21:21)
+#' channels <- c(1,3,5:14,18,21)
 #'
 #' # Remove margins
 #'
@@ -80,7 +80,7 @@ RemoveMargins <- function(ff, channels, channel_specifications = NULL, output = 
 #' PeacoQC(ff,channels, determine_good_cells = "all", plot = TRUE,
 #'         save_fcs = TRUE, output_directory = ".",
 #'         name_directory = "PeacoQC_results", report = TRUE,
-#'         events_per_bin = 2000, MAD = 6, IT_limit = 0.55,
+#'         events_per_bin = 2000, MAD = 10, IT_limit = 0.55,
 #'         consecutive_bins = 5, ...)
 #'
 #' @param ff A flowframe or the location of an fcs file
@@ -105,12 +105,12 @@ RemoveMargins <- function(ff, channels, channel_specifications = NULL, output = 
 #' # General pipeline for preprocessing and quality control with PeacoQC
 #'
 #' # Read in raw data
-#' fileName <- system.file("extdata", "091.fcs", package = "PeacoQC")
+#' fileName <- system.file("extdata", "111.fcs", package = "PeacoQC")
 #' ff <- flowCore::read.FCS(fileName)
 #'
 #' # Define channels where the margin events should be removed
 #' # and on which the quality control should be done
-#' channels <- c(1,3,5:14,18:19,21:21)
+#' channels <- c(1,3,5:14,18,21)
 #'
 #' # Remove margins
 #' ff_cleaned <- RemoveMargins(ff, channels)
@@ -135,7 +135,7 @@ PeacoQC <- function(ff,
   name_directory = "PeacoQC_results",
   report = TRUE,
   events_per_bin = 2000,
-  MAD = 6,
+  MAD = 10,
   IT_limit = 0.55,
   consecutive_bins = 5,
   ...
@@ -248,15 +248,15 @@ PeacoQC <- function(ff,
       warning(paste0("There seems to be an increasing trent in channel ",
         marker_name,
         " for file ",basename(ff@description$FILENAME),
-        ". Please inspect this before doing any further analysis"))
-      plot(channel_medians, main = marker_name)
+        ". Please inspect this before doing any further analysis"),
+      plot(channel_medians, main = marker_name))
       weird_channel_increasing <- c(weird_channel_increasing, channel)
     } else if (length(which(decreasing)) > (1/2)*length(decreasing)){
       warning(paste0("There seems to be a decreasing trent in channel ",
         marker_name,
         " for file ",basename(ff@description$FILENAME),
-        ". Please inspect this before doing any further analysis"))
-      plot(channel_medians, main = marker_name)
+        ". Please inspect this before doing any further analysis"),
+      plot(channel_medians, main = marker_name))
       weird_channel_decreasing <- c(weird_channel_decreasing, channel)
     }
   }
@@ -271,7 +271,7 @@ PeacoQC <- function(ff,
   i <- 0
   message("Calculating peaks")
   pb <-  utils::txtProgressBar(min = 0, max = length(channels), initial = 0,
-    char = "+", style = 3, width = 50)
+    char = "+", style = 3, width = 50, file = stderr())
   utils::setTxtProgressBar(pb,i)
 
   channel <- channels[3]
@@ -576,11 +576,11 @@ PeacoQC <- function(ff,
 #' ## Plotting the results of PeacoQC
 #'
 #' # Read in transformed and compensated data
-#' fileName <- system.file("extdata", "091_Compt_Trans.fcs", package = "PeacoQC")
+#' fileName <- system.file("extdata", "111_Comp_Trans.fcs", package = "PeacoQC")
 #' ff <- flowCore::read.FCS(fileName)
 #'
 #' # Define channels on which the quality control should be done and the plots should be made
-#' channels <- c(1,3,5:14,18:19,21:21)
+#' channels <- c(1,3,5:14,18,21)
 #'
 #' # Run PeacoQC
 #' PeacoQC_res <- PeacoQC(ff, channels, determine_good_cells = "all", plot = FALSE,
@@ -590,10 +590,10 @@ PeacoQC <- function(ff,
 #' PlotPeacoQC(ff, channels, display_peaks = PeacoQC_res)
 #'
 #'
-#' ## Plotting only the peaks (No quality control)
+#' ## Plot only the peaks (No quality control)
 #' PlotPeacoQC(ff, channels, display_peaks = TRUE)
 #'
-#' ## Plotting only the dots of the file
+#' ## Plot only the dots of the file
 #' PlotPeacoQC(ff, channels, display_peaks = FALSE)
 #'
 #' @export
@@ -998,11 +998,11 @@ PlotPeacoQC <- function(ff,
 #' # Make heatmap overview of quality control run
 #' PeacoQCHeatmap(report_location = location)
 #'
-#' # Make heatmap with only latest tests
-#' PeacoQCHeatmap(report_location = location, latest_rests = TRUE)
+#' # Make heatmap with only the runs of the last test
+#' PeacoQCHeatmap(report_location = location, latest_tests = TRUE)
 #'
 #' # Make heatmap with row annotation
-#' PeacoQCHeatmap(report_location = location, row_split = c("run1", "run2", rep("run3",18)))
+#' PeacoQCHeatmap(report_location = location, row_split = c("r1", "r2", rep("r3",2), rep("r4", 16)))
 #'
 #'
 #' @export

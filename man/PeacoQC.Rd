@@ -7,7 +7,7 @@
 PeacoQC(ff,channels, determine_good_cells = "all", plot = TRUE,
         save_fcs = TRUE, output_directory = ".",
         name_directory = "PeacoQC_results", report = TRUE,
-        events_per_bin = 2000, MAD = 6, IT_limit = 0.55,
+        events_per_bin = 2000, MAD = 10, IT_limit = 0.55,
         consecutive_bins = 5, ...)
 }
 \arguments{
@@ -49,12 +49,12 @@ This function returns a \code{list} with a number of items:
 # General pipeline for preprocessing and quality control with PeacoQC
 
 # Read in raw data
-fileName <- system.file("extdata", "091.fcs", package = "PeacoQC")
+fileName <- system.file("extdata", "111.fcs", package = "PeacoQC")
 ff <- flowCore::read.FCS(fileName)
 
 # Define channels where the margin events should be removed
 # and on which the quality control should be done
-channels <- c(1,3,5:14,18:19,21:21)
+channels <- c(1,3,5:14,18,21)
 
 # Remove margins
 ff_cleaned <- RemoveMargins(ff, channels)

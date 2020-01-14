@@ -1,0 +1,49 @@
+Filename	Nr. Measurements	% Full analysis	Analysis by	% MAD analysis	% IT analysis	MAD	IT limit	Consecutive bins	events_per_bin	Increasing/Decreasing channel
+091.fcs	8105	6.92165330043183	all	0	6.92165330043183	6	0.55	5	164	Increasing channel
+091.fcs	8105	6.92165330043183	all	0	6.92165330043183	6	0.55	5	164	Increasing channel
+091.fcs	8105	6.92165330043183	all	0	6.92165330043183	6	0.55	5	164	Increasing channel
+111.fcs	9617	16.2836643443901	all	0	16.2836643443901	6	0.55	5	194	Decreasing channel
+111.fcs	9617	16.2836643443901	all	0	16.2836643443901	6	0.55	5	194	Decreasing channel
+111.fcs	9617	16.2836643443901	all	0	16.2836643443901	6	0.55	5	194	Decreasing channel
+111.fcs	9617	16.2836643443901	all	0	16.2836643443901	6	0.55	5	194	Decreasing channel
+111.fcs	9617	16.2836643443901	all	0	16.2836643443901	6	0.55	5	194	Decreasing channel
+111.fcs	9617	16.2836643443901	all	0	16.2836643443901	6	0.55	5	194	Decreasing channel
+111.fcs	9617	16.2836643443901	all	0	16.2836643443901	6	0.55	5	194	Decreasing channel
+111_Comp_Trans.fcs	9617	6.05178330040553	all	0	6.05178330040553	6	0.6	5	194	Decreasing channel
+111_Comp_Trans.fcs	9617	12.2491421441198	all	0	12.2491421441198	12	0.55	5	194	Decreasing channel
+111.fcs	9617	16.2836643443901	all	0	16.2836643443901	6	0.55	5	194	Decreasing channel
+111.fcs	10000	0	all	0	0	6	0.6	5	200	No increasing or decreasing effect
+111.fcs	10000	0	all	0	0	12	0.55	5	200	No increasing or decreasing effect
+111.fcs	9617	16.2836643443901	all	0	16.2836643443901	6	0.55	5	194	Decreasing channel
+111.fcs	10000	0	all	0	0	6	0.6	5	200	No increasing or decreasing effect
+111.fcs	10000	0	all	0	0	12	0.55	5	200	No increasing or decreasing effect
+111.fcs	9617	16.2836643443901	all	0	16.2836643443901	6	0.55	5	194	Decreasing channel
+111.fcs	10000	0	all	0	0	6	0.6	5	200	No increasing or decreasing effect
+111.fcs	10000	0	all	0	0	12	0.55	5	200	No increasing or decreasing effect
+111.fcs	9617	16.2836643443901	all	0	16.2836643443901	6	0.55	5	194	Decreasing channel
+111.fcs	10000	0	all	0	0	6	0.6	5	200	No increasing or decreasing effect
+111.fcs	10000	0	all	0	0	12	0.55	5	200	No increasing or decreasing effect
+111.fcs	9617	16.2836643443901	all	0	16.2836643443901	6	0.55	5	194	Decreasing channel
+111.fcs	10000	0	all	0	0	6	0.6	5	200	No increasing or decreasing effect
+111.fcs	10000	0	all	0	0	12	0.55	5	200	No increasing or decreasing effect
+111.fcs	9617	16.2836643443901	all	0	16.2836643443901	6	0.55	5	194	Decreasing channel
+111.fcs	10000	0	all	0	0	6	0.6	5	200	No increasing or decreasing effect
+111.fcs	10000	0	all	0	0	12	0.55	5	200	No increasing or decreasing effect
+111.fcs	9617	16.2836643443901	all	0	16.2836643443901	10	0.55	5	194	Decreasing channel
+111.fcs	10000	0	all	0	0	10	0.6	5	200	No increasing or decreasing effect
+111.fcs	10000	0	all	0	0	12	0.55	5	200	No increasing or decreasing effect
+111.fcs	9619	13.2758082960807	all	0	13.2758082960807	10	0.55	5	194	Decreasing channel
+111.fcs	9619	13.2758082960807	all	0	13.2758082960807	10	0.55	5	194	Decreasing channel
+111.fcs	9619	13.2758082960807	all	0	13.2758082960807	10	0.55	5	194	Decreasing channel
+111.fcs	10000	0	all	0	0	10	0.6	5	200	No increasing or decreasing effect
+111.fcs	9619	13.2758082960807	all	0	13.2758082960807	10	0.55	5	194	Decreasing channel
+111.fcs	9619	13.2758082960807	all	0	13.2758082960807	10	0.55	5	194	Decreasing channel
+111.fcs	10000	0	all	0	0	10	0.6	5	200	No increasing or decreasing effect
+111.fcs	9619	13.2758082960807	all	0	13.2758082960807	10	0.55	5	194	Decreasing channel
+111.fcs	10000	0	all	0	0	10	0.6	5	200	No increasing or decreasing effect
+111.fcs	9619	13.2758082960807	all	0	13.2758082960807	10	0.55	5	194	Decreasing channel
+111.fcs	10000	0	all	0	0	10	0.6	5	200	No increasing or decreasing effect
+111.fcs	9619	13.2758082960807	all	0	13.2758082960807	10	0.55	5	194	Decreasing channel
+111.fcs	10000	0	all	0	0	10	0.6	5	200	No increasing or decreasing effect
+111.fcs	9619	13.2758082960807	all	0	13.2758082960807	10	0.55	5	194	Decreasing channel
+111.fcs	10000	0	all	0	0	10	0.6	5	200	No increasing or decreasing effect
