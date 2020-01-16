@@ -2,15 +2,20 @@
 
 # ------------------------- Calculate CV --------------------------------------
 
-CV_peaks <- function(ff, kept_cells, channels) {
-    ff_filtered <- ff[kept_cells, ]
-    peaks <- PeacoQC(ff_filtered, determine_good_cells = FALSE,
-        channels = channels)$AllPeaks
-    cv <- apply(peaks, 2, function(x) {
-        (stats::sd(x)/mean(x)) * 100
-    })
-}
 
+CV_frame <- function(ff, channels){
+
+    sds <- apply(ff@exprs[,channels], 2, stats::sd)
+    means <- apply(ff@exprs[,channels], 2, mean)
+
+    CVs <- sds/means
+
+    final_CV <- mean(CVs)
+    final_SD <- stats::sd(CVs)
+
+    return(list("mean" = final_CV, "sd" = final_SD))
+
+}
 
 # ----------------------------- Determine all peaks for one channel -----------
 
