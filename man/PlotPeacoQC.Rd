@@ -13,25 +13,38 @@ PlotPeacoQC(ff, channels, output_directory = ".", display_cells = 5000,
 
 \item{channels}{Indices of the channels in the ff that have to be plotted}
 
-\item{output_directory}{Directory where the plots should be generated. Set to NULL if no plots need to be generated}
+\item{output_directory}{Directory where the plots should be generated. Set
+to NULL if no plots need to be generated}
 
-\item{display_cells}{The number of measurements that should be displayed. (The number of dots that are displayed for every channel)}
+\item{display_cells}{The number of measurements that should be displayed.
+(The number of dots that are displayed for every channel)}
 
-\item{manual_cells}{Give a vector (TRUE/FALSE) with annotations for each cell to compare the automated QC with.}
+\item{manual_cells}{Give a vector (TRUE/FALSE) with annotations for each cell
+to compare the automated QC with.}
 
 \item{title_FR}{The title that has to be displayed above the flow rate figure}
 
-\item{display_peaks}{If the result of \code{PeacoQC} is given, all the quality control results will be visualised. If set to TRUE: \code{PeacoQC} will be run and only the peaks will be displayed without any quality control. If set to FALSE, no peaks will be displayed and only the events will be displayed.}
+\item{display_peaks}{If the result of \code{PeacoQC} is given, all the
+quality control results will be visualised. If set to TRUE: \code{PeacoQC}
+ will be run and only the peaks will be displayed without any quality control.
+  If set to FALSE, no peaks will be displayed and only the events will be
+   displayed.}
 
 \item{prefix}{The prefix that will be given to the generated png file}
 
-\item{...}{Arguments to be given to \code{PeacoQC} if \code{display_peaks} is set to TRUE.}
+\item{...}{Arguments to be given to \code{PeacoQC} if \code{display_peaks}
+is set to TRUE.}
 }
 \value{
-This function returns nothing but generates a png file in the output_directory
+This function returns nothing but generates a png file in the
+output_directory
 }
 \description{
-\code{PlotPeacoQC} will generate a png file with on overview of the flow rate and the different selected channels. These will be annotated based on the measurements that were removed by PeacoQC. It is also possible to only display the quantiles and median or only the measurements without any annotation.
+\code{PlotPeacoQC} will generate a png file with on overview of
+the flow rate and the different selected channels. These will be annotated
+ based on the measurements that were removed by PeacoQC. It is also possible
+  to only display the quantiles and median or only the measurements without
+  any annotation.
 }
 \examples{
 
@@ -41,12 +54,14 @@ This function returns nothing but generates a png file in the output_directory
 fileName <- system.file("extdata", "111_Comp_Trans.fcs", package = "PeacoQC")
 ff <- flowCore::read.FCS(fileName)
 
-# Define channels on which the quality control should be done and the plots should be made
+# Define channels on which the quality control should be done and the
+# plots should be made
 channels <- c(1,3,5:14,18,21)
 
 # Run PeacoQC
-PeacoQC_res <- PeacoQC(ff, channels, determine_good_cells = "all", plot = FALSE,
-               save_fcs = TRUE)
+PeacoQC_res <- PeacoQC(ff, channels, determine_good_cells = "all",
+   plot = FALSE,
+   save_fcs = TRUE)
 
 # Run PlotPeacoQC
 PlotPeacoQC(ff, channels, display_peaks = PeacoQC_res)

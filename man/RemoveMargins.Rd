@@ -4,19 +4,34 @@
 \alias{RemoveMargins}
 \title{Remove margin events}
 \usage{
-RemoveMargins(ff, channels, channel_specifications = NULL, output = "frame")
+RemoveMargins(ff, channels,
+channel_specifications = NULL, output = "frame")
 }
 \arguments{
 \item{ff}{A flowframe}
 
 \item{channels}{The channel indices that have to be checked for margin events}
 
-\item{channel_specifications}{A list of lists with parameter specifications for certain channels. This parameter should only be used if the values in the internal parameters description is too strict or wrong for a number or all channels. This should be one list per channel with first a minRange and then a maxRange value. This list should have the channel name found back in \code{colnames(ff@exprs)}. If a channel is not listed in this parameter, its default internal values will be used.}
+\item{channel_specifications}{A list of lists with parameter specifications
+for certain channels. This parameter should only be used if the values in
+the internal parameters description is too strict or wrong for a number or
+all channels. This should be one list per channel with first a minRange and
+then a maxRange value. This list should have the channel name found back in
+\code{colnames(ff@exprs)}. If a channel is not listed in this parameter, its
+default internal values will be used.}
 
-\item{output}{If set to "full", a list with the filtered flowframe and the indices of the margin event is returned. If set to "frame", only the filtered flowframe is returned.}
+\item{output}{If set to "full", a list with the filtered flowframe and the
+indices of the margin event is returned. If set to "frame", only the
+filtered flowframe is returned.}
+}
+\value{
+This function returns either a filtered flowframe when the
+\code{output} parameter is set to "frame" or a list containing the filtered
+ flowframe and a TRUE/FALSE list indicating the margin events.
 }
 \description{
-\code{RemoveMargins} will remove margin events from the flowframe based on the internal description of the fcs file.
+\code{RemoveMargins} will remove margin events from the
+flowframe based on the internal description of the fcs file.
 }
 \examples{
 # Read in raw data
@@ -33,6 +48,8 @@ ff_cleaned <- RemoveMargins(ff, channels)
 # If an internal value is wrong for a channels (e.g. FSC-A)
 
 channel_specifications <- list("FSC-A" = c(-111, 262144))
-ff_cleaned <- RemoveMargins(ff, channels, channel_specifications = channel_specifications)
-
+ff_cleaned <- RemoveMargins(
+    ff,
+    channels,
+    channel_specifications = channel_specifications)
 }

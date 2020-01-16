@@ -107,7 +107,7 @@ peacoqc_res <- PeacoQC(
   channels,
   determine_good_cells = "all",
   save_fcs = FALSE,
-  plot = T,
+  plot = TRUE,
   IT_limit = 0.6
 )
 

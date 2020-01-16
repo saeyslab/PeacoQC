@@ -13,36 +13,53 @@ PeacoQC(ff,channels, determine_good_cells = "all", plot = TRUE,
 \arguments{
 \item{ff}{A flowframe or the location of an fcs file}
 
-\item{channels}{Indices of the channels in the ff on which peaks have to be determined.}
+\item{channels}{Indices of the channels in the ff on which peaks have to
+be determined.}
 
-\item{determine_good_cells}{If set to FALSE, the algorithm will only determine peaks. If it is set to "all", the bad measurements will be filtered out based on the MAD and IT analysis. It can also be put to "MAD" or "IT" to only use one method of filtering.}
+\item{determine_good_cells}{If set to FALSE, the algorithm will only
+determine peaks. If it is set to "all", the bad measurements will be
+filtered out based on the MAD and IT analysis. It can also be put to "MAD"
+or "IT" to only use one method of filtering.}
 
-\item{plot}{If set to TRUE, the \code{PlotPeacoQC} function is run to make an overview plot of the deleted measurements.}
+\item{plot}{If set to TRUE, the \code{PlotPeacoQC} function is run to make
+an overview plot of the deleted measurements.}
 
-\item{save_fcs}{If set to TRUE, the cleaned fcs file will be saved in the \code{output_directory} as: filename_QC.fcs.}
+\item{save_fcs}{If set to TRUE, the cleaned fcs file will be saved in the
+\code{output_directory} as: filename_QC.fcs.}
 
-\item{output_directory}{Directory where a new folder will be created that consists of the generated fcs files, plots and report. If set to NULL, nothing will be stored.}
+\item{output_directory}{Directory where a new folder will be created that
+consists of the generated fcs files, plots and report. If set to NULL,
+nothing will be stored.}
 
-\item{name_directory}{Name of folder that will be generated in \code{output_directory}.}
+\item{name_directory}{Name of folder that will be generated in
+\code{output_directory}.}
 
-\item{report}{Overview text report that is generated after PeacoQC is run. If set to FALSE, no report will be generated.}
+\item{report}{Overview text report that is generated after PeacoQC is run.
+If set to FALSE, no report will be generated.}
 
-\item{events_per_bin}{Number of events that are put in one bin. Default is 2000.}
+\item{events_per_bin}{Number of events that are put in one bin.
+Default is 2000.}
 
-\item{MAD}{The MAD parameter. Default is 6. If this is increased, the algorithm becomes less strict.}
+\item{MAD}{The MAD parameter. Default is 6. If this is increased, the
+algorithm becomes less strict.}
 
-\item{IT_limit}{The IsolationTree parameter. Default is 0.55. If this is increased, the algorithm becomes less strict.}
+\item{IT_limit}{The IsolationTree parameter. Default is 0.55. If this is
+increased, the algorithm becomes less strict.}
 
-\item{consecutive_bins}{If 'good' bins are located between bins that are removed, they will also be marked as 'bad'. The default is 5.}
+\item{consecutive_bins}{If 'good' bins are located between bins that are
+removed, they will also be marked as 'bad'. The default is 5.}
 
-\item{...}{Options to pass on to the \code{PlotPeacoQC} function (display_cells, manual_cells, prefix)}
+\item{...}{Options to pass on to the \code{PlotPeacoQC} function
+(display_cells, manual_cells, prefix)}
 }
 \value{
 This function returns a \code{list} with a number of items:
 .. MOET NOG AANGEVULD WORDEN
 }
 \description{
-\code{PeacoQC} will determine peaks on the channels in the flowframe. Then it will remove anomalies caused by e.g. clogs, changes in speed etc. by using an IsolationTree and/or the MAD method.
+\code{PeacoQC} will determine peaks on the channels in the
+flowframe. Then it will remove anomalies caused by e.g. clogs, changes in
+speed etc. by using an IsolationTree and/or the MAD method.
 }
 \examples{
 
@@ -66,7 +83,7 @@ ff_trans <- flowCore::transform(ff_comp,
                          flowCore::logicleTransform()))
 
 #Run PeacoQC
-PeacoQC_res <- PeacoQC(ff, channels, determine_good_cells = "all", plot = TRUE,
-               save_fcs = TRUE)
+PeacoQC_res <- PeacoQC(ff, channels, determine_good_cells = "all",
+               plot = TRUE, save_fcs = TRUE)
 
 }
