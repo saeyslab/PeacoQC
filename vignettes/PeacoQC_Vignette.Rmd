@@ -2,15 +2,15 @@
 title: "PeacoQC"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{PeacoQC_Vignette}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+    %\VignetteIndexEntry{PeacoQC_Vignette}
+    %\VignetteEngine{knitr::rmarkdown}
+    %\VignetteEncoding{UTF-8}
 ---
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
+collapse = TRUE,
+comment = "#>"
 )
 ```
 
@@ -20,8 +20,8 @@ The PeacoQC package provides quality control functions that will check
 for monotonic increasing channels, that will remove outliers and unstable 
 events introduced due to e.g. clogs, speed changes etc. during the measurement 
 of your sample. It also provides the functionality of visualising the quality
-control result of only one sample and the visualisation of the results of multiple
-samples in one experiment
+control result of only one sample and the visualisation of the results of 
+multiple samples in one experiment
 
 ## Installing PeacoQC
 
@@ -36,11 +36,12 @@ library(PeacoQC)
 ## Standard pre-processing and quality control pipeline
 
 The following pipeline is recommended to use for pre-processing your data.
-The pipeline starts with a flowframe (flow cytometry or mass cytometry data) and
-will first remove margins, then it will compensate and transform while ending
-with the PeacoQC quality control. This will give back a list with the cleaned
-flowframe and the different parameter settings, it will also save the flowframe
-in a new fcs file and it will make a plot of the quality control for this sample.
+The pipeline starts with a flowframe (flow cytometry or mass cytometry data) 
+and will first remove margins, then it will compensate and transform while 
+ending with the PeacoQC quality control. This will give back a list with the 
+cleaned flowframe and the different parameter settings, it will also save the 
+flowframe in a new fcs file and it will make a plot of the quality control for 
+this sample.
 
 ```{r, warning=FALSE, fig.show='hide'}
 # Specify flowframe path and read your flowframe
@@ -64,21 +65,21 @@ ff <- RemoveMargins(ff = ff, channels = channels, output = "frame")
 # Compensate and transform the data
 ff <- flowWorkspace::compensate(ff, ff@description$SPILL)
 ff <- flowWorkspace::transform(ff, 
-  flowCore::estimateLogicle(ff, colnames(ff@description$SPILL)))
+    flowCore::estimateLogicle(ff, colnames(ff@description$SPILL)))
 
 
 # Run PeacoQC and save the cleaned flowframe as an fcs file and plot the results
 # of this quality control step.
 peacoqc_res <- PeacoQC(
-  ff = ff,
-  channels = channels,
-  determine_good_cells = "all",
-  save_fcs = TRUE,
-  plot = TRUE)
+    ff = ff,
+    channels = channels,
+    determine_good_cells = "all",
+    save_fcs = TRUE,
+    plot = TRUE)
 
 
-# Filtered flowframe is stored in peacoqc_res$FinalFF and can be used for further 
-# analysis.
+# Filtered flowframe is stored in peacoqc_res$FinalFF and can be used for 
+# further analysis.
 ff <- peacoqc_res$FinalFF
 
 
@@ -103,17 +104,19 @@ also increase this to make PeacoQC more strict.
 ff <- flowCore::read.FCS(fileName)
 
 peacoqc_res <- PeacoQC(
-  ff,
-  channels,
-  determine_good_cells = "all",
-  save_fcs = FALSE,
-  plot = TRUE,
-  IT_limit = 0.6
+    ff,
+    channels,
+    determine_good_cells = "all",
+    save_fcs = FALSE,
+    plot = TRUE,
+    IT_limit = 0.6
 )
 
 
 # This line is to show you what the results are from the PeacoQC run
-plot_path <- system.file("extdata", "PeacoQC_111_Comp_Trans.png", package = "PeacoQC")
+plot_path <- system.file("extdata", 
+    "PeacoQC_111_Comp_Trans.png", 
+    package = "PeacoQC")
 knitr::include_graphics(plot_path)
 
 # As you can see on the figure, the Isolation Tree analysis removed the first
@@ -121,9 +124,9 @@ knitr::include_graphics(plot_path)
 
 
 
-# You can also change the MAD parameter to a higher value (to make it more strict)
-# or to a lower value (to make it less strict). Since the MAD analysis does not
-# remove something, this is not neccesary now.
+# You can also change the MAD parameter to a higher value 
+# (to make it more strict) or to a lower value (to make it less strict). 
+# Since the MAD analysis does not remove something, this is not neccesary now.
 
 # peacoqc_res <- PeacoQC(
 #   ff,
@@ -144,7 +147,7 @@ knitr::include_graphics(plot_path)
 #   ff <- RemoveMargins(ff, channels)
 #   ff <- flowWorkspace::compensate(ff, ff@description$SPILL)
 #   ff <- flowWorkspace::transform(ff, flowCore::estimateLogicle(
-#                                             ff, colnames(ff@description$SPILL)))
+#                               ff, colnames(ff@description$SPILL)))
 #   peacoqc_res <- PeacoQC(
 #     ff, 
 #     channels, 
@@ -174,9 +177,10 @@ PeacoQCHeatmap(report_location = location)
 
 # Make heatmap with only the runs of the last test
 PeacoQCHeatmap(report_location = location, latest_tests = TRUE)
- 
+
 # Make heatmap with row annotation
-PeacoQCHeatmap(report_location = location, row_split = c("r1", "r2", rep("r3",2), rep("r4", 16)))
+PeacoQCHeatmap(report_location = location, 
+    row_split = c("r1", "r2", rep("r3",2), rep("r4", 16)))
 
 ```
 

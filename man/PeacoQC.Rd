@@ -53,8 +53,10 @@ removed, they will also be marked as 'bad'. The default is 5.}
 (display_cells, manual_cells, prefix)}
 }
 \value{
-This function returns a \code{list} with a number of items:
-.. MOET NOG AANGEVULD WORDEN
+This function returns a \code{list} with a number of items. It will
+include "FinalFF" where the cleaned flowframe is stored. It also contains
+the starting parameters and the information necessary to give to \code{
+PlotPeacoQC} if the two functions are run seperatly.
 }
 \description{
 \code{PeacoQC} will determine peaks on the channels in the
@@ -79,11 +81,11 @@ ff_cleaned <- RemoveMargins(ff, channels)
 # Compensate and transform the data
 ff_comp <- flowCore::compensate(ff_cleaned,ff@description$SPILL)
 ff_trans <- flowCore::transform(ff_comp,
-              flowCore::transformList(colnames(ff@description$SPILL),
-                         flowCore::logicleTransform()))
+    flowCore::transformList(colnames(ff@description$SPILL),
+        flowCore::logicleTransform()))
 
 #Run PeacoQC
 PeacoQC_res <- PeacoQC(ff, channels, determine_good_cells = "all",
-               plot = TRUE, save_fcs = TRUE)
+                    plot = TRUE, save_fcs = TRUE)
 
 }

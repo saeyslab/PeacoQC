@@ -47,7 +47,7 @@ DetermineAllPeaks <- function(ff, channel, breaks){
 
     }
 
-    lengths <- sapply(peaks, length)
+    lengths <- vapply(peaks, length, FUN.VALUE = numeric(1))
 
 
     nr_peaks <- unique(lengths)
@@ -82,8 +82,9 @@ DetermineAllPeaks <- function(ff, channel, breaks){
 
         final_medians <- c()
 
-        to_use_clusters <- names(cluster_medians)[sapply(full_channel_peaks,
-            function(x)which.min(abs(x-cluster_medians)))]
+        to_use_clusters <- names(cluster_medians)[vapply(full_channel_peaks,
+            function(x)which.min(abs(x-cluster_medians)),
+            FUN.VALUE = numeric(1))]
 
         peak_frame <- peak_frame[peak_frame$Cluster %in% to_use_clusters,]
 
@@ -237,8 +238,8 @@ SplitWithOverlapMids <- function(vec, seg.length, overlap) {
     ends   = starts + seg.length - 1
     ends[ends > length(vec)] = length(vec)
 
-    mids <- sapply(seq_along(starts),
-        function(i) starts[i] + ceiling(overlap/2))
+    mids <- vapply(seq_along(starts),
+        function(i) starts[i] + ceiling(overlap/2), FUN.VALUE = numeric(1))
     mids <- mids[mids < max(vec)]
     return(mids)
 }

@@ -26,9 +26,9 @@ to compare the automated QC with.}
 
 \item{display_peaks}{If the result of \code{PeacoQC} is given, all the
 quality control results will be visualised. If set to TRUE: \code{PeacoQC}
- will be run and only the peaks will be displayed without any quality control.
-  If set to FALSE, no peaks will be displayed and only the events will be
-   displayed.}
+will be run and only the peaks will be displayed without any quality control.
+If set to FALSE, no peaks will be displayed and only the events will be
+displayed.}
 
 \item{prefix}{The prefix that will be given to the generated png file}
 
@@ -42,9 +42,9 @@ output_directory
 \description{
 \code{PlotPeacoQC} will generate a png file with on overview of
 the flow rate and the different selected channels. These will be annotated
- based on the measurements that were removed by PeacoQC. It is also possible
-  to only display the quantiles and median or only the measurements without
-  any annotation.
+based on the measurements that were removed by PeacoQC. It is also possible
+to only display the quantiles and median or only the measurements without
+any annotation.
 }
 \examples{
 
@@ -60,8 +60,8 @@ channels <- c(1,3,5:14,18,21)
 
 # Run PeacoQC
 PeacoQC_res <- PeacoQC(ff, channels, determine_good_cells = "all",
-   plot = FALSE,
-   save_fcs = TRUE)
+    plot = FALSE,
+    save_fcs = TRUE)
 
 # Run PlotPeacoQC
 PlotPeacoQC(ff, channels, display_peaks = PeacoQC_res)

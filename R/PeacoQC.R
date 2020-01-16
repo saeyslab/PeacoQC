@@ -16,8 +16,8 @@
 #' \code{colnames(ff@exprs)}. If a channel is not listed in this parameter, its
 #' default internal values will be used.
 #' @param output If set to "full", a list with the filtered flowframe and the
-#'  indices of the margin event is returned. If set to "frame", only the
-#'  filtered flowframe is returned.
+#' indices of the margin event is returned. If set to "frame", only the
+#' filtered flowframe is returned.
 #'
 #' @examples
 #' # Read in raw data
@@ -40,7 +40,7 @@
 #'     channel_specifications = channel_specifications)
 #' @return This function returns either a filtered flowframe when the
 #' \code{output} parameter is set to "frame" or a list containing the filtered
-#'  flowframe and a TRUE/FALSE list indicating the margin events.
+#' flowframe and a TRUE/FALSE list indicating the margin events.
 #' @importFrom flowWorkspace pData
 #' @export
 
@@ -150,8 +150,10 @@ RemoveMargins <- function(
 #' @param ... Options to pass on to the \code{PlotPeacoQC} function
 #' (display_cells, manual_cells, prefix)
 #'
-#' @return This function returns a \code{list} with a number of items:
-#' .. MOET NOG AANGEVULD WORDEN
+#' @return This function returns a \code{list} with a number of items. It will
+#' include "FinalFF" where the cleaned flowframe is stored. It also contains
+#' the starting parameters and the information necessary to give to \code{
+#' PlotPeacoQC} if the two functions are run seperatly.
 #'
 #' @examples
 #'
@@ -171,14 +173,16 @@ RemoveMargins <- function(
 #' # Compensate and transform the data
 #' ff_comp <- flowCore::compensate(ff_cleaned,ff@description$SPILL)
 #' ff_trans <- flowCore::transform(ff_comp,
-#'               flowCore::transformList(colnames(ff@description$SPILL),
-#'                          flowCore::logicleTransform()))
+#'     flowCore::transformList(colnames(ff@description$SPILL),
+#'         flowCore::logicleTransform()))
 #'
 #' #Run PeacoQC
 #' PeacoQC_res <- PeacoQC(ff, channels, determine_good_cells = "all",
-#'                plot = TRUE, save_fcs = TRUE)
+#'                     plot = TRUE, save_fcs = TRUE)
 #'
 #' @export
+#'
+
 PeacoQC <- function(ff,
     channels,
     determine_good_cells = "all",
@@ -250,9 +254,6 @@ PeacoQC <- function(ff,
     results <- list()
     results$Analysis <- determine_good_cells
 
-    # Timing everything
-    start_time <- Sys.time()
-
     # Make sure that channels only consist out of the colnames of ff@exprs
     results$Channels <- channels
     channels <- colnames(ff@exprs)[channels]
@@ -278,7 +279,6 @@ PeacoQC <- function(ff,
     }
 
     results$EventsPerBin <- events_per_bin
-    results$Breaks <- breaks
 
     # Check if there is an increasing or decreasing trent in the channels
     weird_channel_increasing <- NULL
@@ -595,12 +595,6 @@ PeacoQC <- function(ff,
         }
     }
 
-    # ----------------------- Final results ------------------------------------
-
-    results$AllPeaks <- all_peaks
-    end_time <- Sys.time()
-
-    results$Time <- end_time - start_time
 
     #---------------- Does the file need to be plotted? ------------------------
 
@@ -628,9 +622,9 @@ PeacoQC <- function(ff,
 #'
 #' @description \code{PlotPeacoQC} will generate a png file with on overview of
 #' the flow rate and the different selected channels. These will be annotated
-#'  based on the measurements that were removed by PeacoQC. It is also possible
-#'   to only display the quantiles and median or only the measurements without
-#'   any annotation.
+#' based on the measurements that were removed by PeacoQC. It is also possible
+#' to only display the quantiles and median or only the measurements without
+#' any annotation.
 #'
 #' @usage
 #' PlotPeacoQC(ff, channels, output_directory = ".", display_cells = 5000,
@@ -644,13 +638,13 @@ PeacoQC <- function(ff,
 #' @param display_cells The number of measurements that should be displayed.
 #' (The number of dots that are displayed for every channel)
 #' @param manual_cells Give a vector (TRUE/FALSE) with annotations for each cell
-#'  to compare the automated QC with.
+#' to compare the automated QC with.
 #' @param title_FR The title that has to be displayed above the flow rate figure
 #' @param display_peaks If the result of \code{PeacoQC} is given, all the
 #' quality control results will be visualised. If set to TRUE: \code{PeacoQC}
-#'  will be run and only the peaks will be displayed without any quality control.
-#'   If set to FALSE, no peaks will be displayed and only the events will be
-#'    displayed.
+#' will be run and only the peaks will be displayed without any quality control.
+#' If set to FALSE, no peaks will be displayed and only the events will be
+#' displayed.
 #' @param prefix The prefix that will be given to the generated png file
 #' @param ... Arguments to be given to \code{PeacoQC} if \code{display_peaks}
 #' is set to TRUE.
@@ -674,8 +668,8 @@ PeacoQC <- function(ff,
 #'
 #' # Run PeacoQC
 #' PeacoQC_res <- PeacoQC(ff, channels, determine_good_cells = "all",
-#'    plot = FALSE,
-#'    save_fcs = TRUE)
+#'     plot = FALSE,
+#'     save_fcs = TRUE)
 #'
 #' # Run PlotPeacoQC
 #' PlotPeacoQC(ff, channels, display_peaks = PeacoQC_res)
@@ -1059,7 +1053,9 @@ PlotPeacoQC <- function(ff,
 
     # Use original argument to see if there was a list given or not
     if (!(class(display_peaks) == "logical")){
-        legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
+        legend <- g[[which(vapply(g,
+                function(x) x$name,
+                FUN.VALUE = character(1)) == "guide-box")]]
         lheight <- sum(legend$height)
         plots <- do.call(gridExtra::arrangeGrob,
             c(lapply(plot_list, function(x)x + theme(legend.position = "none")),
