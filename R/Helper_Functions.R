@@ -63,7 +63,7 @@ DetermineAllPeaks <- function(ff, channel, breaks){
 
 
     most_occuring_peaks <- max(nr_peaks[which(tabulate(match(lengths, nr_peaks))
-        > (1/3)*length(lengths))])
+        > 0.1*length(lengths))])
 
     ind_bins_nr_peaks <- lengths == most_occuring_peaks
     limited_nr_peaks <- do.call(rbind, peaks[ind_bins_nr_peaks])
