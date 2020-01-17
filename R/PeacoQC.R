@@ -192,7 +192,7 @@ PeacoQC <- function(ff,
     name_directory = "PeacoQC_results",
     report = TRUE,
     events_per_bin = 2000,
-    MAD = 10,
+    MAD = 6,
     IT_limit = 0.55,
     consecutive_bins = 5,
     ...

@@ -21,7 +21,7 @@ for monotonic increasing channels, that will remove outliers and unstable
 events introduced due to e.g. clogs, speed changes etc. during the measurement 
 of your sample. It also provides the functionality of visualising the quality
 control result of only one sample and the visualisation of the results of 
-multiple samples in one experiment
+multiple samples in one experiment.
 
 ## Installing PeacoQC
 

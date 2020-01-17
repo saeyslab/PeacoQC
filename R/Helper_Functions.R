@@ -63,7 +63,7 @@ DetermineAllPeaks <- function(ff, channel, breaks){
 
 
     most_occuring_peaks <- max(nr_peaks[which(tabulate(match(lengths, nr_peaks))
-        > (0.2)*length(lengths))])
+        > (1/3)*length(lengths))])
 
     ind_bins_nr_peaks <- lengths == most_occuring_peaks
     limited_nr_peaks <- do.call(rbind, peaks[ind_bins_nr_peaks])
@@ -114,7 +114,7 @@ DetermineAllPeaks <- function(ff, channel, breaks){
 
 
     #Removes clusters that are too small to be used for isolation forest
-    # (< 1/3 of the data)
+    # (< 2/3 of the data)
 
     peak_frame <- TooSmallClusters(peak_frame, peak_frame$Cluster)
 
@@ -145,6 +145,7 @@ FindThemPeaks <- function (channel_data)
     if (all(is.na(peaks))) {
         peaks <- dens$x[which.max(dens$y)]
     }
+
     if (any(peaks < 0) ){
         return(NA)
     }
