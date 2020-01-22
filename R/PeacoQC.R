@@ -216,6 +216,11 @@ PeacoQC <- function(ff,
         stop("The parameter determine_good_cells should be of following values:
             all, IT or MAD")
 
+    # Check for time channel
+    time_channel <- grep("time", colnames(ff@exprs), ignore.case = TRUE)
+    if (any(diff(ff@exprs[,time_channel]) < 0) == TRUE)
+        warning("There is an inconsistancy in the Time channel.
+            It seems that not al the cells are ordered according to time in the flowframe")
 
     # Make a new directory where all results will be stored
     if(!is.null(output_directory)){
@@ -579,7 +584,7 @@ PeacoQC <- function(ff,
             }
             if (!is.null(weird_channel_decreasing) &
                     !is.null(weird_channel_increasing)){
-                changing_channel <- "Increasing and descreasing channel"
+                changing_channel <- "Increasing and decreasing channel"
             }
 
 
@@ -704,6 +709,13 @@ PlotPeacoQC <- function(ff,
         stop("There should be a path given to the output_directory parameter.")
 
 
+    # Check for time channel
+    time_channel <- grep("time", colnames(ff@exprs), ignore.case = TRUE)
+    if (any(diff(ff@exprs[,time_channel]) < 0) == TRUE)
+        warning("There is an inconsistancy in the Time channel.
+            It seems that not al the cells are ordered according to time in the flowframe")
+
+
     # Make a new directory where all results will be stored
     if(!is.null(output_directory)){
 
@@ -736,14 +748,6 @@ PlotPeacoQC <- function(ff,
     name <- sub(".fcs", "", filename)
 
     n_channels <- length(channels)
-    if (missing(channels)) {
-        time_index <- grep("Time", colnames(ff@exprs))
-        channels <- colnames(ff@exprs)[-time_index]
-
-    } else if (is.numeric(channels)) {
-        channels <- colnames(ff@exprs)[channels]
-    }
-
 
     # Determining grid to plot
     n_row <- floor(sqrt(n_channels + 2))
