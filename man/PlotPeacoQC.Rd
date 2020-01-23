@@ -59,7 +59,9 @@ ff <- flowCore::read.FCS(fileName)
 channels <- c(1,3,5:14,18,21)
 
 # Run PeacoQC
-PeacoQC_res <- PeacoQC(ff, channels, determine_good_cells = "all",
+PeacoQC_res <- PeacoQCSignalStability(ff,
+    channels,
+    determine_good_cells = "all",
     plot = FALSE,
     save_fcs = TRUE)
 

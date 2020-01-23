@@ -52,6 +52,47 @@ ff <- flowCore::read.FCS(fileName)
 # Determine channels on which quality control should be done
 channels <- c(1,3,5:14,18,21)
 
+# Store compensation matrix
+compensation_matrix <- ff@description$SPILL
+
+# Store transformation list
+transformation_list <- flowCore::estimateLogicle(ff, 
+                        colnames(ff@description$SPILL))
+
+
+# Run PeacoQC and save the cleaned flowframe as an fcs file and plot the results
+# of this quality control step.
+peacoqc_res <- PeacoQC(
+    ff = ff,
+    compensation_matrix = compensation_matrix,
+    transformation_list = transformation_list,
+    channels = channels,
+    determine_good_cells = "all",
+    save_fcs = TRUE,
+    plot = TRUE)
+
+
+# Filtered flowframe is stored in peacoqc_res$FinalFF and can be used for 
+# further analysis.
+ff <- peacoqc_res$FinalFF
+
+
+```
+
+
+The code underneath specifies the functions that are used in the PeacoQC 
+function. You can use all these functions individually if you need to alter 
+something specific but it is easier to use the bigger PeacoQC workflow function.
+
+```{r, warning=FALSE, fig.show='hide'}
+# Specify flowframe path and read your flowframe
+fileName <- system.file("extdata", "111.fcs", package = "PeacoQC")
+ff <- flowCore::read.FCS(fileName)
+
+
+# Determine channels on which quality control should be done
+channels <- c(1,3,5:14,18,21)
+
 
 # Remove margins
 # Make sure you do this before any compensation since the internal parameters
@@ -63,14 +104,14 @@ ff <- RemoveMargins(ff = ff, channels = channels, output = "frame")
 
 
 # Compensate and transform the data
-ff <- flowWorkspace::compensate(ff, ff@description$SPILL)
-ff <- flowWorkspace::transform(ff, 
+ff <- flowCore::compensate(ff, ff@description$SPILL)
+ff <- flowCore::transform(ff, 
     flowCore::estimateLogicle(ff, colnames(ff@description$SPILL)))
 
 
 # Run PeacoQC and save the cleaned flowframe as an fcs file and plot the results
 # of this quality control step.
-peacoqc_res <- PeacoQC(
+peacoqc_res <- PeacoQCSignalStability(
     ff = ff,
     channels = channels,
     determine_good_cells = "all",
@@ -94,18 +135,32 @@ tweak your parameters. If your dataset inlcudes channels that have a sparse
 pattern (e.g. in mass data), the IT_limit should probably be increased in order 
 to be more strict. If it seems that the MAD parameter removes too much, you can
 also increase this to make PeacoQC more strict.
+It is also recommended to determine your transformlist on one compensated file.
 
 ```{r, warning=FALSE, out.width='100%'}
 
 # Change IT_limit for one compensated and transformed file. 
 # (Higher = more strict, lower = less strict)
 # The fcs file should not be saved since we are still optimising the parameters
-
+fileName <- system.file("extdata", "111.fcs", package = "PeacoQC")
 ff <- flowCore::read.FCS(fileName)
+
+# Determine channels on which quality control should be done
+channels <- c(1,3,5:14,18,21)
+
+
+# Compensate and determine transformation list for one file
+compensation_matrix <- ff@description$SPILL
+ff_compensated <- flowCore::compensate(ff, compensation_matrix)
+transformation_list <- flowCore::estimateLogicle(ff, 
+                        colnames(compensation_matrix))
+
 
 peacoqc_res <- PeacoQC(
     ff,
     channels,
+    compensation_matrix = compensation_matrix,
+    transformation_list = transformation_list,
     determine_good_cells = "all",
     save_fcs = FALSE,
     plot = TRUE,
@@ -129,12 +184,14 @@ knitr::include_graphics(plot_path)
 # Since the MAD analysis does not remove something, this is not neccesary now.
 
 # peacoqc_res <- PeacoQC(
-#   ff,
-#   channels,
-#   determine_good_cells = "all",
-#   save_fcs = FALSE,
-#   plot = T,
-#   MAD = 12
+#     ff,
+#     channels,
+#     compensation_matrix = compensation_matrix,
+#     transformation_list = transformation_list,
+#     determine_good_cells = "all",
+#     save_fcs = FALSE,
+#     plot = TRUE,
+#     MAD = 12
 # )
 
 
@@ -144,15 +201,13 @@ knitr::include_graphics(plot_path)
 
 # for (file in files){
 #   ff <- flowCore::read.FCS(file)
-#   ff <- RemoveMargins(ff, channels)
-#   ff <- flowWorkspace::compensate(ff, ff@description$SPILL)
-#   ff <- flowWorkspace::transform(ff, flowCore::estimateLogicle(
-#                               ff, colnames(ff@description$SPILL)))
+
 #   peacoqc_res <- PeacoQC(
 #     ff, 
-#     channels, 
+#     channels,
+#     compensation_matrix = compensation_matrix,
+#     transformation_list = transformation_list,
 #     determine_good_cells = "all",
-#     MAD = 10,
 #     IT_limit = 0.6,
 #     save_fcs = T,
 #     plot = T)

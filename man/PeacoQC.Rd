@@ -2,12 +2,13 @@
 % Please edit documentation in R/PeacoQC.R
 \name{PeacoQC}
 \alias{PeacoQC}
-\title{Peak-based detection of high quality cytometry data}
+\title{Full PeacoQC pre-processing pipeline}
 \usage{
-PeacoQC(ff,channels, determine_good_cells = "all", plot = TRUE,
-        save_fcs = TRUE, output_directory = ".",
-        name_directory = "PeacoQC_results", report = TRUE,
-        events_per_bin = 2000, MAD = 6, IT_limit = 0.55,
+PeacoQC(ff, channels, remove_margins = TRUE, compensation_matrix,
+        transformation_list, channel_specifications = NULL,
+        determine_good_cells = "all", plot = TRUE, save_fcs = TRUE,
+        output_directory = ".", name_directory = "PeacoQC_results",
+        report = TRUE, events_per_bin = 2000, MAD = 6, IT_limit = 0.55,
         consecutive_bins = 5, ...)
 }
 \arguments{
@@ -15,6 +16,22 @@ PeacoQC(ff,channels, determine_good_cells = "all", plot = TRUE,
 
 \item{channels}{Indices of the channels in the ff on which peaks have to
 be determined.}
+
+\item{remove_margins}{If set to FALSE, the margins will not be removed.}
+
+\item{compensation_matrix}{The compensation matrix that will be used by the
+flowCore function compensate.}
+
+\item{transformation_list}{The transformation list for all the channels
+that should be transformed.}
+
+\item{channel_specifications}{A list of lists with parameter specifications
+for certain channels. This parameter should only be used if the values in
+the internal parameters description is too strict or wrong for a number or
+all channels. This should be one list per channel with first a minRange and
+then a maxRange value. This list should have the channel name found back in
+\code{colnames(ff@exprs)}. If a channel is not listed in this parameter, its
+default internal values will be used.}
 
 \item{determine_good_cells}{If set to FALSE, the algorithm will only
 determine peaks. If it is set to "all", the bad measurements will be
@@ -24,8 +41,8 @@ or "IT" to only use one method of filtering.}
 \item{plot}{If set to TRUE, the \code{PlotPeacoQC} function is run to make
 an overview plot of the deleted measurements.}
 
-\item{save_fcs}{If set to TRUE, the cleaned fcs file will be saved in the
-\code{output_directory} as: filename_QC.fcs.}
+\item{save_fcs}{If set to TRUE, the compensated, transformed and cleaned fcs
+file will be saved in the \code{output_directory} as: filename_QC.fcs.}
 
 \item{output_directory}{Directory where a new folder will be created that
 consists of the generated fcs files, plots and report. If set to NULL,
@@ -54,14 +71,18 @@ removed, they will also be marked as 'bad'. The default is 5.}
 }
 \value{
 This function returns a \code{list} with a number of items. It will
-include "FinalFF" where the cleaned flowframe is stored. It also contains
-the starting parameters and the information necessary to give to \code{
-PlotPeacoQC} if the two functions are run seperatly.
+include "FinalFF" where the transformed, compensated and cleaned flowframe is
+stored. It also contains the starting parameters and the information
+necessary to give to \code{PlotPeacoQC} if the two functions are run
+seperatly. The GoodCells list is also given where 'good' measurements are
+indicated as TRUE and the to be removed measurements as FALSE.
 }
 \description{
-\code{PeacoQC} will determine peaks on the channels in the
-flowframe. Then it will remove anomalies caused by e.g. clogs, changes in
-speed etc. by using an IsolationTree and/or the MAD method.
+Method to run general pre-processing and quality control
+workflow. The method will first remove margins and compensate and transform
+the flowframe. This is followed by the \code{PeacoQCSignalStability}
+function that will check the data on anomalies that occured during
+measurement.
 }
 \examples{
 
@@ -75,17 +96,18 @@ ff <- flowCore::read.FCS(fileName)
 # and on which the quality control should be done
 channels <- c(1,3,5:14,18,21)
 
-# Remove margins
-ff_cleaned <- RemoveMargins(ff, channels)
+# Compensation matrix (is most of the time stored in the flowframe as
+# ff@description$SPILL or ff@description$SPILLOVER)
+compensation_matrix <- ff@description$SPILL
 
-# Compensate and transform the data
-ff_comp <- flowCore::compensate(ff_cleaned,ff@description$SPILL)
-ff_trans <- flowCore::transform(ff_comp,
-    flowCore::transformList(colnames(ff@description$SPILL),
-        flowCore::logicleTransform()))
+# Store the transformation list
+transformation_list <- flowCore::estimateLogicle(ff,
+                                colnames(compensation_matrix))
 
 #Run PeacoQC
-PeacoQC_res <- PeacoQC(ff, channels, determine_good_cells = "all",
-                    plot = TRUE, save_fcs = TRUE)
+PeacoQC_res <- PeacoQC(ff = ff,
+                        channels = channels,
+                        compensation_matrix = compensation_matrix,
+                        transformation_list = transformation_list)
 
 }

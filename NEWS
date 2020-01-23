@@ -1,10 +1,24 @@
+================================================================================
+
 PeacoQC (version 0.99.1)
 ------------------------
 
 First version of the package.
 
+================================================================================
 
 PeacoQC (version 0.99.2)
 ------------------------
 
 Include time channel check.
+
+================================================================================
+
+PeacoQC (version 0.99.3)
+------------------------
+
+Made one big PeacoQC function where margins are removed, where the data is
+compensated and transformed and where PeacoQC signal stability is used for
+quality control.
+
+================================================================================

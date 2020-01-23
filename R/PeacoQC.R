@@ -115,8 +115,8 @@ RemoveMargins <- function(
 #' speed etc. by using an IsolationTree and/or the MAD method.
 #'
 #' @usage
-#' PeacoQC(ff,channels, determine_good_cells = "all", plot = TRUE,
-#'         save_fcs = TRUE, output_directory = ".",
+#' PeacoQCSignalStability(ff,channels, determine_good_cells = "all",
+#'         plot = TRUE, save_fcs = TRUE, output_directory = ".",
 #'         name_directory = "PeacoQC_results", report = TRUE,
 #'         events_per_bin = 2000, MAD = 6, IT_limit = 0.55,
 #'         consecutive_bins = 5, ...)
@@ -150,7 +150,7 @@ RemoveMargins <- function(
 #' @param ... Options to pass on to the \code{PlotPeacoQC} function
 #' (display_cells, manual_cells, prefix)
 #'
-#' @return This function returns a \code{list} with a number of items. It will
+#' @return This function returns a \code{ist} with a number of items. It will
 #' include "FinalFF" where the cleaned flowframe is stored. It also contains
 #' the starting parameters and the information necessary to give to \code{
 #' PlotPeacoQC} if the two functions are run seperatly.
@@ -159,31 +159,23 @@ RemoveMargins <- function(
 #'
 #' # General pipeline for preprocessing and quality control with PeacoQC
 #'
-#' # Read in raw data
-#' fileName <- system.file("extdata", "111.fcs", package = "PeacoQC")
+#' # Read in compensated and transformed data
+#' fileName <- system.file("extdata", "111_Comp_Trans.fcs", package = "PeacoQC")
 #' ff <- flowCore::read.FCS(fileName)
 #'
 #' # Define channels where the margin events should be removed
 #' # and on which the quality control should be done
 #' channels <- c(1,3,5:14,18,21)
 #'
-#' # Remove margins
-#' ff_cleaned <- RemoveMargins(ff, channels)
-#'
-#' # Compensate and transform the data
-#' ff_comp <- flowCore::compensate(ff_cleaned,ff@description$SPILL)
-#' ff_trans <- flowCore::transform(ff_comp,
-#'     flowCore::transformList(colnames(ff@description$SPILL),
-#'         flowCore::logicleTransform()))
-#'
 #' #Run PeacoQC
-#' PeacoQC_res <- PeacoQC(ff, channels, determine_good_cells = "all",
+#' PeacoQC_res <- PeacoQCSignalStability(ff, channels,
+#'                     determine_good_cells = "all",
 #'                     plot = TRUE, save_fcs = TRUE)
 #'
 #' @export
 #'
 
-PeacoQC <- function(ff,
+PeacoQCSignalStability <- function(ff,
     channels,
     determine_good_cells = "all",
     plot = TRUE,
@@ -220,7 +212,8 @@ PeacoQC <- function(ff,
     time_channel <- grep("time", colnames(ff@exprs), ignore.case = TRUE)
     if (any(diff(ff@exprs[,time_channel]) < 0) == TRUE)
         warning("There is an inconsistancy in the Time channel.
-            It seems that not al the cells are ordered according to time in the flowframe")
+            It seems that not al the cells are ordered according to time
+            in the flowframe")
 
     # Make a new directory where all results will be stored
     if(!is.null(output_directory)){
@@ -672,7 +665,9 @@ PeacoQC <- function(ff,
 #' channels <- c(1,3,5:14,18,21)
 #'
 #' # Run PeacoQC
-#' PeacoQC_res <- PeacoQC(ff, channels, determine_good_cells = "all",
+#' PeacoQC_res <- PeacoQCSignalStability(ff,
+#'     channels,
+#'     determine_good_cells = "all",
 #'     plot = FALSE,
 #'     save_fcs = TRUE)
 #'
@@ -713,7 +708,8 @@ PlotPeacoQC <- function(ff,
     time_channel <- grep("time", colnames(ff@exprs), ignore.case = TRUE)
     if (any(diff(ff@exprs[,time_channel]) < 0) == TRUE)
         warning("There is an inconsistancy in the Time channel.
-            It seems that not al the cells are ordered according to time in the flowframe")
+            It seems that not al the cells are ordered according
+            to time in the flowframe")
 
 
     # Make a new directory where all results will be stored
@@ -733,7 +729,7 @@ PlotPeacoQC <- function(ff,
     if (class(display_peaks) == "logical" ){
         if(display_peaks == TRUE){
             message("Running PeacoQC to determine peaks")
-            peaks <- PeacoQC(ff,
+            peaks <- PeacoQCSignalStability(ff,
                 channels,
                 determine_good_cells = FALSE,
                 output_directory = NULL, plot = FALSE, save_fcs = FALSE,
@@ -748,6 +744,8 @@ PlotPeacoQC <- function(ff,
     name <- sub(".fcs", "", filename)
 
     n_channels <- length(channels)
+    channels <- colnames(ff@exprs)[channels]
+
 
     # Determining grid to plot
     n_row <- floor(sqrt(n_channels + 2))
@@ -1276,3 +1274,161 @@ PeacoQCHeatmap <- function(
 
 
 }
+#' @title Full PeacoQC pre-processing pipeline
+#'
+#' @description Method to run general pre-processing and quality control
+#' workflow. The method will first remove margins and compensate and transform
+#' the flowframe. This is followed by the \code{PeacoQCSignalStability}
+#' function that will check the data on anomalies that occured during
+#' measurement.
+#'
+#' @usage
+#'
+#' PeacoQC(ff, channels, remove_margins = TRUE, compensation_matrix,
+#'         transformation_list, channel_specifications = NULL,
+#'         determine_good_cells = "all", plot = TRUE, save_fcs = TRUE,
+#'         output_directory = ".", name_directory = "PeacoQC_results",
+#'         report = TRUE, events_per_bin = 2000, MAD = 6, IT_limit = 0.55,
+#'         consecutive_bins = 5, ...)
+#'
+#' @param ff A flowframe or the location of an fcs file
+#' @param channels Indices of the channels in the ff on which peaks have to
+#' be determined.
+#' @param remove_margins If set to FALSE, the margins will not be removed.
+#' @param channel_specifications A list of lists with parameter specifications
+#' for certain channels. This parameter should only be used if the values in
+#' the internal parameters description is too strict or wrong for a number or
+#' all channels. This should be one list per channel with first a minRange and
+#' then a maxRange value. This list should have the channel name found back in
+#' \code{colnames(ff@exprs)}. If a channel is not listed in this parameter, its
+#' default internal values will be used.
+#' @param compensation_matrix The compensation matrix that will be used by the
+#' flowCore function compensate.
+#' @param transformation_list The transformation list for all the channels
+#' that should be transformed.
+#' @param determine_good_cells If set to FALSE, the algorithm will only
+#' determine peaks. If it is set to "all", the bad measurements will be
+#' filtered out based on the MAD and IT analysis. It can also be put to "MAD"
+#' or "IT" to only use one method of filtering.
+#' @param plot If set to TRUE, the \code{PlotPeacoQC} function is run to make
+#' an overview plot of the deleted measurements.
+#' @param save_fcs If set to TRUE, the compensated, transformed and cleaned fcs
+#' file will be saved in the \code{output_directory} as: filename_QC.fcs.
+#' @param output_directory Directory where a new folder will be created that
+#' consists of the generated fcs files, plots and report. If set to NULL,
+#' nothing will be stored.
+#' @param name_directory Name of folder that will be generated in
+#' \code{output_directory}.
+#' @param report Overview text report that is generated after PeacoQC is run.
+#' If set to FALSE, no report will be generated.
+#' @param events_per_bin Number of events that are put in one bin.
+#' Default is 2000.
+#' @param MAD The MAD parameter. Default is 6. If this is increased, the
+#' algorithm becomes less strict.
+#' @param IT_limit The IsolationTree parameter. Default is 0.55. If this is
+#' increased, the algorithm becomes less strict.
+#' @param consecutive_bins If 'good' bins are located between bins that are
+#' removed, they will also be marked as 'bad'. The default is 5.
+#' @param ... Options to pass on to the \code{PlotPeacoQC} function
+#' (display_cells, manual_cells, prefix)
+#'
+#' @return This function returns a \code{list} with a number of items. It will
+#' include "FinalFF" where the transformed, compensated and cleaned flowframe is
+#' stored. It also contains the starting parameters and the information
+#' necessary to give to \code{PlotPeacoQC} if the two functions are run
+#' seperatly. The GoodCells list is also given where 'good' measurements are
+#' indicated as TRUE and the to be removed measurements as FALSE.
+#'
+#' @examples
+#'
+#' # General pipeline for preprocessing and quality control with PeacoQC
+#'
+#' # Read in raw data
+#' fileName <- system.file("extdata", "111.fcs", package = "PeacoQC")
+#' ff <- flowCore::read.FCS(fileName)
+#'
+#' # Define channels where the margin events should be removed
+#' # and on which the quality control should be done
+#' channels <- c(1,3,5:14,18,21)
+#'
+#' # Compensation matrix (is most of the time stored in the flowframe as
+#' # ff@description$SPILL or ff@description$SPILLOVER)
+#' compensation_matrix <- ff@description$SPILL
+#'
+#' # Store the transformation list
+#' transformation_list <- flowCore::estimateLogicle(ff,
+#'                                 colnames(compensation_matrix))
+#'
+#' #Run PeacoQC
+#' PeacoQC_res <- PeacoQC(ff = ff,
+#'                         channels = channels,
+#'                         compensation_matrix = compensation_matrix,
+#'                         transformation_list = transformation_list)
+#'
+#' @importFrom flowCore compensate transform
+#'
+#' @export
+
+PeacoQC <- function(
+    ff,
+    channels,
+    remove_margins = TRUE,
+    compensation_matrix,
+    transformation_list,
+    channel_specifications = NULL,
+    determine_good_cells = "all",
+    plot = TRUE,
+    save_fcs = TRUE,
+    output_directory = ".",
+    name_directory = "PeacoQC_results",
+    report = TRUE,
+    events_per_bin = 2000,
+    MAD = 6,
+    IT_limit = 0.55,
+    consecutive_bins = 5,
+    ...
+) {
+
+
+    if(remove_margins == TRUE){
+        #Remove margins
+        ff_cleaned <- RemoveMargins(
+            ff = ff,
+            channels = channels,
+            channel_specifications = channel_specifications)
+    }
+    #Compensation
+    ff_compensated <- flowCore::compensate(ff_cleaned, compensation_matrix)
+
+    #Transformation
+    ff_transformed <- flowCore::transform(ff_compensated, transformation_list)
+
+    #PeacoQCSignalStability
+    results_peacoQC <- PeacoQCSignalStability(
+        ff = ff_transformed,
+        channels = channels,
+        determine_good_cells = determine_good_cells,
+        plot = plot,
+        save_fcs = save_fcs,
+        name_directory = name_directory,
+        report = report,
+        events_per_bin = events_per_bin,
+        MAD = MAD,
+        IT_limit = IT_limit,
+        consecutive_bins = consecutive_bins,
+        ...)
+
+    return(results_peacoQC)
+
+}
+
+
+
+
+
+
+
+
+
+
+
