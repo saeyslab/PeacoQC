@@ -13,5 +13,6 @@ multiple samples in one experiment.
 You can install this package using the devtools library.
 
 ```{r}
+BiocManager::install("ComplexHeatmap")
 devtools::install_github("saeyslab/PeacoQC")
 ```
