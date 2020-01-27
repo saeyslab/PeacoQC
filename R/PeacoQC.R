@@ -119,7 +119,7 @@ RemoveMargins <- function(
 #' PeacoQCSignalStability(ff,channels, determine_good_cells = "all",
 #'         plot = TRUE, save_fcs = TRUE, output_directory = ".",
 #'         name_directory = "PeacoQC_results", report = TRUE,
-#'         events_per_bin = 2000, MAD = 6, IT_limit = 0.55,
+#'         events_per_bin = 2000, MAD = 8, IT_limit = 0.55,
 #'         consecutive_bins = 5, ...)
 #'
 #' @param ff A flowframe or the location of an fcs file
@@ -186,7 +186,7 @@ PeacoQCSignalStability <- function(ff,
     name_directory = "PeacoQC_results",
     report = TRUE,
     events_per_bin = 2000,
-    MAD = 6,
+    MAD = 8,
     IT_limit = 0.55,
     consecutive_bins = 5,
     ...
@@ -242,6 +242,10 @@ PeacoQCSignalStability <- function(ff,
                     quote = FALSE, col.names = FALSE)
             }
         }
+    } else { # If the directory is NULL, no things can be saved in any location
+        plot <- FALSE
+        save_fcs <- FALSE
+        report <- FALSE
     }
 
     # Searching for the name of the ff
@@ -333,7 +337,7 @@ PeacoQCSignalStability <- function(ff,
         char = "+", style = 3, width = 50, file = stderr())
     utils::setTxtProgressBar(pb,i)
 
-    channel <- channels[3]
+    channel <- channels[5]
 
 
     for (channel in channels){
