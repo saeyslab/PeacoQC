@@ -64,7 +64,6 @@ flowframe. Then it will remove anomalies caused by e.g. clogs, changes in
 speed etc. by using an IsolationTree and/or the MAD method.
 }
 \examples{
-
 # General pipeline for preprocessing and quality control with PeacoQC
 
 # Read in compensated and transformed data

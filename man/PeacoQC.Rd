@@ -85,7 +85,6 @@ function that will check the data on anomalies that occured during
 measurement.
 }
 \examples{
-
 # General pipeline for preprocessing and quality control with PeacoQC
 
 # Read in raw data

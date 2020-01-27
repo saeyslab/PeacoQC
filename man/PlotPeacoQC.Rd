@@ -67,12 +67,12 @@ PeacoQC_res <- PeacoQCSignalStability(ff,
 
 # Run PlotPeacoQC
 PlotPeacoQC(ff, channels, display_peaks = PeacoQC_res)
-
+\dontrun{
 
 ## Plot only the peaks (No quality control)
 PlotPeacoQC(ff, channels, display_peaks = TRUE)
 
 ## Plot only the dots of the file
 PlotPeacoQC(ff, channels, display_peaks = FALSE)
-
+}
 }

@@ -1,6 +1,6 @@
 Package: PeacoQC
 Title: Peak-based selection of high quality cytometry data
-Version: 0.99.3
+Version: 0.99.4
 Authors@R: 
     person(given = "Annelies",
            family = "Emmaneel",
@@ -22,6 +22,7 @@ Imports:
   grDevices,
   grid,
   gridExtra,
+  methods,
   plyr,
   stats,
   utils

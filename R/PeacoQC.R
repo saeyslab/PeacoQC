@@ -42,6 +42,7 @@
 #' \code{output} parameter is set to "frame" or a list containing the filtered
 #' flowframe and a TRUE/FALSE list indicating the margin events.
 #' @importFrom flowWorkspace pData
+#' @importFrom methods is
 #' @export
 
 RemoveMargins <- function(
@@ -50,9 +51,9 @@ RemoveMargins <- function(
     channel_specifications = NULL,
     output = "frame") {
 
-    if (!class(ff) == "flowFrame")
+    if (!is(ff, "flowFrame"))
         stop("ff should be a flowframe.")
-    if (!class(channel_specifications) == "list" &
+    if (!is(channel_specifications, "list") &
             !is.null(channel_specifications))
         stop("channel_specifications should be a list of lists.")
     if(!all(lengths(channel_specifications) == 2) &
@@ -156,7 +157,6 @@ RemoveMargins <- function(
 #' PlotPeacoQC} if the two functions are run seperatly.
 #'
 #' @examples
-#'
 #' # General pipeline for preprocessing and quality control with PeacoQC
 #'
 #' # Read in compensated and transformed data
@@ -171,6 +171,8 @@ RemoveMargins <- function(
 #' PeacoQC_res <- PeacoQCSignalStability(ff, channels,
 #'                     determine_good_cells = "all",
 #'                     plot = TRUE, save_fcs = TRUE)
+#'
+#' @importFrom methods is
 #'
 #' @export
 #'
@@ -190,7 +192,7 @@ PeacoQCSignalStability <- function(ff,
     ...
 ){
 
-    if(!class(ff) == "flowFrame" | is.null(ff))
+    if(!is(ff, "flowFrame") | is.null(ff))
         stop("ff should be a flowFrame")
     if(!is.numeric(channels)| is.null(channels))
         stop("The channel parameter should consist out of indices that
@@ -339,7 +341,7 @@ PeacoQCSignalStability <- function(ff,
 
         peak_frame <- DetermineAllPeaks(ff, channel, breaks)
 
-        if (class(peak_frame) == "logical"){
+        if (is(peak_frame, "logical")){
             utils::setTxtProgressBar(pb,i)
             next()
         }
@@ -651,6 +653,7 @@ PeacoQCSignalStability <- function(ff,
 #' output_directory
 #'
 #' @import ggplot2
+#' @importFrom methods is
 #'
 #' @examples
 #'
@@ -673,14 +676,14 @@ PeacoQCSignalStability <- function(ff,
 #'
 #' # Run PlotPeacoQC
 #' PlotPeacoQC(ff, channels, display_peaks = PeacoQC_res)
-#'
+#'\dontrun{
 #'
 #' ## Plot only the peaks (No quality control)
 #' PlotPeacoQC(ff, channels, display_peaks = TRUE)
 #'
 #' ## Plot only the dots of the file
 #' PlotPeacoQC(ff, channels, display_peaks = FALSE)
-#'
+#' }
 #' @export
 PlotPeacoQC <- function(ff,
     channels,
@@ -695,7 +698,7 @@ PlotPeacoQC <- function(ff,
     requireNamespace("ggplot2")
 
 
-    if(!class(ff) == "flowFrame" | is.null(ff))
+    if(!is(ff, "flowFrame") | is.null(ff))
         stop("ff should be a flowFrame")
     if(!is.numeric(channels)| is.null(channels))
         stop("The channel parameter should consist out of indices that
@@ -726,7 +729,7 @@ PlotPeacoQC <- function(ff,
     }
 
     # If display_peaks == TRUE, the peaks should be calculated by using PeacoQC
-    if (class(display_peaks) == "logical" ){
+    if (is(display_peaks, "logical")){
         if(display_peaks == TRUE){
             message("Running PeacoQC to determine peaks")
             peaks <- PeacoQCSignalStability(ff,
@@ -783,7 +786,7 @@ PlotPeacoQC <- function(ff,
     # Calculate backgroundvalues for points on plot, rectangle block and
     # CV values after automated qc
 
-    if (class(display_peaks) == "list"){
+    if (is(display_peaks, "list")){
 
         # Make blocks for automated gated algorithms to display on plot
         run_length <- rle(peaks$GoodCells)
@@ -867,7 +870,7 @@ PlotPeacoQC <- function(ff,
     p_time <- p_time + theme(panel.grid = element_blank())
 
 
-    if (class(display_peaks) == "list"){
+    if (is(display_peaks, "list")){
 
         p_time <- p_time + geom_rect(data = overview_blocks_background,
             mapping = aes(xmin = x_min,
@@ -903,7 +906,7 @@ PlotPeacoQC <- function(ff,
 
     channel <- channels[2]
 
-    if(class(peaks) == "list"){
+    if(is(peaks, "list")){
         events_per_bin <- peaks$EventsPerBin
 
         mid_breaks <- SplitWithOverlapMids(seq_len(nrow(ff)),
@@ -930,7 +933,7 @@ PlotPeacoQC <- function(ff,
         maximum <- max(ff@exprs[, channel])
         range <- abs(minimum) + abs(maximum)
 
-        if (class(display_peaks) == "list"){
+        if (is(display_peaks, "list")){
 
             # Show contributions of every channel in MAD and IF
 
@@ -965,7 +968,7 @@ PlotPeacoQC <- function(ff,
             theme(plot.title = element_text(hjust = 0),
                 panel.grid = element_blank())
 
-        if (class(display_peaks) == "list") {
+        if (is(display_peaks, "list")) {
 
             p <- p + geom_rect(data = overview_blocks,
                 mapping = aes(xmin = x_min,
@@ -990,11 +993,11 @@ PlotPeacoQC <- function(ff,
             size = 0.3,
             col = "snow4")
 
-        if(class(peaks) == "list"){
+        if(is(peaks, "list")){
 
             peak_frame <- peaks[[channel]]
 
-            if (class(peak_frame) == "data.frame") {
+            if (is(peak_frame, "data.frame")) {
 
                 peak_frame$Bin <- as.numeric(mid_breaks)[as.numeric(
                     peak_frame$Bin)]
@@ -1054,7 +1057,7 @@ PlotPeacoQC <- function(ff,
 
 
     # Use original argument to see if there was a list given or not
-    if (!(class(display_peaks) == "logical")){
+    if (!(is(display_peaks, "logical"))){
         legend <- g[[which(vapply(g,
                 function(x) x$name,
                 FUN.VALUE = character(1)) == "guide-box")]]
@@ -1340,7 +1343,6 @@ PeacoQCHeatmap <- function(
 #' indicated as TRUE and the to be removed measurements as FALSE.
 #'
 #' @examples
-#'
 #' # General pipeline for preprocessing and quality control with PeacoQC
 #'
 #' # Read in raw data
