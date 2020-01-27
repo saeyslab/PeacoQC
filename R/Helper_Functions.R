@@ -23,8 +23,7 @@ DetermineAllPeaks <- function(ff, channel, breaks){
 
     full_channel_peaks <- FindThemPeaks(ff@exprs[,channel])
 
-    suppressWarnings(if(is.na(full_channel_peaks) == TRUE) return(NA))
-
+    if(all(is.na(full_channel_peaks) == TRUE)) return(NA)
 
     peak_results <- list()
 

@@ -7,7 +7,7 @@
 PeacoQCSignalStability(ff,channels, determine_good_cells = "all",
         plot = TRUE, save_fcs = TRUE, output_directory = ".",
         name_directory = "PeacoQC_results", report = TRUE,
-        events_per_bin = 2000, MAD = 6, IT_limit = 0.55,
+        events_per_bin = 2000, MAD = 8, IT_limit = 0.55,
         consecutive_bins = 5, ...)
 }
 \arguments{
