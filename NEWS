@@ -22,3 +22,11 @@ compensated and transformed and where PeacoQC signal stability is used for
 quality control.
 
 ================================================================================
+
+PeacoQC (version 0.99.9)
+------------------------
+
+Changed peak detection to allow for negative peaks and modify PeacoQC function
+to make compensation and transformation not obligatory.
+
+================================================================================

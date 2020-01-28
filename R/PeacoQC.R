@@ -1396,6 +1396,10 @@ PeacoQC <- function(
 ) {
 
 
+    if (is.null(compensation_matrix) & remove_margins == TRUE)
+        warning("If the data is already compensated, it could be that the
+            RemoveMargins function will not work correctly.")
+
     if(remove_margins == TRUE){
         #Remove margins
         ff_cleaned <- RemoveMargins(
@@ -1403,11 +1407,19 @@ PeacoQC <- function(
             channels = channels,
             channel_specifications = channel_specifications)
     }
-    #Compensation
-    ff_compensated <- flowCore::compensate(ff_cleaned, compensation_matrix)
 
-    #Transformation
-    ff_transformed <- flowCore::transform(ff_compensated, transformation_list)
+
+    if (!is.null(compensation_matrix)){
+
+        #Compensation
+        ff_compensated <- flowCore::compensate(ff_cleaned, compensation_matrix)
+    }
+
+
+    if (!is.null(transformation_list)){
+        #Transformation
+        ff_transformed <- flowCore::transform(ff_compensated, transformation_list)
+    }
 
     #PeacoQCSignalStability
     results_peacoQC <- PeacoQCSignalStability(
