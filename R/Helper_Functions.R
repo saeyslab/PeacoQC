@@ -145,9 +145,9 @@ FindThemPeaks <- function (channel_data)
         peaks <- dens$x[which.max(dens$y)]
     }
 
-    if (any(peaks < 0) ){
-        return(NA)
-    }
+    # if (any(peaks < 0) ){
+    #     return(NA)
+    # }
 
     return(peaks)
 }

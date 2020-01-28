@@ -307,14 +307,14 @@ PeacoQCSignalStability <- function(ff,
         if(is.na(marker_name))
             marker_name <- channel
 
-        if (length(which(increasing)) > (1/2)*length(increasing)){
+        if (length(which(increasing)) > (3/4)*length(increasing)){
             warning(paste0("There seems to be an increasing trent in channel ",
                 marker_name,
                 " for file ",basename(ff@description$FILENAME),
                 ". Please inspect this before doing any further analysis"),
                 plot(channel_medians, main = marker_name))
             weird_channel_increasing <- c(weird_channel_increasing, channel)
-        } else if (length(which(decreasing)) > (1/2)*length(decreasing)){
+        } else if (length(which(decreasing)) > (3/4)*length(decreasing)){
             warning(paste0("There seems to be a decreasing trent in channel ",
                 marker_name,
                 " for file ",basename(ff@description$FILENAME),
@@ -337,7 +337,7 @@ PeacoQCSignalStability <- function(ff,
         char = "+", style = 3, width = 50, file = stderr())
     utils::setTxtProgressBar(pb,i)
 
-    channel <- channels[5]
+    channel <- channels[4]
 
 
     for (channel in channels){
