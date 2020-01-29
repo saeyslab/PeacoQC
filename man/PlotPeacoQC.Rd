@@ -32,6 +32,10 @@ displayed.}
 
 \item{prefix}{The prefix that will be given to the generated png file}
 
+\item{time_unit}{The number of time units grouped together for visualising
+event rate. The default is set to 100, resulting in events per second for
+most flow datasets. Suggested to adapt for mass cytometry data.}
+
 \item{...}{Arguments to be given to \code{PeacoQC} if \code{display_peaks}
 is set to TRUE.}
 }

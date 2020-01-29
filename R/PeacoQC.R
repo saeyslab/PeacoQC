@@ -120,7 +120,7 @@ RemoveMargins <- function(
 #'         plot = TRUE, save_fcs = TRUE, output_directory = ".",
 #'         name_directory = "PeacoQC_results", report = TRUE,
 #'         events_per_bin = 2000, MAD = 8, IT_limit = 0.55,
-#'         consecutive_bins = 5, ...)
+#'         consecutive_bins = 5, remove_zeros = FALSE, ...)
 #'
 #' @param ff A flowframe or the location of an fcs file
 #' @param channels Indices of the channels in the ff on which peaks have to
@@ -148,6 +148,9 @@ RemoveMargins <- function(
 #' increased, the algorithm becomes less strict.
 #' @param consecutive_bins If 'good' bins are located between bins that are
 #' removed, they will also be marked as 'bad'. The default is 5.
+#' @param remove_zeros If this is set to TRUE, the zero values will be removed
+#' before the peak detection step. They will not be indicated as 'bad' value.
+#' This is recommended when cleaning mass cytometry data.
 #' @param ... Options to pass on to the \code{PlotPeacoQC} function
 #' (display_cells, manual_cells, prefix)
 #'
@@ -189,6 +192,7 @@ PeacoQCSignalStability <- function(ff,
     MAD = 8,
     IT_limit = 0.55,
     consecutive_bins = 5,
+    remove_zeros = FALSE,
     ...
 ){
 
@@ -310,14 +314,14 @@ PeacoQCSignalStability <- function(ff,
         if (length(which(increasing)) > (3/4)*length(increasing)){
             warning(paste0("There seems to be an increasing trent in channel ",
                 marker_name,
-                " for file ",basename(ff@description$FILENAME),
+                " for ",basename(ff@description$FILENAME),
                 ". Please inspect this before doing any further analysis"),
                 plot(channel_medians, main = marker_name))
             weird_channel_increasing <- c(weird_channel_increasing, channel)
         } else if (length(which(decreasing)) > (3/4)*length(decreasing)){
             warning(paste0("There seems to be a decreasing trent in channel ",
                 marker_name,
-                " for file ",basename(ff@description$FILENAME),
+                " for ",basename(ff@description$FILENAME),
                 ". Please inspect this before doing any further analysis"),
                 plot(channel_medians, main = marker_name))
             weird_channel_decreasing <- c(weird_channel_decreasing, channel)
@@ -337,13 +341,13 @@ PeacoQCSignalStability <- function(ff,
         char = "+", style = 3, width = 50, file = stderr())
     utils::setTxtProgressBar(pb,i)
 
-    channel <- channels[4]
+    channel <- channels[10]
 
 
     for (channel in channels){
         i <- i +1
 
-        peak_frame <- DetermineAllPeaks(ff, channel, breaks)
+        peak_frame <- DetermineAllPeaks(ff, channel, breaks, remove_zeros)
 
         if (is(peak_frame, "logical")){
             utils::setTxtProgressBar(pb,i)
@@ -650,6 +654,9 @@ PeacoQCSignalStability <- function(ff,
 #' If set to FALSE, no peaks will be displayed and only the events will be
 #' displayed.
 #' @param prefix The prefix that will be given to the generated png file
+#' @param time_unit The number of time units grouped together for visualising
+#' event rate. The default is set to 100, resulting in events per second for
+#' most flow datasets. Suggested to adapt for mass cytometry data.
 #' @param ... Arguments to be given to \code{PeacoQC} if \code{display_peaks}
 #' is set to TRUE.
 #'
@@ -697,6 +704,7 @@ PlotPeacoQC <- function(ff,
     title_FR = NULL,
     display_peaks = TRUE,
     prefix = "PeacoQC_",
+    time_unit = 100,
     ...) {
 
     requireNamespace("ggplot2")
@@ -774,14 +782,8 @@ PlotPeacoQC <- function(ff,
     subset_signalplot <- sort(sample(seq_len(nrow(ff)), display_cells))
 
     # Calculating time breaks
-    breaks <- cut(ff@exprs[, "Time"],
-        breaks = seq(0, max(ff@exprs[, "Time"]) + 100, by = 100),
-        labels = FALSE)
-    mid_breaks <- seq(50, max(ff@exprs[, "Time"]) + 50, by = 100)
-
-
     h <- graphics::hist(ff@exprs[subset_timeplot, "Time"],
-        breaks = seq(0, max(ff@exprs[, "Time"]) + 100, by = 100),
+        breaks = seq(0, max(ff@exprs[, "Time"]) + time_unit, by = time_unit),
         plot = FALSE)
 
     idcs <- findInterval(ff@exprs[subset_timeplot, "Time"], h$breaks)
@@ -1296,7 +1298,7 @@ PeacoQCHeatmap <- function(
 #'         determine_good_cells = "all", plot = TRUE, save_fcs = TRUE,
 #'         output_directory = ".", name_directory = "PeacoQC_results",
 #'         report = TRUE, events_per_bin = 2000, MAD = 6, IT_limit = 0.55,
-#'         consecutive_bins = 5, ...)
+#'         consecutive_bins = 5, remove_zeros = FALSE, ...)
 #'
 #' @param ff A flowframe or the location of an fcs file
 #' @param channels Indices of the channels in the ff on which peaks have to
@@ -1336,6 +1338,9 @@ PeacoQCHeatmap <- function(
 #' increased, the algorithm becomes less strict.
 #' @param consecutive_bins If 'good' bins are located between bins that are
 #' removed, they will also be marked as 'bad'. The default is 5.
+#' @param remove_zeros If this is set to TRUE, the zero values will be removed
+#' before the peak detection step. They will not be indicated as 'bad' value.
+#' This is recommended when cleaning mass cytometry data.
 #' @param ... Options to pass on to the \code{PlotPeacoQC} function
 #' (display_cells, manual_cells, prefix)
 #'
@@ -1392,6 +1397,7 @@ PeacoQC <- function(
     MAD = 6,
     IT_limit = 0.55,
     consecutive_bins = 5,
+    remove_zeros = FALSE,
     ...
 ) {
 
@@ -1402,7 +1408,7 @@ PeacoQC <- function(
 
     if(remove_margins == TRUE){
         #Remove margins
-        ff_cleaned <- RemoveMargins(
+        ff <- RemoveMargins(
             ff = ff,
             channels = channels,
             channel_specifications = channel_specifications)
@@ -1412,28 +1418,30 @@ PeacoQC <- function(
     if (!is.null(compensation_matrix)){
 
         #Compensation
-        ff_compensated <- flowCore::compensate(ff_cleaned, compensation_matrix)
+        ff <- flowCore::compensate(ff, compensation_matrix)
     }
 
 
     if (!is.null(transformation_list)){
         #Transformation
-        ff_transformed <- flowCore::transform(ff_compensated, transformation_list)
+        ff <- flowCore::transform(ff, transformation_list)
     }
 
     #PeacoQCSignalStability
     results_peacoQC <- PeacoQCSignalStability(
-        ff = ff_transformed,
+        ff = ff,
         channels = channels,
         determine_good_cells = determine_good_cells,
         plot = plot,
         save_fcs = save_fcs,
+        output_directory = output_directory,
         name_directory = name_directory,
         report = report,
         events_per_bin = events_per_bin,
         MAD = MAD,
         IT_limit = IT_limit,
         consecutive_bins = consecutive_bins,
+        remove_zeros = remove_zeros,
         ...)
 
     return(results_peacoQC)
