@@ -6,7 +6,7 @@
 \usage{
 PlotPeacoQC(ff, channels, output_directory = ".", display_cells = 5000,
             manual_cells = NULL, title_FR = NULL, display_peaks = TRUE,
-            prefix = "PeacoQC_", ...)
+            prefix = "PeacoQC_", time_unit = 100, ...)
 }
 \arguments{
 \item{ff}{A flowframe}
@@ -71,12 +71,11 @@ PeacoQC_res <- PeacoQCSignalStability(ff,
 
 # Run PlotPeacoQC
 PlotPeacoQC(ff, channels, display_peaks = PeacoQC_res)
-\dontrun{
 
 ## Plot only the peaks (No quality control)
 PlotPeacoQC(ff, channels, display_peaks = TRUE)
 
 ## Plot only the dots of the file
 PlotPeacoQC(ff, channels, display_peaks = FALSE)
-}
+
 }

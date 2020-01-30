@@ -8,7 +8,7 @@ PeacoQCSignalStability(ff,channels, determine_good_cells = "all",
         plot = TRUE, save_fcs = TRUE, output_directory = ".",
         name_directory = "PeacoQC_results", report = TRUE,
         events_per_bin = 2000, MAD = 8, IT_limit = 0.55,
-        consecutive_bins = 5, ...)
+        consecutive_bins = 5, remove_zeros = FALSE, suffix_fcs = "_QC", ...)
 }
 \arguments{
 \item{ff}{A flowframe or the location of an fcs file}
@@ -48,6 +48,12 @@ increased, the algorithm becomes less strict.}
 
 \item{consecutive_bins}{If 'good' bins are located between bins that are
 removed, they will also be marked as 'bad'. The default is 5.}
+
+\item{remove_zeros}{If this is set to TRUE, the zero values will be removed
+before the peak detection step. They will not be indicated as 'bad' value.
+This is recommended when cleaning mass cytometry data.}
+
+\item{suffix_fcs}{The suffix given to the new fcs files.}
 
 \item{...}{Options to pass on to the \code{PlotPeacoQC} function
 (display_cells, manual_cells, prefix)}

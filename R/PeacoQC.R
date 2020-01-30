@@ -120,7 +120,7 @@ RemoveMargins <- function(
 #'         plot = TRUE, save_fcs = TRUE, output_directory = ".",
 #'         name_directory = "PeacoQC_results", report = TRUE,
 #'         events_per_bin = 2000, MAD = 8, IT_limit = 0.55,
-#'         consecutive_bins = 5, remove_zeros = FALSE, ...)
+#'         consecutive_bins = 5, remove_zeros = FALSE, suffix_fcs = "_QC", ...)
 #'
 #' @param ff A flowframe or the location of an fcs file
 #' @param channels Indices of the channels in the ff on which peaks have to
@@ -151,6 +151,7 @@ RemoveMargins <- function(
 #' @param remove_zeros If this is set to TRUE, the zero values will be removed
 #' before the peak detection step. They will not be indicated as 'bad' value.
 #' This is recommended when cleaning mass cytometry data.
+#' @param suffix_fcs The suffix given to the new fcs files.
 #' @param ... Options to pass on to the \code{PlotPeacoQC} function
 #' (display_cells, manual_cells, prefix)
 #'
@@ -193,6 +194,7 @@ PeacoQCSignalStability <- function(ff,
     IT_limit = 0.55,
     consecutive_bins = 5,
     remove_zeros = FALSE,
+    suffix_fcs = "_QC",
     ...
 ){
 
@@ -572,7 +574,8 @@ PeacoQCSignalStability <- function(ff,
             flowCore::write.FCS(ff[results$GoodCells,],file.path(fcs_directory,
                 paste0(sub(".fcs",
                     "",
-                    basename(ff@description$FILENAME)),"_QC.fcs")))
+                    basename(ff@description$FILENAME)),
+                    paste0(suffix_fcs,".fcs"))))
         }
 
 
@@ -637,7 +640,7 @@ PeacoQCSignalStability <- function(ff,
 #' @usage
 #' PlotPeacoQC(ff, channels, output_directory = ".", display_cells = 5000,
 #'             manual_cells = NULL, title_FR = NULL, display_peaks = TRUE,
-#'             prefix = "PeacoQC_", ...)
+#'             prefix = "PeacoQC_", time_unit = 100, ...)
 #'
 #' @param ff A flowframe
 #' @param channels Indices of the channels in the ff that have to be plotted
@@ -687,14 +690,13 @@ PeacoQCSignalStability <- function(ff,
 #'
 #' # Run PlotPeacoQC
 #' PlotPeacoQC(ff, channels, display_peaks = PeacoQC_res)
-#'\dontrun{
 #'
 #' ## Plot only the peaks (No quality control)
 #' PlotPeacoQC(ff, channels, display_peaks = TRUE)
 #'
 #' ## Plot only the dots of the file
 #' PlotPeacoQC(ff, channels, display_peaks = FALSE)
-#' }
+#'
 #' @export
 PlotPeacoQC <- function(ff,
     channels,
@@ -1298,7 +1300,7 @@ PeacoQCHeatmap <- function(
 #'         determine_good_cells = "all", plot = TRUE, save_fcs = TRUE,
 #'         output_directory = ".", name_directory = "PeacoQC_results",
 #'         report = TRUE, events_per_bin = 2000, MAD = 6, IT_limit = 0.55,
-#'         consecutive_bins = 5, remove_zeros = FALSE, ...)
+#'         consecutive_bins = 5, remove_zeros = FALSE, suffix_fcs = "_QC",  ...)
 #'
 #' @param ff A flowframe or the location of an fcs file
 #' @param channels Indices of the channels in the ff on which peaks have to
@@ -1341,6 +1343,7 @@ PeacoQCHeatmap <- function(
 #' @param remove_zeros If this is set to TRUE, the zero values will be removed
 #' before the peak detection step. They will not be indicated as 'bad' value.
 #' This is recommended when cleaning mass cytometry data.
+#' @param suffix_fcs The suffix given to the new fcs files.
 #' @param ... Options to pass on to the \code{PlotPeacoQC} function
 #' (display_cells, manual_cells, prefix)
 #'
@@ -1363,8 +1366,8 @@ PeacoQCHeatmap <- function(
 #' channels <- c(1,3,5:14,18,21)
 #'
 #' # Compensation matrix (is most of the time stored in the flowframe as
-#' # ff@description$SPILL or ff@description$SPILLOVER)
-#' compensation_matrix <- ff@description$SPILL
+#' # flowCore::description(ff)$SPILL or flowCore::description(ff)$SPILLOVER)
+#' compensation_matrix <- flowCore::description(ff)$SPILL
 #'
 #' # Store the transformation list
 #' transformation_list <- flowCore::estimateLogicle(ff,
@@ -1398,6 +1401,7 @@ PeacoQC <- function(
     IT_limit = 0.55,
     consecutive_bins = 5,
     remove_zeros = FALSE,
+    suffix_fcs = "_QC",
     ...
 ) {
 
@@ -1442,6 +1446,7 @@ PeacoQC <- function(
         IT_limit = IT_limit,
         consecutive_bins = consecutive_bins,
         remove_zeros = remove_zeros,
+        suffix_fcs = suffix_fcs,
         ...)
 
     return(results_peacoQC)
