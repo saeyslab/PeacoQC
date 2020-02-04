@@ -1300,7 +1300,7 @@ PeacoQCHeatmap <- function(
 #'         transformation_list, channel_specifications = NULL,
 #'         determine_good_cells = "all", plot = TRUE, save_fcs = TRUE,
 #'         output_directory = ".", name_directory = "PeacoQC_results",
-#'         report = TRUE, events_per_bin = 2000, MAD = 6, IT_limit = 0.55,
+#'         report = TRUE, events_per_bin = 2000, MAD = 8, IT_limit = 0.55,
 #'         consecutive_bins = 5, remove_zeros = FALSE, suffix_fcs = "_QC",  ...)
 #'
 #' @param ff A flowframe or the location of an fcs file
@@ -1335,7 +1335,7 @@ PeacoQCHeatmap <- function(
 #' If set to FALSE, no report will be generated.
 #' @param events_per_bin Number of events that are put in one bin.
 #' Default is 2000.
-#' @param MAD The MAD parameter. Default is 6. If this is increased, the
+#' @param MAD The MAD parameter. Default is 8. If this is increased, the
 #' algorithm becomes less strict.
 #' @param IT_limit The IsolationTree parameter. Default is 0.55. If this is
 #' increased, the algorithm becomes less strict.
@@ -1398,7 +1398,7 @@ PeacoQC <- function(
     name_directory = "PeacoQC_results",
     report = TRUE,
     events_per_bin = 2000,
-    MAD = 6,
+    MAD = 8,
     IT_limit = 0.55,
     consecutive_bins = 5,
     remove_zeros = FALSE,
