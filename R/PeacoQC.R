@@ -785,7 +785,8 @@ PlotPeacoQC <- function(ff,
 
     # Calculating time breaks
     h <- graphics::hist(ff@exprs[subset_timeplot, "Time"],
-        breaks = seq(0, max(ff@exprs[, "Time"]) + time_unit, by = time_unit),
+        breaks = seq(min(ff@exprs[,"Time"]), max(ff@exprs[, "Time"]) +
+                time_unit, by = time_unit),
         plot = FALSE)
 
     idcs <- findInterval(ff@exprs[subset_timeplot, "Time"], h$breaks)
