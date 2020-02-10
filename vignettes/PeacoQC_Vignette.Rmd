@@ -214,8 +214,8 @@ knitr::include_graphics(plot_path)
 
 
 
-# You can also change the MAD parameter to a higher value 
-# (to make it more strict) or to a lower value (to make it less strict). 
+# You can also change the MAD parameter to a lower value 
+# (to make it more strict) or to a higher value (to make it less strict). 
 # Since the MAD analysis does not remove something, this is not neccesary now.
 
 # peacoqc_res <- PeacoQC(
