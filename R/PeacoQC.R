@@ -7,7 +7,8 @@
 #' channel_specifications = NULL, output = "frame")
 #'
 #' @param ff A flowframe
-#' @param channels The channel indices that have to be checked for margin events
+#' @param channels The channel indices or channel names that have to be checked
+#' for margin events
 #' @param channel_specifications A list of lists with parameter specifications
 #' for certain channels. This parameter should only be used if the values in
 #' the internal parameters description is too strict or wrong for a number or
@@ -69,9 +70,11 @@ RemoveMargins <- function(
             !is.null(channel_specifications))
         stop("channel_specifications should be a list of named lists.
             Make sure that the names correspend with the channel names.")
-    if(!is.numeric(channels))
-        stop("Make sure that you use indices to indicate which
-            channels you want to use.")
+    if(!is.numeric(channels) & !all(channels%in% colnames(ff@exprs)) |
+            is.null(channels))
+        stop("Make sure that you use indices or the colnames in the expression
+            matrix in the flowframe to indicate which channels you want to
+            use.")
 
     meta <- flowWorkspace::pData(ff@parameters)
     rownames(meta) <- meta[, "name"]
@@ -85,8 +88,10 @@ RemoveMargins <- function(
     selection <- rep(TRUE, times = dim(ff)[1])
     e <- ff@exprs
 
-    channels <- colnames(ff@exprs)[channels]
-    # Make selection
+    if(is.numeric(channels)){
+        channels <- colnames(ff@exprs)[channels]
+    }
+        # Make selection
     for (d in channels) {
 
         selection <- selection &
@@ -123,8 +128,8 @@ RemoveMargins <- function(
 #'         consecutive_bins = 5, remove_zeros = FALSE, suffix_fcs = "_QC", ...)
 #'
 #' @param ff A flowframe or the location of an fcs file
-#' @param channels Indices of the channels in the ff on which peaks have to
-#' be determined.
+#' @param channels Indices or names of the channels in the flowframe on which
+#' peaks have to be determined.
 #' @param determine_good_cells If set to FALSE, the algorithm will only
 #' determine peaks. If it is set to "all", the bad measurements will be
 #' filtered out based on the MAD and IT analysis. It can also be put to "MAD"
@@ -155,10 +160,12 @@ RemoveMargins <- function(
 #' @param ... Options to pass on to the \code{PlotPeacoQC} function
 #' (display_cells, manual_cells, prefix)
 #'
-#' @return This function returns a \code{ist} with a number of items. It will
-#' include "FinalFF" where the cleaned flowframe is stored. It also contains
-#' the starting parameters and the information necessary to give to \code{
-#' PlotPeacoQC} if the two functions are run seperatly.
+#' @return This function returns a \code{list} with a number of items. It will
+#' include "FinalFF" where the transformed, compensated and cleaned flowframe is
+#' stored. It also contains the starting parameters and the information
+#' necessary to give to \code{PlotPeacoQC} if the two functions are run
+#' seperatly. The GoodCells list is also given where 'good' measurements are
+#' indicated as TRUE and the to be removed measurements as FALSE.
 #'
 #' @examples
 #' # General pipeline for preprocessing and quality control with PeacoQC
@@ -200,9 +207,6 @@ PeacoQCSignalStability <- function(ff,
 
     if(!is(ff, "flowFrame") | is.null(ff))
         stop("ff should be a flowFrame")
-    if(!is.numeric(channels)| is.null(channels))
-        stop("The channel parameter should consist out of indices that
-            correspond to the channels in ff.")
     if(is.null(output_directory) & save_fcs == TRUE)
         warning("Since the output directory is NULL,
             no fcs files will be stored.")
@@ -215,6 +219,11 @@ PeacoQCSignalStability <- function(ff,
     if(!(determine_good_cells %in% c("all", "IT", "MAD", FALSE)))
         stop("The parameter determine_good_cells should be of following values:
             all, IT or MAD")
+    if(!is.numeric(channels) & !all(channels%in% colnames(ff@exprs)) |
+            is.null(channels))
+        stop("Make sure that you use indices or the colnames in the expression
+            matrix in the flowframe to indicate which channels you want to
+            use.")
 
     # Check for time channel
     time_channel <- grep("time", colnames(ff@exprs), ignore.case = TRUE)
@@ -266,8 +275,9 @@ PeacoQCSignalStability <- function(ff,
 
     # Make sure that channels only consist out of the colnames of ff@exprs
     results$Channels <- channels
-    channels <- colnames(ff@exprs)[channels]
-
+    if (is.numeric(channels)){
+        channels <- colnames(ff@exprs)[channels]
+    }
 
     # Split the ff up in bins (overlapping)
     breaks <- SplitWithOverlap(seq_len(nrow(ff)),
@@ -643,7 +653,8 @@ PeacoQCSignalStability <- function(ff,
 #'             prefix = "PeacoQC_", time_unit = 100, ...)
 #'
 #' @param ff A flowframe
-#' @param channels Indices of the channels in the ff that have to be plotted
+#' @param channels Indices of names of the channels in the flowframe that have
+#' to be displayed
 #' @param output_directory Directory where the plots should be generated. Set
 #' to NULL if no plots need to be generated
 #' @param display_cells The number of measurements that should be displayed.
@@ -714,9 +725,11 @@ PlotPeacoQC <- function(ff,
 
     if(!is(ff, "flowFrame") | is.null(ff))
         stop("ff should be a flowFrame")
-    if(!is.numeric(channels)| is.null(channels))
-        stop("The channel parameter should consist out of indices that
-            correspond to the channels in ff.")
+    if(!is.numeric(channels) & !all(channels%in% colnames(ff@exprs)) |
+            is.null(channels))
+        stop("Make sure that you use indices or the colnames in the expression
+            matrix in the flowframe to indicate which channels you want to
+            use.")
     if(is.null(output_directory))
         stop("There should be a path given to the output_directory parameter.")
 
@@ -761,8 +774,9 @@ PlotPeacoQC <- function(ff,
     name <- sub(".fcs", "", filename)
 
     n_channels <- length(channels)
-    channels <- colnames(ff@exprs)[channels]
-
+    if (is.numeric(channels)){
+        channels <- colnames(ff@exprs)[channels]
+    }
 
     # Determining grid to plot
     n_row <- floor(sqrt(n_channels + 2))
@@ -776,7 +790,7 @@ PlotPeacoQC <- function(ff,
     }
 
     if (display_cells > nrow(ff)) {
-        print("There are less then the number of display cells available.
+        message("There are less then the number of display cells available.
             Setting the number of display cells to the number of measurements.")
         display_cells <- nrow(ff)
     }
@@ -1304,8 +1318,8 @@ PeacoQCHeatmap <- function(
 #'         consecutive_bins = 5, remove_zeros = FALSE, suffix_fcs = "_QC",  ...)
 #'
 #' @param ff A flowframe or the location of an fcs file
-#' @param channels Indices of the channels in the ff on which peaks have to
-#' be determined.
+#' @param channels Indices or namers of the channels in the flowframe on which
+#' peaks have to be determined.
 #' @param remove_margins If set to FALSE, the margins will not be removed.
 #' @param channel_specifications A list of lists with parameter specifications
 #' for certain channels. This parameter should only be used if the values in

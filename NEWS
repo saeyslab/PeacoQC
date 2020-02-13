@@ -38,3 +38,10 @@ Make changes to allow for better mass cytometry data cleaning.
 Added the remove_zeros parameter and the time_units parameter.
 
 ================================================================================
+
+PeacoQC (version 0.99.11)
+------------------------
+
+Allow the usage of marker names instead of only allowing the indices.
+
+================================================================================
