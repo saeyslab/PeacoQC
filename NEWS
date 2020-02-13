@@ -43,6 +43,9 @@ PeacoQC (version 0.99.11)
 ------------------------
 
 Allow the usage of marker names instead of only allowing the indices.
+<<<<<<< HEAD
 Change colors of PeacoQCHeatmap
+=======
+>>>>>>> e058af9e0ca2e1b073905652ffafb2a0fdd27476
 
 ================================================================================
