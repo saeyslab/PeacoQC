@@ -59,22 +59,22 @@ RemoveMargins <- function(
         stop("channel_specifications should be a list of lists.")
     if(!all(lengths(channel_specifications) == 2) &
             !is.null(channel_specifications))
-        stop("channel_specifications should be a list of lists.
+        stop(StrMessage("channel_specifications should be a list of lists.
             Every list should have the channel name and should contain a
-            minRange and maxRange value.")
+            minRange and maxRange value."))
     if(is.null(names(channel_specifications)) &
             !is.null(channel_specifications))
-        stop("channel_specifications should be a list of named lists.
-            Make sure that the names correspend with the channel names.")
+        stop(StrMessage("channel_specifications should be a list of named lists.
+            Make sure that the names correspend with the channel names."))
     if(!all(names(channel_specifications) %in% colnames(ff@exprs)) &
             !is.null(channel_specifications))
-        stop("channel_specifications should be a list of named lists.
-            Make sure that the names correspend with the channel names.")
+        stop(StrMessage("channel_specifications should be a list of named lists.
+            Make sure that the names correspend with the channel names."))
     if(!is.numeric(channels) & !all(channels%in% colnames(ff@exprs)) |
             is.null(channels))
-        stop("Make sure that you use indices or the colnames in the expression
-            matrix in the flowframe to indicate which channels you want to
-            use.")
+        stop(StrMessage("Make sure that you use indices or the colnames in the
+            expression matrix in the flowframe to indicate which channels you
+            want to use."))
 
     meta <- flowWorkspace::pData(ff@parameters)
     rownames(meta) <- meta[, "name"]
@@ -101,10 +101,10 @@ RemoveMargins <- function(
 
 
     if (length(which(selection == FALSE))/length(selection) > 0.1) {
-        warning(paste0("More then ",
+        warning(StrMessage(paste0("More then ",
             round(length(which(selection == FALSE))/length(selection) * 100, 2),
             "% is considered as a margin event in file ",
-            basename(ff@description$FILENAME), ". This should be verified."))
+            basename(ff@description$FILENAME), ". This should be verified.")))
     }
     if (output == "full"){
         return(
@@ -206,7 +206,7 @@ PeacoQCSignalStability <- function(ff,
 ){
 
     if(!is(ff, "flowFrame") | is.null(ff))
-        stop("ff should be a flowFrame")
+        stop("ff should be a flowFrame.")
     if(is.null(output_directory) & save_fcs == TRUE)
         warning("Since the output directory is NULL,
             no fcs files will be stored.")
@@ -217,20 +217,20 @@ PeacoQCSignalStability <- function(ff,
         warning("Since the output directory is NULL,
             no plots will be generated.")
     if(!(determine_good_cells %in% c("all", "IT", "MAD", FALSE)))
-        stop("The parameter determine_good_cells should be of following values:
-            all, IT or MAD")
+        stop(StrMessage("The parameter determine_good_cells should be of
+            following values: all, IT or MAD."))
     if(!is.numeric(channels) & !all(channels%in% colnames(ff@exprs)) |
             is.null(channels))
-        stop("Make sure that you use indices or the colnames in the expression
-            matrix in the flowframe to indicate which channels you want to
-            use.")
+        stop(tidymess("Make sure that you use indices or the colnames in the
+            expression matrix in the flowframe to indicate which channels you
+            want to use."))
 
     # Check for time channel
     time_channel <- grep("time", colnames(ff@exprs), ignore.case = TRUE)
     if (any(diff(ff@exprs[,time_channel]) < 0) == TRUE)
-        warning("There is an inconsistancy in the Time channel.
+        warning(StrMessage("There is an inconsistancy in the Time channel.
             It seems that not al the cells are ordered according to time
-            in the flowframe")
+            in the flowframe."))
 
     # Make a new directory where all results will be stored
     if(!is.null(output_directory)){
@@ -324,17 +324,19 @@ PeacoQCSignalStability <- function(ff,
             marker_name <- channel
 
         if (length(which(increasing)) > (3/4)*length(increasing)){
-            warning(paste0("There seems to be an increasing trent in channel ",
+            warning(StrMessage(paste0(
+                "There seems to be an increasing trent in channel ",
                 marker_name,
                 " for ",basename(ff@description$FILENAME),
-                ". Please inspect this before doing any further analysis"),
+                ". Please inspect this before doing any further analysis.")),
                 plot(channel_medians, main = marker_name))
             weird_channel_increasing <- c(weird_channel_increasing, channel)
         } else if (length(which(decreasing)) > (3/4)*length(decreasing)){
-            warning(paste0("There seems to be a decreasing trent in channel ",
+            warning(StrMessage(paste0(
+                "There seems to be a decreasing trent in channel ",
                 marker_name,
                 " for ",basename(ff@description$FILENAME),
-                ". Please inspect this before doing any further analysis"),
+                ". Please inspect this before doing any further analysis.")),
                 plot(channel_medians, main = marker_name))
             weird_channel_decreasing <- c(weird_channel_decreasing, channel)
         }
@@ -409,9 +411,9 @@ PeacoQCSignalStability <- function(ff,
     if (determine_good_cells == "all" || determine_good_cells == "IT"){
 
         if (length(which(outlier_bins)) < 3){
-            stop(paste0("There is an issue with file ",
+            stop(StrMessage(paste0("There is an issue with file ",
                 basename(ff@description$FILENAME),
-                ". There are no good cells left to perform quality control."))
+                ". There are no good cells left to perform quality control.")))
         }
 
         data_for_trees <- all_peaks[outlier_bins,]
@@ -463,9 +465,9 @@ PeacoQCSignalStability <- function(ff,
     if (determine_good_cells == "all" || determine_good_cells == "MAD"){
 
         if (length(which(outlier_bins)) < 3){
-            stop(paste0("There is an issue with file ",
+            stop(StrMessage(paste0("There is an issue with file ",
                 basename(ff@description$FILENAME),
-                ". There are no good cells left to perform quality control."))
+                ". There are no good cells left to perform quality control.")))
         }
 
         perc_not_outliers <- length(which(outlier_bins == TRUE))/
@@ -572,9 +574,9 @@ PeacoQCSignalStability <- function(ff,
         results$FinalFF <- ff[results$GoodCells,]
 
         if(percentage_removed > 70){
-            warning(paste0("There was ", round(percentage_removed,3),
+            warning(StrMessage(paste0("There was ", round(percentage_removed,3),
                 "% of the measurements removed for file ",
-                basename(ff@description$FILENAME)))
+                basename(ff@description$FILENAME))))
         }
 
 
@@ -724,12 +726,12 @@ PlotPeacoQC <- function(ff,
 
 
     if(!is(ff, "flowFrame") | is.null(ff))
-        stop("ff should be a flowFrame")
+        stop("ff should be a flowFrame.")
     if(!is.numeric(channels) & !all(channels%in% colnames(ff@exprs)) |
             is.null(channels))
-        stop("Make sure that you use indices or the colnames in the expression
-            matrix in the flowframe to indicate which channels you want to
-            use.")
+        stop(StrMessage("Make sure that you use indices or the colnames in the
+            expression matrix in the flowframe to indicate which channels you
+            want to use."))
     if(is.null(output_directory))
         stop("There should be a path given to the output_directory parameter.")
 
@@ -737,9 +739,9 @@ PlotPeacoQC <- function(ff,
     # Check for time channel
     time_channel <- grep("time", colnames(ff@exprs), ignore.case = TRUE)
     if (any(diff(ff@exprs[,time_channel]) < 0) == TRUE)
-        warning("There is an inconsistancy in the Time channel.
+        warning(StrMessage("There is an inconsistancy in the Time channel.
             It seems that not al the cells are ordered according
-            to time in the flowframe")
+            to time in the flowframe"))
 
 
     # Make a new directory where all results will be stored
@@ -790,8 +792,9 @@ PlotPeacoQC <- function(ff,
     }
 
     if (display_cells > nrow(ff)) {
-        message("There are less then the number of display cells available.
-            Setting the number of display cells to the number of measurements.")
+        message(StrMessage("There are less then the number of display cells
+            available. Setting the number of display cells to the number of
+            measurements."))
         display_cells <- nrow(ff)
     }
 
@@ -1162,12 +1165,12 @@ PeacoQCHeatmap <- function(
     ...){
 
     if (!file.exists(report_location))
-        stop("The path specified in the report_location parameter
-            is wrong or incomplete.")
+        stop(StrMessage("The path specified in the report_location parameter
+            is wrong or incomplete."))
 
     if(show_row_names == FALSE & latest_tests == FALSE)
-        warning("If there are duplicates in the report file,
-            they will be displayed on the heatmap without their filename.")
+        warning(StrMessage("If there are duplicates in the report file,
+            they will be displayed on the heatmap without their filename."))
 
     report_table <- utils::read.delim(report_location,
         check.names = FALSE,
@@ -1420,8 +1423,8 @@ PeacoQC <- function(
 
 
     if (is.null(compensation_matrix) & remove_margins == TRUE)
-        warning("If the data is already compensated, it could be that the
-            RemoveMargins function will not work correctly.")
+        warning(StrMessage("If the data is already compensated, it could be that
+            the RemoveMargins function will not work correctly."))
 
     if(remove_margins == TRUE){
         #Remove margins

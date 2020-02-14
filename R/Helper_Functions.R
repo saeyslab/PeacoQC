@@ -1,20 +1,7 @@
+# ---------------------------- Make nice warning messages ---------------------
 
-
-# ------------------------- Calculate CV --------------------------------------
-
-
-CV_frame <- function(ff, channels){
-
-    sds <- apply(ff@exprs[,channels], 2, stats::sd)
-    means <- apply(ff@exprs[,channels], 2, mean)
-
-    CVs <- sds/means
-
-    final_CV <- mean(CVs)
-    final_SD <- stats::sd(CVs)
-
-    return(list("mean" = final_CV, "sd" = final_SD))
-
+StrMessage <- function(x, prefix = " ", initial = ""){
+  strwrap(x, prefix = prefix, initial = initial)
 }
 
 # ----------------------------- Determine all peaks for one channel -----------
