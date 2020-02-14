@@ -8,14 +8,14 @@ PeacoQC(ff, channels, remove_margins = TRUE, compensation_matrix,
         transformation_list, channel_specifications = NULL,
         determine_good_cells = "all", plot = TRUE, save_fcs = TRUE,
         output_directory = ".", name_directory = "PeacoQC_results",
-        report = TRUE, events_per_bin = 2000, MAD = 6, IT_limit = 0.55,
+        report = TRUE, events_per_bin = 2000, MAD = 5, IT_limit = 0.55,
         consecutive_bins = 5, remove_zeros = FALSE, suffix_fcs = "_QC",  ...)
 }
 \arguments{
 \item{ff}{A flowframe or the location of an fcs file}
 
-\item{channels}{Indices of the channels in the ff on which peaks have to
-be determined.}
+\item{channels}{Indices or namers of the channels in the flowframe on which
+peaks have to be determined.}
 
 \item{remove_margins}{If set to FALSE, the margins will not be removed.}
 
@@ -57,7 +57,7 @@ If set to FALSE, no report will be generated.}
 \item{events_per_bin}{Number of events that are put in one bin.
 Default is 2000.}
 
-\item{MAD}{The MAD parameter. Default is 6. If this is increased, the
+\item{MAD}{The MAD parameter. Default is 5. If this is increased, the
 algorithm becomes less strict.}
 
 \item{IT_limit}{The IsolationTree parameter. Default is 0.55. If this is

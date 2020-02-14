@@ -221,7 +221,7 @@ PeacoQCSignalStability <- function(ff,
             following values: all, IT or MAD."))
     if(!is.numeric(channels) & !all(channels%in% colnames(ff@exprs)) |
             is.null(channels))
-        stop(tidymess("Make sure that you use indices or the colnames in the
+        stop(StrMessage("Make sure that you use indices or the colnames in the
             expression matrix in the flowframe to indicate which channels you
             want to use."))
 
@@ -1153,7 +1153,7 @@ PlotPeacoQC <- function(ff,
 #' PeacoQCHeatmap(report_location = location,
 #'     row_split = c("r1", "r2", rep("r3",2), rep("r4", 16)))
 #'
-#'
+#' @importFrom grDevices colorRampPalette
 #' @export
 
 PeacoQCHeatmap <- function(

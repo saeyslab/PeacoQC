@@ -11,7 +11,8 @@ PlotPeacoQC(ff, channels, output_directory = ".", display_cells = 5000,
 \arguments{
 \item{ff}{A flowframe}
 
-\item{channels}{Indices of the channels in the ff that have to be plotted}
+\item{channels}{Indices of names of the channels in the flowframe that have
+to be displayed}
 
 \item{output_directory}{Directory where the plots should be generated. Set
 to NULL if no plots need to be generated}

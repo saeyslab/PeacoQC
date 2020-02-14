@@ -1,7 +1,7 @@
 # ---------------------------- Make nice warning messages ---------------------
 
 StrMessage <- function(x, prefix = " ", initial = ""){
-  strwrap(x, prefix = prefix, initial = initial)
+    strwrap(x, prefix = prefix, initial = initial)
 }
 
 # ----------------------------- Determine all peaks for one channel -----------

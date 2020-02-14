@@ -51,5 +51,4 @@ PeacoQCHeatmap(report_location = location, latest_tests = TRUE)
 PeacoQCHeatmap(report_location = location,
     row_split = c("r1", "r2", rep("r3",2), rep("r4", 16)))
 
-
 }
