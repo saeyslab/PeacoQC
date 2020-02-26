@@ -324,22 +324,20 @@ PeacoQCSignalStability <- function(ff,
             marker_name <- channel
 
         if (length(which(increasing)) > (3/4)*length(increasing)){
-            warning(StrMessage(paste0(
-                "There seems to be an increasing trent in channel ",
-                marker_name,
-                " for ",basename(ff@description$FILENAME),
-                ". Please inspect this before doing any further analysis.")),
-                plot(channel_medians, main = marker_name))
             weird_channel_increasing <- c(weird_channel_increasing, channel)
         } else if (length(which(decreasing)) > (3/4)*length(decreasing)){
-            warning(StrMessage(paste0(
-                "There seems to be a decreasing trent in channel ",
-                marker_name,
-                " for ",basename(ff@description$FILENAME),
-                ". Please inspect this before doing any further analysis.")),
-                plot(channel_medians, main = marker_name))
             weird_channel_decreasing <- c(weird_channel_decreasing, channel)
         }
+    }
+
+
+    if (length(weird_channel_decreasing) > 0 |
+            length(weird_channel_increasing) > 0) {
+        warning(StrMessage(paste0(
+            "There seems to be an increasing or decreasing trent in a channel ",
+            " for ",basename(ff@description$FILENAME),
+            ". Please inspect this in the overview figure before doing any
+            further analysis.")))
     }
 
     results$WeirdChannels <- list("Increasing"= weird_channel_increasing,
@@ -841,17 +839,19 @@ PlotPeacoQC <- function(ff,
             y_max = Inf,
             fill_blocks = fill_blocks)
 
-        x_min <- ff@exprs[, "Time"][c(
-            1,
-            cumsum(run_length$lengths)[-length(run_length$lengths)])]
-        x_max <- ff@exprs[, "Time"][cumsum(run_length$lengths)]
+        if (length(time_channel) > 0){
 
-        overview_blocks_background <- data.frame(x_min = x_min,
-            x_max = x_max,
-            y_min = -Inf,
-            y_max = Inf,
-            fill_blocks = fill_blocks)
+            x_min <- ff@exprs[, "Time"][c(
+                1,
+                cumsum(run_length$lengths)[-length(run_length$lengths)])]
+            x_max <- ff@exprs[, "Time"][cumsum(run_length$lengths)]
 
+            overview_blocks_background <- data.frame(x_min = x_min,
+                x_max = x_max,
+                y_min = -Inf,
+                y_max = Inf,
+                fill_blocks = fill_blocks)
+        }
     }
 
     # Make blocks for manual gates to display on signalplot + cv score

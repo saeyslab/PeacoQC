@@ -61,3 +61,10 @@ Make sure that the plot can also be made if there is no time channel present
 in the flowframe
 
 ================================================================================
+
+PeacoQC (version 0.99.16)
+------------------------
+
+Adapt warnings increasing and decreasing channel
+
+================================================================================
