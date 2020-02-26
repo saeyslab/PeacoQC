@@ -53,3 +53,11 @@ PeacoQC (version 0.99.13)
 Improve the messages and errors
 
 ================================================================================
+
+PeacoQC (version 0.99.15)
+------------------------
+
+Make sure that the plot can also be made if there is no time channel present
+in the flowframe
+
+================================================================================

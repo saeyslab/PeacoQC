@@ -741,7 +741,7 @@ PlotPeacoQC <- function(ff,
     if (any(diff(ff@exprs[,time_channel]) < 0) == TRUE)
         warning(StrMessage("There is an inconsistancy in the Time channel.
             It seems that not al the cells are ordered according
-            to time in the flowframe"))
+            to time in the flowframe."))
 
 
     # Make a new directory where all results will be stored
@@ -800,13 +800,6 @@ PlotPeacoQC <- function(ff,
 
     subset_signalplot <- sort(sample(seq_len(nrow(ff)), display_cells))
 
-    # Calculating time breaks
-    h <- graphics::hist(ff@exprs[subset_timeplot, "Time"],
-        breaks = seq(min(ff@exprs[,"Time"]), max(ff@exprs[, "Time"]) +
-                time_unit, by = time_unit),
-        plot = FALSE)
-
-    idcs <- findInterval(ff@exprs[subset_timeplot, "Time"], h$breaks)
 
 
     # Calculate backgroundvalues for points on plot, rectangle block and
@@ -888,44 +881,54 @@ PlotPeacoQC <- function(ff,
     plot_list <- list()
 
 
+    if (length(time_channel) > 0){
+        # Calculating time breaks
+        h <- graphics::hist(ff@exprs[subset_timeplot, "Time"],
+            breaks = seq(min(ff@exprs[,"Time"]), max(ff@exprs[, "Time"]) +
+                    time_unit, by = time_unit),
+            plot = FALSE)
 
-    # Build time plot (FlowRate)
-
-    p_time <- ggplot() + theme_bw()
-
-    p_time <- p_time + theme(panel.grid = element_blank())
+        idcs <- findInterval(ff@exprs[subset_timeplot, "Time"], h$breaks)
 
 
-    if (is(display_peaks, "list")){
+        # Build time plot (FlowRate)
 
-        p_time <- p_time + geom_rect(data = overview_blocks_background,
-            mapping = aes(xmin = x_min,
-                xmax = x_max,
-                ymin = y_min,
-                ymax = y_max,
-                fill = fill_blocks),
-            alpha = 0.4,
-            show.legend = TRUE) + scale_fill_manual(name = "",
-                values = c(IT = "indianred1",
-                    MAD = "mediumpurple1",
-                    `In consecutive bins` = "plum1",
-                    `Good Values` = "white"),
-                guide = guide_legend(override.aes = list(alpha = 0.4)))
-        p_time <- p_time + theme(legend.key = element_rect(colour = "snow4"))
+        p_time <- ggplot() + theme_bw()
+
+        p_time <- p_time + theme(panel.grid = element_blank())
+
+
+        if (is(display_peaks, "list")){
+
+            p_time <- p_time + geom_rect(data = overview_blocks_background,
+                mapping = aes(xmin = x_min,
+                    xmax = x_max,
+                    ymin = y_min,
+                    ymax = y_max,
+                    fill = fill_blocks),
+                alpha = 0.4,
+                show.legend = TRUE) + scale_fill_manual(name = "",
+                    values = c(IT = "indianred1",
+                        MAD = "mediumpurple1",
+                        `In consecutive bins` = "plum1",
+                        `Good Values` = "white"),
+                    guide = guide_legend(override.aes = list(alpha = 0.4)))
+            p_time <- p_time + theme(legend.key = element_rect(colour = "snow4"))
+
+        }
+
+        p_time <- p_time +
+            geom_point(aes(x = h$mids, y = h$counts)) +
+            ggtitle(scores_time) +
+            xlab("Time") + ylab("Nr of cells per second") +
+            theme(plot.title = element_text(size = 10))
+
+
+
+        # Save time plot in plot list
+        plot_list[["Time"]] <- p_time
 
     }
-
-    p_time <- p_time +
-        geom_point(aes(x = h$mids, y = h$counts)) +
-        ggtitle(scores_time) +
-        xlab("Time") + ylab("Nr of cells per second") +
-        theme(plot.title = element_text(size = 10))
-
-
-
-    # Save time plot in plot list
-    plot_list[["Time"]] <- p_time
-
 
 
     # -------------------------------- Individual channels --------------------
