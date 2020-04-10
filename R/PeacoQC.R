@@ -7,7 +7,8 @@
 #' channel_specifications = NULL, output = "frame")
 #'
 #' @param ff A flowframe
-#' @param channels The channel indices that have to be checked for margin events
+#' @param channels The channel indices or channel names that have to be checked
+#' for margin events
 #' @param channel_specifications A list of lists with parameter specifications
 #' for certain channels. This parameter should only be used if the values in
 #' the internal parameters description is too strict or wrong for a number or
@@ -58,20 +59,22 @@ RemoveMargins <- function(
         stop("channel_specifications should be a list of lists.")
     if(!all(lengths(channel_specifications) == 2) &
             !is.null(channel_specifications))
-        stop("channel_specifications should be a list of lists.
+        stop(StrMessage("channel_specifications should be a list of lists.
             Every list should have the channel name and should contain a
-            minRange and maxRange value.")
+            minRange and maxRange value."))
     if(is.null(names(channel_specifications)) &
             !is.null(channel_specifications))
-        stop("channel_specifications should be a list of named lists.
-            Make sure that the names correspend with the channel names.")
+        stop(StrMessage("channel_specifications should be a list of named lists.
+            Make sure that the names correspend with the channel names."))
     if(!all(names(channel_specifications) %in% colnames(ff@exprs)) &
             !is.null(channel_specifications))
-        stop("channel_specifications should be a list of named lists.
-            Make sure that the names correspend with the channel names.")
-    if(!is.numeric(channels))
-        stop("Make sure that you use indices to indicate which
-            channels you want to use.")
+        stop(StrMessage("channel_specifications should be a list of named lists.
+            Make sure that the names correspend with the channel names."))
+    if(!is.numeric(channels) & !all(channels%in% colnames(ff@exprs)) |
+            is.null(channels))
+        stop(StrMessage("Make sure that you use indices or the colnames in the
+            expression matrix in the flowframe to indicate which channels you
+            want to use."))
 
     meta <- flowWorkspace::pData(ff@parameters)
     rownames(meta) <- meta[, "name"]
@@ -85,8 +88,10 @@ RemoveMargins <- function(
     selection <- rep(TRUE, times = dim(ff)[1])
     e <- ff@exprs
 
-    channels <- colnames(ff@exprs)[channels]
-    # Make selection
+    if(is.numeric(channels)){
+        channels <- colnames(ff@exprs)[channels]
+    }
+        # Make selection
     for (d in channels) {
 
         selection <- selection &
@@ -96,10 +101,10 @@ RemoveMargins <- function(
 
 
     if (length(which(selection == FALSE))/length(selection) > 0.1) {
-        warning(paste0("More then ",
+        warning(StrMessage(paste0("More then ",
             round(length(which(selection == FALSE))/length(selection) * 100, 2),
             "% is considered as a margin event in file ",
-            basename(ff@description$FILENAME), ". This should be verified."))
+            basename(ff@description$FILENAME), ". This should be verified.")))
     }
     if (output == "full"){
         return(
@@ -119,12 +124,12 @@ RemoveMargins <- function(
 #' PeacoQCSignalStability(ff,channels, determine_good_cells = "all",
 #'         plot = TRUE, save_fcs = TRUE, output_directory = ".",
 #'         name_directory = "PeacoQC_results", report = TRUE,
-#'         events_per_bin = 2000, MAD = 8, IT_limit = 0.55,
-#'         consecutive_bins = 5, ...)
+#'         events_per_bin = 2000, MAD = 5, IT_limit = 0.55,
+#'         consecutive_bins = 5, remove_zeros = FALSE, suffix_fcs = "_QC", ...)
 #'
 #' @param ff A flowframe or the location of an fcs file
-#' @param channels Indices of the channels in the ff on which peaks have to
-#' be determined.
+#' @param channels Indices or names of the channels in the flowframe on which
+#' peaks have to be determined.
 #' @param determine_good_cells If set to FALSE, the algorithm will only
 #' determine peaks. If it is set to "all", the bad measurements will be
 #' filtered out based on the MAD and IT analysis. It can also be put to "MAD"
@@ -142,19 +147,25 @@ RemoveMargins <- function(
 #' If set to FALSE, no report will be generated.
 #' @param events_per_bin Number of events that are put in one bin.
 #' Default is 2000.
-#' @param MAD The MAD parameter. Default is 6. If this is increased, the
+#' @param MAD The MAD parameter. Default is 5. If this is increased, the
 #' algorithm becomes less strict.
 #' @param IT_limit The IsolationTree parameter. Default is 0.55. If this is
 #' increased, the algorithm becomes less strict.
 #' @param consecutive_bins If 'good' bins are located between bins that are
 #' removed, they will also be marked as 'bad'. The default is 5.
+#' @param remove_zeros If this is set to TRUE, the zero values will be removed
+#' before the peak detection step. They will not be indicated as 'bad' value.
+#' This is recommended when cleaning mass cytometry data.
+#' @param suffix_fcs The suffix given to the new fcs files.
 #' @param ... Options to pass on to the \code{PlotPeacoQC} function
 #' (display_cells, manual_cells, prefix)
 #'
-#' @return This function returns a \code{ist} with a number of items. It will
-#' include "FinalFF" where the cleaned flowframe is stored. It also contains
-#' the starting parameters and the information necessary to give to \code{
-#' PlotPeacoQC} if the two functions are run seperatly.
+#' @return This function returns a \code{list} with a number of items. It will
+#' include "FinalFF" where the transformed, compensated and cleaned flowframe is
+#' stored. It also contains the starting parameters and the information
+#' necessary to give to \code{PlotPeacoQC} if the two functions are run
+#' seperatly. The GoodCells list is also given where 'good' measurements are
+#' indicated as TRUE and the to be removed measurements as FALSE.
 #'
 #' @examples
 #' # General pipeline for preprocessing and quality control with PeacoQC
@@ -186,17 +197,16 @@ PeacoQCSignalStability <- function(ff,
     name_directory = "PeacoQC_results",
     report = TRUE,
     events_per_bin = 2000,
-    MAD = 8,
+    MAD = 6,
     IT_limit = 0.55,
     consecutive_bins = 5,
+    remove_zeros = FALSE,
+    suffix_fcs = "_QC",
     ...
 ){
 
     if(!is(ff, "flowFrame") | is.null(ff))
-        stop("ff should be a flowFrame")
-    if(!is.numeric(channels)| is.null(channels))
-        stop("The channel parameter should consist out of indices that
-            correspond to the channels in ff.")
+        stop("ff should be a flowFrame.")
     if(is.null(output_directory) & save_fcs == TRUE)
         warning("Since the output directory is NULL,
             no fcs files will be stored.")
@@ -207,15 +217,20 @@ PeacoQCSignalStability <- function(ff,
         warning("Since the output directory is NULL,
             no plots will be generated.")
     if(!(determine_good_cells %in% c("all", "IT", "MAD", FALSE)))
-        stop("The parameter determine_good_cells should be of following values:
-            all, IT or MAD")
+        stop(StrMessage("The parameter determine_good_cells should be of
+            following values: all, IT or MAD."))
+    if(!is.numeric(channels) & !all(channels%in% colnames(ff@exprs)) |
+            is.null(channels))
+        stop(StrMessage("Make sure that you use indices or the colnames in the
+            expression matrix in the flowframe to indicate which channels you
+            want to use."))
 
     # Check for time channel
     time_channel <- grep("time", colnames(ff@exprs), ignore.case = TRUE)
     if (any(diff(ff@exprs[,time_channel]) < 0) == TRUE)
-        warning("There is an inconsistancy in the Time channel.
+        warning(StrMessage("There is an inconsistancy in the Time channel.
             It seems that not al the cells are ordered according to time
-            in the flowframe")
+            in the flowframe."))
 
     # Make a new directory where all results will be stored
     if(!is.null(output_directory)){
@@ -260,8 +275,9 @@ PeacoQCSignalStability <- function(ff,
 
     # Make sure that channels only consist out of the colnames of ff@exprs
     results$Channels <- channels
-    channels <- colnames(ff@exprs)[channels]
-
+    if (is.numeric(channels)){
+        channels <- colnames(ff@exprs)[channels]
+    }
 
     # Split the ff up in bins (overlapping)
     breaks <- SplitWithOverlap(seq_len(nrow(ff)),
@@ -307,21 +323,21 @@ PeacoQCSignalStability <- function(ff,
         if(is.na(marker_name))
             marker_name <- channel
 
-        if (length(which(increasing)) > (1/2)*length(increasing)){
-            warning(paste0("There seems to be an increasing trent in channel ",
-                marker_name,
-                " for file ",basename(ff@description$FILENAME),
-                ". Please inspect this before doing any further analysis"),
-                plot(channel_medians, main = marker_name))
+        if (length(which(increasing)) > (3/4)*length(increasing)){
             weird_channel_increasing <- c(weird_channel_increasing, channel)
-        } else if (length(which(decreasing)) > (1/2)*length(decreasing)){
-            warning(paste0("There seems to be a decreasing trent in channel ",
-                marker_name,
-                " for file ",basename(ff@description$FILENAME),
-                ". Please inspect this before doing any further analysis"),
-                plot(channel_medians, main = marker_name))
+        } else if (length(which(decreasing)) > (3/4)*length(decreasing)){
             weird_channel_decreasing <- c(weird_channel_decreasing, channel)
         }
+    }
+
+
+    if (length(weird_channel_decreasing) > 0 |
+            length(weird_channel_increasing) > 0) {
+        warning(StrMessage(paste0(
+            "There seems to be an increasing or decreasing trend in a channel ",
+            " for ",basename(ff@description$FILENAME),
+            ". Please inspect this in the overview figure before doing any
+            further analysis.")))
     }
 
     results$WeirdChannels <- list("Increasing"= weird_channel_increasing,
@@ -337,13 +353,13 @@ PeacoQCSignalStability <- function(ff,
         char = "+", style = 3, width = 50, file = stderr())
     utils::setTxtProgressBar(pb,i)
 
-    channel <- channels[5]
+    channel <- channels[1]
 
 
     for (channel in channels){
         i <- i +1
 
-        peak_frame <- DetermineAllPeaks(ff, channel, breaks)
+        peak_frame <- DetermineAllPeaks(ff, channel, breaks, remove_zeros)
 
         if (is(peak_frame, "logical")){
             utils::setTxtProgressBar(pb,i)
@@ -393,9 +409,9 @@ PeacoQCSignalStability <- function(ff,
     if (determine_good_cells == "all" || determine_good_cells == "IT"){
 
         if (length(which(outlier_bins)) < 3){
-            stop(paste0("There is an issue with file ",
+            stop(StrMessage(paste0("There is an issue with file ",
                 basename(ff@description$FILENAME),
-                ". There are no good cells left to perform quality control."))
+                ". There are no good cells left to perform quality control.")))
         }
 
         data_for_trees <- all_peaks[outlier_bins,]
@@ -447,9 +463,9 @@ PeacoQCSignalStability <- function(ff,
     if (determine_good_cells == "all" || determine_good_cells == "MAD"){
 
         if (length(which(outlier_bins)) < 3){
-            stop(paste0("There is an issue with file ",
+            stop(StrMessage(paste0("There is an issue with file ",
                 basename(ff@description$FILENAME),
-                ". There are no good cells left to perform quality control."))
+                ". There are no good cells left to perform quality control.")))
         }
 
         perc_not_outliers <- length(which(outlier_bins == TRUE))/
@@ -556,9 +572,9 @@ PeacoQCSignalStability <- function(ff,
         results$FinalFF <- ff[results$GoodCells,]
 
         if(percentage_removed > 70){
-            warning(paste0("There was ", round(percentage_removed,3),
+            warning(StrMessage(paste0("There was ", round(percentage_removed,3),
                 "% of the measurements removed for file ",
-                basename(ff@description$FILENAME)))
+                basename(ff@description$FILENAME))))
         }
 
 
@@ -568,7 +584,8 @@ PeacoQCSignalStability <- function(ff,
             flowCore::write.FCS(ff[results$GoodCells,],file.path(fcs_directory,
                 paste0(sub(".fcs",
                     "",
-                    basename(ff@description$FILENAME)),"_QC.fcs")))
+                    basename(ff@description$FILENAME)),
+                    paste0(suffix_fcs,".fcs"))))
         }
 
 
@@ -633,10 +650,11 @@ PeacoQCSignalStability <- function(ff,
 #' @usage
 #' PlotPeacoQC(ff, channels, output_directory = ".", display_cells = 5000,
 #'             manual_cells = NULL, title_FR = NULL, display_peaks = TRUE,
-#'             prefix = "PeacoQC_", ...)
+#'             prefix = "PeacoQC_", time_unit = 100, ...)
 #'
 #' @param ff A flowframe
-#' @param channels Indices of the channels in the ff that have to be plotted
+#' @param channels Indices of names of the channels in the flowframe that have
+#' to be displayed
 #' @param output_directory Directory where the plots should be generated. Set
 #' to NULL if no plots need to be generated
 #' @param display_cells The number of measurements that should be displayed.
@@ -650,6 +668,9 @@ PeacoQCSignalStability <- function(ff,
 #' If set to FALSE, no peaks will be displayed and only the events will be
 #' displayed.
 #' @param prefix The prefix that will be given to the generated png file
+#' @param time_unit The number of time units grouped together for visualising
+#' event rate. The default is set to 100, resulting in events per second for
+#' most flow datasets. Suggested to adapt for mass cytometry data.
 #' @param ... Arguments to be given to \code{PeacoQC} if \code{display_peaks}
 #' is set to TRUE.
 #'
@@ -680,14 +701,13 @@ PeacoQCSignalStability <- function(ff,
 #'
 #' # Run PlotPeacoQC
 #' PlotPeacoQC(ff, channels, display_peaks = PeacoQC_res)
-#'\dontrun{
 #'
 #' ## Plot only the peaks (No quality control)
 #' PlotPeacoQC(ff, channels, display_peaks = TRUE)
 #'
 #' ## Plot only the dots of the file
 #' PlotPeacoQC(ff, channels, display_peaks = FALSE)
-#' }
+#'
 #' @export
 PlotPeacoQC <- function(ff,
     channels,
@@ -697,16 +717,19 @@ PlotPeacoQC <- function(ff,
     title_FR = NULL,
     display_peaks = TRUE,
     prefix = "PeacoQC_",
+    time_unit = 100,
     ...) {
 
     requireNamespace("ggplot2")
 
 
     if(!is(ff, "flowFrame") | is.null(ff))
-        stop("ff should be a flowFrame")
-    if(!is.numeric(channels)| is.null(channels))
-        stop("The channel parameter should consist out of indices that
-            correspond to the channels in ff.")
+        stop("ff should be a flowFrame.")
+    if(!is.numeric(channels) & !all(channels%in% colnames(ff@exprs)) |
+            is.null(channels))
+        stop(StrMessage("Make sure that you use indices or the colnames in the
+            expression matrix in the flowframe to indicate which channels you
+            want to use."))
     if(is.null(output_directory))
         stop("There should be a path given to the output_directory parameter.")
 
@@ -714,9 +737,9 @@ PlotPeacoQC <- function(ff,
     # Check for time channel
     time_channel <- grep("time", colnames(ff@exprs), ignore.case = TRUE)
     if (any(diff(ff@exprs[,time_channel]) < 0) == TRUE)
-        warning("There is an inconsistancy in the Time channel.
+        warning(StrMessage("There is an inconsistancy in the Time channel.
             It seems that not al the cells are ordered according
-            to time in the flowframe")
+            to time in the flowframe."))
 
 
     # Make a new directory where all results will be stored
@@ -751,8 +774,9 @@ PlotPeacoQC <- function(ff,
     name <- sub(".fcs", "", filename)
 
     n_channels <- length(channels)
-    channels <- colnames(ff@exprs)[channels]
-
+    if (is.numeric(channels)){
+        channels <- colnames(ff@exprs)[channels]
+    }
 
     # Determining grid to plot
     n_row <- floor(sqrt(n_channels + 2))
@@ -766,25 +790,14 @@ PlotPeacoQC <- function(ff,
     }
 
     if (display_cells > nrow(ff)) {
-        print("There are less then the number of display cells available.
-            Setting the number of display cells to the number of measurements.")
+        message(StrMessage("There are less then the number of display cells
+            available. Setting the number of display cells to the number of
+            measurements."))
         display_cells <- nrow(ff)
     }
 
     subset_signalplot <- sort(sample(seq_len(nrow(ff)), display_cells))
 
-    # Calculating time breaks
-    breaks <- cut(ff@exprs[, "Time"],
-        breaks = seq(0, max(ff@exprs[, "Time"]) + 100, by = 100),
-        labels = FALSE)
-    mid_breaks <- seq(50, max(ff@exprs[, "Time"]) + 50, by = 100)
-
-
-    h <- graphics::hist(ff@exprs[subset_timeplot, "Time"],
-        breaks = seq(0, max(ff@exprs[, "Time"]) + 100, by = 100),
-        plot = FALSE)
-
-    idcs <- findInterval(ff@exprs[subset_timeplot, "Time"], h$breaks)
 
 
     # Calculate backgroundvalues for points on plot, rectangle block and
@@ -826,17 +839,19 @@ PlotPeacoQC <- function(ff,
             y_max = Inf,
             fill_blocks = fill_blocks)
 
-        x_min <- ff@exprs[, "Time"][c(
-            1,
-            cumsum(run_length$lengths)[-length(run_length$lengths)])]
-        x_max <- ff@exprs[, "Time"][cumsum(run_length$lengths)]
+        if (length(time_channel) > 0){
 
-        overview_blocks_background <- data.frame(x_min = x_min,
-            x_max = x_max,
-            y_min = -Inf,
-            y_max = Inf,
-            fill_blocks = fill_blocks)
+            x_min <- ff@exprs[, "Time"][c(
+                1,
+                cumsum(run_length$lengths)[-length(run_length$lengths)])]
+            x_max <- ff@exprs[, "Time"][cumsum(run_length$lengths)]
 
+            overview_blocks_background <- data.frame(x_min = x_min,
+                x_max = x_max,
+                y_min = -Inf,
+                y_max = Inf,
+                fill_blocks = fill_blocks)
+        }
     }
 
     # Make blocks for manual gates to display on signalplot + cv score
@@ -866,44 +881,54 @@ PlotPeacoQC <- function(ff,
     plot_list <- list()
 
 
+    if (length(time_channel) > 0){
+        # Calculating time breaks
+        h <- graphics::hist(ff@exprs[subset_timeplot, "Time"],
+            breaks = seq(min(ff@exprs[,"Time"]), max(ff@exprs[, "Time"]) +
+                    time_unit, by = time_unit),
+            plot = FALSE)
 
-    # Build time plot (FlowRate)
-
-    p_time <- ggplot() + theme_bw()
-
-    p_time <- p_time + theme(panel.grid = element_blank())
+        idcs <- findInterval(ff@exprs[subset_timeplot, "Time"], h$breaks)
 
 
-    if (is(display_peaks, "list")){
+        # Build time plot (FlowRate)
 
-        p_time <- p_time + geom_rect(data = overview_blocks_background,
-            mapping = aes(xmin = x_min,
-                xmax = x_max,
-                ymin = y_min,
-                ymax = y_max,
-                fill = fill_blocks),
-            alpha = 0.4,
-            show.legend = TRUE) + scale_fill_manual(name = "",
-                values = c(IT = "indianred1",
-                    MAD = "mediumpurple1",
-                    `In consecutive bins` = "plum1",
-                    `Good Values` = "white"),
-                guide = guide_legend(override.aes = list(alpha = 0.4)))
-        p_time <- p_time + theme(legend.key = element_rect(colour = "snow4"))
+        p_time <- ggplot() + theme_bw()
+
+        p_time <- p_time + theme(panel.grid = element_blank())
+
+
+        if (is(display_peaks, "list")){
+
+            p_time <- p_time + geom_rect(data = overview_blocks_background,
+                mapping = aes(xmin = x_min,
+                    xmax = x_max,
+                    ymin = y_min,
+                    ymax = y_max,
+                    fill = fill_blocks),
+                alpha = 0.4,
+                show.legend = TRUE) + scale_fill_manual(name = "",
+                    values = c(IT = "indianred1",
+                        MAD = "mediumpurple1",
+                        `In consecutive bins` = "plum1",
+                        `Good Values` = "white"),
+                    guide = guide_legend(override.aes = list(alpha = 0.4)))
+            p_time <- p_time + theme(legend.key = element_rect(colour = "snow4"))
+
+        }
+
+        p_time <- p_time +
+            geom_point(aes(x = h$mids, y = h$counts)) +
+            ggtitle(scores_time) +
+            xlab("Time") + ylab("Nr of cells per second") +
+            theme(plot.title = element_text(size = 10))
+
+
+
+        # Save time plot in plot list
+        plot_list[["Time"]] <- p_time
 
     }
-
-    p_time <- p_time +
-        geom_point(aes(x = h$mids, y = h$counts)) +
-        ggtitle(scores_time) +
-        xlab("Time") + ylab("Nr of cells per second") +
-        theme(plot.title = element_text(size = 10))
-
-
-
-    # Save time plot in plot list
-    plot_list[["Time"]] <- p_time
-
 
 
     # -------------------------------- Individual channels --------------------
@@ -1131,7 +1156,7 @@ PlotPeacoQC <- function(ff,
 #' PeacoQCHeatmap(report_location = location,
 #'     row_split = c("r1", "r2", rep("r3",2), rep("r4", 16)))
 #'
-#'
+#' @importFrom grDevices colorRampPalette
 #' @export
 
 PeacoQCHeatmap <- function(
@@ -1143,12 +1168,12 @@ PeacoQCHeatmap <- function(
     ...){
 
     if (!file.exists(report_location))
-        stop("The path specified in the report_location parameter
-            is wrong or incomplete.")
+        stop(StrMessage("The path specified in the report_location parameter
+            is wrong or incomplete."))
 
     if(show_row_names == FALSE & latest_tests == FALSE)
-        warning("If there are duplicates in the report file,
-                they will be displayed on the heatmap without their filename.")
+        warning(StrMessage("If there are duplicates in the report file,
+            they will be displayed on the heatmap without their filename."))
 
     report_table <- utils::read.delim(report_location,
         check.names = FALSE,
@@ -1183,16 +1208,14 @@ PeacoQCHeatmap <- function(
 
     rownames(annotation_frame) <- rownames(report_table)
 
-    t1 <- c("#9AD5CA", "#B9314F", "#2E86AB", "#FCAA67", "#BAA5FF")
-    t2  <- c("#FFC857", "#456990", "#00A878", "#E9724C", "#FFD289")
-    t3  <- c("#83B692", "#F9ADA0", "#C2E7DA", "#C65B7C", "#08415C")
-
-
-    col_cons <- sample(t1, length(unique(annotation_frame$`Consecutive bins`)))
+    t1 <- colorRampPalette(c("#8D99AE", "#2B2D42"))
+    col_cons <- t1(length(unique(annotation_frame$`Consecutive bins`)))
+    t2 <- colorRampPalette(c("#EBB9DF", "#7D1D3F"))
+    col_MAD <- t2(length(unique(annotation_frame$MAD)))
+    t3 <- colorRampPalette(c("#B2CEDE", "#AD7A99"))
+    col_IT <- t3(length(unique(annotation_frame$`IT limit`)))
     names(col_cons) <- unique(annotation_frame$`Consecutive bins`)
-    col_MAD <- sample(t2, length(unique(annotation_frame$MAD)))
     names(col_MAD) <- unique(annotation_frame$MAD)
-    col_IT <- sample(t3, length(unique(annotation_frame$`IT limit`)))
     names(col_IT) <- unique(annotation_frame$`IT limit`)
 
 
@@ -1242,9 +1265,9 @@ PeacoQCHeatmap <- function(
 
 
     annotation_right <- rowAnnotation(
-        "Increasing/Decreasing channel" = as.factor(report_table[,
+        "Incr/Decr" = as.factor(report_table[,
             "Increasing/Decreasing channel"]),
-        col = list("Increasing/Decreasing channel" = col_incr_decr_channel))
+        col = list("Incr/Decr" = col_incr_decr_channel))
 
 
 
@@ -1268,7 +1291,7 @@ PeacoQCHeatmap <- function(
         cluster_rows = FALSE,
         column_title = title,
         column_title_gp = grid::gpar(fontface = "bold"),
-        col = circlize::colorRamp2(c(0,100), c("#EEEEEE", "red")),
+        col = circlize::colorRamp2(c(0,20,100), c("#EBEBD3", "#FFD151","red")),
         left_annotation = ha,
         right_annotation = annotation_right,
         heatmap_legend_param = list(direction = "horizontal"),
@@ -1295,12 +1318,12 @@ PeacoQCHeatmap <- function(
 #'         transformation_list, channel_specifications = NULL,
 #'         determine_good_cells = "all", plot = TRUE, save_fcs = TRUE,
 #'         output_directory = ".", name_directory = "PeacoQC_results",
-#'         report = TRUE, events_per_bin = 2000, MAD = 6, IT_limit = 0.55,
-#'         consecutive_bins = 5, ...)
+#'         report = TRUE, events_per_bin = 2000, MAD = 5, IT_limit = 0.55,
+#'         consecutive_bins = 5, remove_zeros = FALSE, suffix_fcs = "_QC",  ...)
 #'
 #' @param ff A flowframe or the location of an fcs file
-#' @param channels Indices of the channels in the ff on which peaks have to
-#' be determined.
+#' @param channels Indices or namers of the channels in the flowframe on which
+#' peaks have to be determined.
 #' @param remove_margins If set to FALSE, the margins will not be removed.
 #' @param channel_specifications A list of lists with parameter specifications
 #' for certain channels. This parameter should only be used if the values in
@@ -1330,12 +1353,16 @@ PeacoQCHeatmap <- function(
 #' If set to FALSE, no report will be generated.
 #' @param events_per_bin Number of events that are put in one bin.
 #' Default is 2000.
-#' @param MAD The MAD parameter. Default is 6. If this is increased, the
+#' @param MAD The MAD parameter. Default is 5. If this is increased, the
 #' algorithm becomes less strict.
 #' @param IT_limit The IsolationTree parameter. Default is 0.55. If this is
 #' increased, the algorithm becomes less strict.
 #' @param consecutive_bins If 'good' bins are located between bins that are
 #' removed, they will also be marked as 'bad'. The default is 5.
+#' @param remove_zeros If this is set to TRUE, the zero values will be removed
+#' before the peak detection step. They will not be indicated as 'bad' value.
+#' This is recommended when cleaning mass cytometry data.
+#' @param suffix_fcs The suffix given to the new fcs files.
 #' @param ... Options to pass on to the \code{PlotPeacoQC} function
 #' (display_cells, manual_cells, prefix)
 #'
@@ -1358,8 +1385,8 @@ PeacoQCHeatmap <- function(
 #' channels <- c(1,3,5:14,18,21)
 #'
 #' # Compensation matrix (is most of the time stored in the flowframe as
-#' # ff@description$SPILL or ff@description$SPILLOVER)
-#' compensation_matrix <- ff@description$SPILL
+#' # flowCore::description(ff)$SPILL or flowCore::description(ff)$SPILLOVER)
+#' compensation_matrix <- flowCore::description(ff)$SPILL
 #'
 #' # Store the transformation list
 #' transformation_list <- flowCore::estimateLogicle(ff,
@@ -1389,39 +1416,56 @@ PeacoQC <- function(
     name_directory = "PeacoQC_results",
     report = TRUE,
     events_per_bin = 2000,
-    MAD = 6,
+    MAD = 5,
     IT_limit = 0.55,
     consecutive_bins = 5,
+    remove_zeros = FALSE,
+    suffix_fcs = "_QC",
     ...
 ) {
 
 
+    if (is.null(compensation_matrix) & remove_margins == TRUE)
+        warning(StrMessage("If the data is already compensated, it could be that
+            the RemoveMargins function will not work correctly."))
+
     if(remove_margins == TRUE){
         #Remove margins
-        ff_cleaned <- RemoveMargins(
+        ff <- RemoveMargins(
             ff = ff,
             channels = channels,
             channel_specifications = channel_specifications)
     }
-    #Compensation
-    ff_compensated <- flowCore::compensate(ff_cleaned, compensation_matrix)
 
-    #Transformation
-    ff_transformed <- flowCore::transform(ff_compensated, transformation_list)
+
+    if (!is.null(compensation_matrix)){
+
+        #Compensation
+        ff <- flowCore::compensate(ff, compensation_matrix)
+    }
+
+
+    if (!is.null(transformation_list)){
+        #Transformation
+        ff <- flowCore::transform(ff, transformation_list)
+    }
 
     #PeacoQCSignalStability
     results_peacoQC <- PeacoQCSignalStability(
-        ff = ff_transformed,
+        ff = ff,
         channels = channels,
         determine_good_cells = determine_good_cells,
         plot = plot,
         save_fcs = save_fcs,
+        output_directory = output_directory,
         name_directory = name_directory,
         report = report,
         events_per_bin = events_per_bin,
         MAD = MAD,
         IT_limit = IT_limit,
         consecutive_bins = consecutive_bins,
+        remove_zeros = remove_zeros,
+        suffix_fcs = suffix_fcs,
         ...)
 
     return(results_peacoQC)

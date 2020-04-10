@@ -7,14 +7,14 @@
 PeacoQCSignalStability(ff,channels, determine_good_cells = "all",
         plot = TRUE, save_fcs = TRUE, output_directory = ".",
         name_directory = "PeacoQC_results", report = TRUE,
-        events_per_bin = 2000, MAD = 8, IT_limit = 0.55,
-        consecutive_bins = 5, ...)
+        events_per_bin = 2000, MAD = 5, IT_limit = 0.55,
+        consecutive_bins = 5, remove_zeros = FALSE, suffix_fcs = "_QC", ...)
 }
 \arguments{
 \item{ff}{A flowframe or the location of an fcs file}
 
-\item{channels}{Indices of the channels in the ff on which peaks have to
-be determined.}
+\item{channels}{Indices or names of the channels in the flowframe on which
+peaks have to be determined.}
 
 \item{determine_good_cells}{If set to FALSE, the algorithm will only
 determine peaks. If it is set to "all", the bad measurements will be
@@ -40,7 +40,7 @@ If set to FALSE, no report will be generated.}
 \item{events_per_bin}{Number of events that are put in one bin.
 Default is 2000.}
 
-\item{MAD}{The MAD parameter. Default is 6. If this is increased, the
+\item{MAD}{The MAD parameter. Default is 5. If this is increased, the
 algorithm becomes less strict.}
 
 \item{IT_limit}{The IsolationTree parameter. Default is 0.55. If this is
@@ -49,14 +49,22 @@ increased, the algorithm becomes less strict.}
 \item{consecutive_bins}{If 'good' bins are located between bins that are
 removed, they will also be marked as 'bad'. The default is 5.}
 
+\item{remove_zeros}{If this is set to TRUE, the zero values will be removed
+before the peak detection step. They will not be indicated as 'bad' value.
+This is recommended when cleaning mass cytometry data.}
+
+\item{suffix_fcs}{The suffix given to the new fcs files.}
+
 \item{...}{Options to pass on to the \code{PlotPeacoQC} function
 (display_cells, manual_cells, prefix)}
 }
 \value{
-This function returns a \code{ist} with a number of items. It will
-include "FinalFF" where the cleaned flowframe is stored. It also contains
-the starting parameters and the information necessary to give to \code{
-PlotPeacoQC} if the two functions are run seperatly.
+This function returns a \code{list} with a number of items. It will
+include "FinalFF" where the transformed, compensated and cleaned flowframe is
+stored. It also contains the starting parameters and the information
+necessary to give to \code{PlotPeacoQC} if the two functions are run
+seperatly. The GoodCells list is also given where 'good' measurements are
+indicated as TRUE and the to be removed measurements as FALSE.
 }
 \description{
 \code{PeacoQC} will determine peaks on the channels in the

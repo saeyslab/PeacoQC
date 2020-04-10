@@ -1,27 +1,14 @@
+# ---------------------------- Make nice warning messages ---------------------
 
-
-# ------------------------- Calculate CV --------------------------------------
-
-
-CV_frame <- function(ff, channels){
-
-    sds <- apply(ff@exprs[,channels], 2, stats::sd)
-    means <- apply(ff@exprs[,channels], 2, mean)
-
-    CVs <- sds/means
-
-    final_CV <- mean(CVs)
-    final_SD <- stats::sd(CVs)
-
-    return(list("mean" = final_CV, "sd" = final_SD))
-
+StrMessage <- function(x, prefix = " ", initial = ""){
+    strwrap(x, prefix = prefix, initial = initial)
 }
 
 # ----------------------------- Determine all peaks for one channel -----------
 
-DetermineAllPeaks <- function(ff, channel, breaks){
+DetermineAllPeaks <- function(ff, channel, breaks, remove_zeros){
 
-    full_channel_peaks <- FindThemPeaks(ff@exprs[,channel])
+    full_channel_peaks <- FindThemPeaks(ff@exprs[,channel], remove_zeros)
 
     if(all(is.na(full_channel_peaks) == TRUE)) return(NA)
 
@@ -31,7 +18,8 @@ DetermineAllPeaks <- function(ff, channel, breaks){
     maximum <- max(ff@exprs[,channel])
     range <- abs(minimum) + abs(maximum)
 
-    peaks <- lapply(breaks, function(x){FindThemPeaks(ff@exprs[x,channel])})
+    peaks <- lapply(breaks, function(x){FindThemPeaks(ff@exprs[x,channel],
+                                                        remove_zeros)})
 
     # peaks <- lapply(splits, with, Peaks)
 
@@ -122,11 +110,21 @@ DetermineAllPeaks <- function(ff, channel, breaks){
 }
 
 
-FindThemPeaks <- function (channel_data)
+FindThemPeaks <- function (channel_data, remove_zeros)
 {
+
+
+    if (remove_zeros == TRUE){
+        # Remove all zeros before calculating densities
+        channel_data <- channel_data[channel_data !=0]
+    }
+
+
     if (length(channel_data) < 3) {
         return(NA)
     }
+
+
 
     dens <- stats::density(channel_data[!is.na(channel_data)], adjust = 1)
     dens <- stats::smooth.spline(dens$x, dens$y, spar = 0.6)
@@ -145,9 +143,9 @@ FindThemPeaks <- function (channel_data)
         peaks <- dens$x[which.max(dens$y)]
     }
 
-    if (any(peaks < 0) ){
-        return(NA)
-    }
+    # if (any(peaks < 0) ){
+    #     return(NA)
+    # }
 
     return(peaks)
 }

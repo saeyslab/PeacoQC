@@ -1,6 +1,6 @@
 Package: PeacoQC
 Title: Peak-based selection of high quality cytometry data
-Version: 0.99.8
+Version: 0.99.16
 Authors@R: 
     person(given = "Annelies",
            family = "Emmaneel",
@@ -12,7 +12,7 @@ License: GPL (>=3)
 LazyData: true
 URL: http://github.com/saeyslab/PeacoQC
 BugReports: http://github.com/saeyslab/PeacoQC/issues
-Depends: R (>= 4.0)
+Depends: R (>= 3.6)
 Imports:
   circlize,
   ComplexHeatmap,

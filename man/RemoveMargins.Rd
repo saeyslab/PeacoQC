@@ -10,7 +10,8 @@ channel_specifications = NULL, output = "frame")
 \arguments{
 \item{ff}{A flowframe}
 
-\item{channels}{The channel indices that have to be checked for margin events}
+\item{channels}{The channel indices or channel names that have to be checked
+for margin events}
 
 \item{channel_specifications}{A list of lists with parameter specifications
 for certain channels. This parameter should only be used if the values in

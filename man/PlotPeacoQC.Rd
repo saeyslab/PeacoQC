@@ -6,12 +6,13 @@
 \usage{
 PlotPeacoQC(ff, channels, output_directory = ".", display_cells = 5000,
             manual_cells = NULL, title_FR = NULL, display_peaks = TRUE,
-            prefix = "PeacoQC_", ...)
+            prefix = "PeacoQC_", time_unit = 100, ...)
 }
 \arguments{
 \item{ff}{A flowframe}
 
-\item{channels}{Indices of the channels in the ff that have to be plotted}
+\item{channels}{Indices of names of the channels in the flowframe that have
+to be displayed}
 
 \item{output_directory}{Directory where the plots should be generated. Set
 to NULL if no plots need to be generated}
@@ -31,6 +32,10 @@ If set to FALSE, no peaks will be displayed and only the events will be
 displayed.}
 
 \item{prefix}{The prefix that will be given to the generated png file}
+
+\item{time_unit}{The number of time units grouped together for visualising
+event rate. The default is set to 100, resulting in events per second for
+most flow datasets. Suggested to adapt for mass cytometry data.}
 
 \item{...}{Arguments to be given to \code{PeacoQC} if \code{display_peaks}
 is set to TRUE.}
@@ -67,12 +72,11 @@ PeacoQC_res <- PeacoQCSignalStability(ff,
 
 # Run PlotPeacoQC
 PlotPeacoQC(ff, channels, display_peaks = PeacoQC_res)
-\dontrun{
 
 ## Plot only the peaks (No quality control)
 PlotPeacoQC(ff, channels, display_peaks = TRUE)
 
 ## Plot only the dots of the file
 PlotPeacoQC(ff, channels, display_peaks = FALSE)
-}
+
 }

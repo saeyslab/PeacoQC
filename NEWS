@@ -22,3 +22,49 @@ compensated and transformed and where PeacoQC signal stability is used for
 quality control.
 
 ================================================================================
+
+PeacoQC (version 0.99.9)
+------------------------
+
+Changed peak detection to allow for negative peaks and modify PeacoQC function
+to make compensation and transformation not obligatory.
+
+================================================================================
+
+PeacoQC (version 0.99.10)
+------------------------
+
+Make changes to allow for better mass cytometry data cleaning.
+Added the remove_zeros parameter and the time_units parameter.
+
+================================================================================
+
+PeacoQC (version 0.99.11)
+------------------------
+
+Allow the usage of marker names instead of only allowing the indices.
+Change colors of PeacoQCHeatmap
+
+================================================================================
+
+PeacoQC (version 0.99.13)
+------------------------
+
+Improve the messages and errors
+
+================================================================================
+
+PeacoQC (version 0.99.15)
+------------------------
+
+Make sure that the plot can also be made if there is no time channel present
+in the flowframe
+
+================================================================================
+
+PeacoQC (version 0.99.16)
+------------------------
+
+Adapt warnings increasing and decreasing channel
+
+================================================================================
