@@ -197,7 +197,7 @@ PeacoQCSignalStability <- function(ff,
     name_directory = "PeacoQC_results",
     report = TRUE,
     events_per_bin = 2000,
-    MAD = 5,
+    MAD = 6,
     IT_limit = 0.55,
     consecutive_bins = 5,
     remove_zeros = FALSE,
@@ -334,7 +334,7 @@ PeacoQCSignalStability <- function(ff,
     if (length(weird_channel_decreasing) > 0 |
             length(weird_channel_increasing) > 0) {
         warning(StrMessage(paste0(
-            "There seems to be an increasing or decreasing trent in a channel ",
+            "There seems to be an increasing or decreasing trend in a channel ",
             " for ",basename(ff@description$FILENAME),
             ". Please inspect this in the overview figure before doing any
             further analysis.")))
@@ -353,7 +353,7 @@ PeacoQCSignalStability <- function(ff,
         char = "+", style = 3, width = 50, file = stderr())
     utils::setTxtProgressBar(pb,i)
 
-    channel <- channels[10]
+    channel <- channels[1]
 
 
     for (channel in channels){

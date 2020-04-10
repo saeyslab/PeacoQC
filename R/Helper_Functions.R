@@ -112,15 +112,19 @@ DetermineAllPeaks <- function(ff, channel, breaks, remove_zeros){
 
 FindThemPeaks <- function (channel_data, remove_zeros)
 {
-    if (length(channel_data) < 3) {
-        return(NA)
-    }
 
 
     if (remove_zeros == TRUE){
         # Remove all zeros before calculating densities
         channel_data <- channel_data[channel_data !=0]
     }
+
+
+    if (length(channel_data) < 3) {
+        return(NA)
+    }
+
+
 
     dens <- stats::density(channel_data[!is.na(channel_data)], adjust = 1)
     dens <- stats::smooth.spline(dens$x, dens$y, spar = 0.6)
