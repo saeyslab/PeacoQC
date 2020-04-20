@@ -12,15 +12,16 @@ latest_tests = FALSE, title = "PeacoQC report", ...)
 \code{PeacoQC}.}
 
 \item{show_values}{If set to TRUE, the percentages of removed values
-will be displayed on the heatmap.}
+will be displayed on the heatmap. Default is TRUE.}
 
 \item{show_row_names}{If set to FALSE, the filenames will not be displayed
-on the heatmap.}
+on the heatmap. Default is TRUE.}
 
 \item{latest_tests}{If this is set to TRUE, only the latest quality control
-run will be displayed in the heatmap.}
+run will be displayed in the heatmap. Default is FALSE.}
 
-\item{title}{The title that should be given to the heatmap.}
+\item{title}{The title that should be given to the heatmap. Default is
+"PeacoQC_report".}
 
 \item{...}{Extra parameters to be given to the \code{Heatmap} function
 (eg. row_split)}

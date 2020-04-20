@@ -4,11 +4,11 @@
 \alias{PeacoQC}
 \title{Full PeacoQC pre-processing pipeline}
 \usage{
-PeacoQC(ff, channels, remove_margins = TRUE, compensation_matrix,
-        transformation_list, channel_specifications = NULL,
+PeacoQC(ff, channels, remove_margins = TRUE, compensation_matrix = NULL,
+        transformation_list = NULL, channel_specifications = NULL,
         determine_good_cells = "all", plot = TRUE, save_fcs = TRUE,
         output_directory = ".", name_directory = "PeacoQC_results",
-        report = TRUE, events_per_bin = 2000, MAD = 5, IT_limit = 0.55,
+        report = TRUE, events_per_bin = 2000, MAD = 6, IT_limit = 0.55,
         consecutive_bins = 5, remove_zeros = FALSE, suffix_fcs = "_QC",  ...)
 }
 \arguments{
@@ -17,13 +17,14 @@ PeacoQC(ff, channels, remove_margins = TRUE, compensation_matrix,
 \item{channels}{Indices or namers of the channels in the flowframe on which
 peaks have to be determined.}
 
-\item{remove_margins}{If set to FALSE, the margins will not be removed.}
+\item{remove_margins}{If set to FALSE, the margins will not be removed.
+Default is TRUE.}
 
 \item{compensation_matrix}{The compensation matrix that will be used by the
-flowCore function compensate.}
+flowCore function compensate. Default is NULL.}
 
 \item{transformation_list}{The transformation list for all the channels
-that should be transformed.}
+that should be transformed. Default is NULL.}
 
 \item{channel_specifications}{A list of lists with parameter specifications
 for certain channels. This parameter should only be used if the values in
@@ -31,33 +32,34 @@ the internal parameters description is too strict or wrong for a number or
 all channels. This should be one list per channel with first a minRange and
 then a maxRange value. This list should have the channel name found back in
 \code{colnames(ff@exprs)}. If a channel is not listed in this parameter, its
-default internal values will be used.}
+default internal values will be used. Default is NULL.}
 
 \item{determine_good_cells}{If set to FALSE, the algorithm will only
 determine peaks. If it is set to "all", the bad measurements will be
 filtered out based on the MAD and IT analysis. It can also be put to "MAD"
-or "IT" to only use one method of filtering.}
+or "IT" to only use one method of filtering. Default is "all".}
 
 \item{plot}{If set to TRUE, the \code{PlotPeacoQC} function is run to make
-an overview plot of the deleted measurements.}
+an overview plot of the deleted measurements. Default is TRUE.}
 
 \item{save_fcs}{If set to TRUE, the compensated, transformed and cleaned fcs
-file will be saved in the \code{output_directory} as: filename_QC.fcs.}
+file will be saved in the \code{output_directory} as: filename_QC.fcs.
+Default is TRUE.}
 
 \item{output_directory}{Directory where a new folder will be created that
 consists of the generated fcs files, plots and report. If set to NULL,
-nothing will be stored.}
+nothing will be stored. Default folder is the working directory,}
 
 \item{name_directory}{Name of folder that will be generated in
-\code{output_directory}.}
+\code{output_directory}. Default is "PeacoQC_results".}
 
 \item{report}{Overview text report that is generated after PeacoQC is run.
-If set to FALSE, no report will be generated.}
+If set to FALSE, no report will be generated. Default is TRUE.}
 
 \item{events_per_bin}{Number of events that are put in one bin.
 Default is 2000.}
 
-\item{MAD}{The MAD parameter. Default is 5. If this is increased, the
+\item{MAD}{The MAD parameter. Default is 6. If this is increased, the
 algorithm becomes less strict.}
 
 \item{IT_limit}{The IsolationTree parameter. Default is 0.55. If this is
@@ -68,9 +70,9 @@ removed, they will also be marked as 'bad'. The default is 5.}
 
 \item{remove_zeros}{If this is set to TRUE, the zero values will be removed
 before the peak detection step. They will not be indicated as 'bad' value.
-This is recommended when cleaning mass cytometry data.}
+This is recommended when cleaning mass cytometry data. Default is FALSE.}
 
-\item{suffix_fcs}{The suffix given to the new fcs files.}
+\item{suffix_fcs}{The suffix given to the new fcs files. Default is "_QC".}
 
 \item{...}{Options to pass on to the \code{PlotPeacoQC} function
 (display_cells, manual_cells, prefix)}

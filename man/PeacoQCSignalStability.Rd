@@ -7,7 +7,7 @@
 PeacoQCSignalStability(ff,channels, determine_good_cells = "all",
         plot = TRUE, save_fcs = TRUE, output_directory = ".",
         name_directory = "PeacoQC_results", report = TRUE,
-        events_per_bin = 2000, MAD = 5, IT_limit = 0.55,
+        events_per_bin = 2000, MAD = 6, IT_limit = 0.55,
         consecutive_bins = 5, remove_zeros = FALSE, suffix_fcs = "_QC", ...)
 }
 \arguments{
@@ -22,25 +22,25 @@ filtered out based on the MAD and IT analysis. It can also be put to "MAD"
 or "IT" to only use one method of filtering.}
 
 \item{plot}{If set to TRUE, the \code{PlotPeacoQC} function is run to make
-an overview plot of the deleted measurements.}
+an overview plot of the deleted measurements. Default is TRUE.}
 
 \item{save_fcs}{If set to TRUE, the cleaned fcs file will be saved in the
-\code{output_directory} as: filename_QC.fcs.}
+\code{output_directory} as: filename_QC.fcs. Default is TRUE.}
 
 \item{output_directory}{Directory where a new folder will be created that
 consists of the generated fcs files, plots and report. If set to NULL,
-nothing will be stored.}
+nothing will be stored.The default folder is the working directory.}
 
 \item{name_directory}{Name of folder that will be generated in
-\code{output_directory}.}
+\code{output_directory}. The default is "PeacoQC_results".}
 
 \item{report}{Overview text report that is generated after PeacoQC is run.
-If set to FALSE, no report will be generated.}
+If set to FALSE, no report will be generated. The default is TRUE.}
 
 \item{events_per_bin}{Number of events that are put in one bin.
 Default is 2000.}
 
-\item{MAD}{The MAD parameter. Default is 5. If this is increased, the
+\item{MAD}{The MAD parameter. Default is 6. If this is increased, the
 algorithm becomes less strict.}
 
 \item{IT_limit}{The IsolationTree parameter. Default is 0.55. If this is
@@ -51,9 +51,9 @@ removed, they will also be marked as 'bad'. The default is 5.}
 
 \item{remove_zeros}{If this is set to TRUE, the zero values will be removed
 before the peak detection step. They will not be indicated as 'bad' value.
-This is recommended when cleaning mass cytometry data.}
+This is recommended when cleaning mass cytometry data. Default is FALSE.}
 
-\item{suffix_fcs}{The suffix given to the new fcs files.}
+\item{suffix_fcs}{The suffix given to the new fcs files. Default is "_QC".}
 
 \item{...}{Options to pass on to the \code{PlotPeacoQC} function
 (display_cells, manual_cells, prefix)}

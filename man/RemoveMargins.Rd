@@ -19,11 +19,11 @@ the internal parameters description is too strict or wrong for a number or
 all channels. This should be one list per channel with first a minRange and
 then a maxRange value. This list should have the channel name found back in
 \code{colnames(ff@exprs)}. If a channel is not listed in this parameter, its
-default internal values will be used.}
+default internal values will be used. The default of this parameter is NULL.}
 
 \item{output}{If set to "full", a list with the filtered flowframe and the
 indices of the margin event is returned. If set to "frame", only the
-filtered flowframe is returned.}
+filtered flowframe is returned. The default is "frame".}
 }
 \value{
 This function returns either a filtered flowframe when the

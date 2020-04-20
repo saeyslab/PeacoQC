@@ -15,23 +15,27 @@ PlotPeacoQC(ff, channels, output_directory = ".", display_cells = 5000,
 to be displayed}
 
 \item{output_directory}{Directory where the plots should be generated. Set
-to NULL if no plots need to be generated}
+to NULL if no plots need to be generated. The default is the working
+directory.}
 
 \item{display_cells}{The number of measurements that should be displayed.
-(The number of dots that are displayed for every channel)}
+(The number of dots that are displayed for every channel) The default is
+5000.}
 
 \item{manual_cells}{Give a vector (TRUE/FALSE) with annotations for each cell
-to compare the automated QC with.}
+to compare the automated QC with. The default is NULL.}
 
-\item{title_FR}{The title that has to be displayed above the flow rate figure}
+\item{title_FR}{The title that has to be displayed above the flow rate
+figure. Default is NULL.}
 
 \item{display_peaks}{If the result of \code{PeacoQC} is given, all the
 quality control results will be visualised. If set to TRUE: \code{PeacoQC}
 will be run and only the peaks will be displayed without any quality control.
 If set to FALSE, no peaks will be displayed and only the events will be
-displayed.}
+displayed. Default is TRUE.}
 
-\item{prefix}{The prefix that will be given to the generated png file}
+\item{prefix}{The prefix that will be given to the generated png file.
+Default is "PeacoQC_".}
 
 \item{time_unit}{The number of time units grouped together for visualising
 event rate. The default is set to 100, resulting in events per second for

@@ -68,3 +68,10 @@ PeacoQC (version 0.99.16)
 Adapt warnings increasing and decreasing channel
 
 ================================================================================
+
+PeacoQC (version 0.99.17)
+------------------------
+
+Split up PeacoQCSignastability in multiple functions and alter descriptions
+================================================================================
+

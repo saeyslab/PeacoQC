@@ -15,10 +15,10 @@
 #' all channels. This should be one list per channel with first a minRange and
 #' then a maxRange value. This list should have the channel name found back in
 #' \code{colnames(ff@exprs)}. If a channel is not listed in this parameter, its
-#' default internal values will be used.
+#' default internal values will be used. The default of this parameter is NULL.
 #' @param output If set to "full", a list with the filtered flowframe and the
 #' indices of the margin event is returned. If set to "frame", only the
-#' filtered flowframe is returned.
+#' filtered flowframe is returned. The default is "frame".
 #'
 #' @examples
 #' # Read in raw data
@@ -124,7 +124,7 @@ RemoveMargins <- function(
 #' PeacoQCSignalStability(ff,channels, determine_good_cells = "all",
 #'         plot = TRUE, save_fcs = TRUE, output_directory = ".",
 #'         name_directory = "PeacoQC_results", report = TRUE,
-#'         events_per_bin = 2000, MAD = 5, IT_limit = 0.55,
+#'         events_per_bin = 2000, MAD = 6, IT_limit = 0.55,
 #'         consecutive_bins = 5, remove_zeros = FALSE, suffix_fcs = "_QC", ...)
 #'
 #' @param ff A flowframe or the location of an fcs file
@@ -135,19 +135,19 @@ RemoveMargins <- function(
 #' filtered out based on the MAD and IT analysis. It can also be put to "MAD"
 #' or "IT" to only use one method of filtering.
 #' @param plot If set to TRUE, the \code{PlotPeacoQC} function is run to make
-#' an overview plot of the deleted measurements.
+#' an overview plot of the deleted measurements. Default is TRUE.
 #' @param save_fcs If set to TRUE, the cleaned fcs file will be saved in the
-#' \code{output_directory} as: filename_QC.fcs.
+#' \code{output_directory} as: filename_QC.fcs. Default is TRUE.
 #' @param output_directory Directory where a new folder will be created that
 #' consists of the generated fcs files, plots and report. If set to NULL,
-#' nothing will be stored.
+#' nothing will be stored.The default folder is the working directory.
 #' @param name_directory Name of folder that will be generated in
-#' \code{output_directory}.
+#' \code{output_directory}. The default is "PeacoQC_results".
 #' @param report Overview text report that is generated after PeacoQC is run.
-#' If set to FALSE, no report will be generated.
+#' If set to FALSE, no report will be generated. The default is TRUE.
 #' @param events_per_bin Number of events that are put in one bin.
 #' Default is 2000.
-#' @param MAD The MAD parameter. Default is 5. If this is increased, the
+#' @param MAD The MAD parameter. Default is 6. If this is increased, the
 #' algorithm becomes less strict.
 #' @param IT_limit The IsolationTree parameter. Default is 0.55. If this is
 #' increased, the algorithm becomes less strict.
@@ -155,8 +155,8 @@ RemoveMargins <- function(
 #' removed, they will also be marked as 'bad'. The default is 5.
 #' @param remove_zeros If this is set to TRUE, the zero values will be removed
 #' before the peak detection step. They will not be indicated as 'bad' value.
-#' This is recommended when cleaning mass cytometry data.
-#' @param suffix_fcs The suffix given to the new fcs files.
+#' This is recommended when cleaning mass cytometry data. Default is FALSE.
+#' @param suffix_fcs The suffix given to the new fcs files. Default is "_QC".
 #' @param ... Options to pass on to the \code{PlotPeacoQC} function
 #' (display_cells, manual_cells, prefix)
 #'
@@ -275,64 +275,20 @@ PeacoQCSignalStability <- function(ff,
 
     # Make sure that channels only consist out of the colnames of ff@exprs
     results$Channels <- channels
-    if (is.numeric(channels)){
-        channels <- colnames(ff@exprs)[channels]
-    }
+    if (is.numeric(channels)){ channels <- colnames(ff@exprs)[channels]}
 
-    # Split the ff up in bins (overlapping)
-    breaks <- SplitWithOverlap(seq_len(nrow(ff)),
-        events_per_bin,
-        ceiling(events_per_bin/2))
-
-    names(breaks) <- seq_along(breaks)
-
-
-    # If not enough bins are made, at least 100 should be present
-    if (length(breaks) < 100){
-        events_per_bin <- ceiling(nrow(ff)/100) *2
-        breaks <- SplitWithOverlap(seq_len(nrow(ff)),
-            events_per_bin,
-            ceiling(events_per_bin/2))
-
-        names(breaks) <- seq_along(breaks)
-
-    }
+    # Make the breaks for the entire flowframe
+    breaks <- MakeBreaks(events_per_bin, nrow(ff))
 
     results$EventsPerBin <- events_per_bin
 
     # Check if there is an increasing or decreasing trent in the channels
-    weird_channel_increasing <- NULL
-    weird_channel_decreasing <- NULL
+
+    list_weird_channels <- FindIncreasingDecreasingChannels(breaks, ff, channels)
 
 
-    for (channel in channels){
-
-        channel_medians <- vapply(breaks,
-            function(x){stats::median(ff@exprs[x,channel])},
-            FUN.VALUE = numeric(1))
-
-        smoothed <- stats::ksmooth(seq_along(channel_medians),
-            channel_medians,
-            x.points = seq_along(channel_medians),
-            bandwidth = 50)
-
-        increasing <- cummax(smoothed$y) == smoothed$y
-        decreasing <- cummin(smoothed$y) == smoothed$y
-
-        marker_name <- flowCore::getChannelMarker(ff, channel)$desc
-        if(is.na(marker_name))
-            marker_name <- channel
-
-        if (length(which(increasing)) > (3/4)*length(increasing)){
-            weird_channel_increasing <- c(weird_channel_increasing, channel)
-        } else if (length(which(decreasing)) > (3/4)*length(decreasing)){
-            weird_channel_decreasing <- c(weird_channel_decreasing, channel)
-        }
-    }
-
-
-    if (length(weird_channel_decreasing) > 0 |
-            length(weird_channel_increasing) > 0) {
+    if (length(list_weird_channels$Decreasing) > 0 |
+        length(list_weird_channels$Increasing) > 0) {
         warning(StrMessage(paste0(
             "There seems to be an increasing or decreasing trend in a channel ",
             " for ",basename(ff@description$FILENAME),
@@ -340,8 +296,7 @@ PeacoQCSignalStability <- function(ff,
             further analysis.")))
     }
 
-    results$WeirdChannels <- list("Increasing"= weird_channel_increasing,
-        "Decreasing" = weird_channel_decreasing)
+    results$WeirdChannels <- list_weird_channels
 
     peak_values_bin  <- list()
 
@@ -349,12 +304,14 @@ PeacoQCSignalStability <- function(ff,
     # ------ Determine all peaks found in all channels and store them ---------
     i <- 0
     message("Calculating peaks")
-    pb <-  utils::txtProgressBar(min = 0, max = length(channels), initial = 0,
-        char = "+", style = 3, width = 50, file = stderr())
+    pb <-  utils::txtProgressBar(min = 0,
+                                 max = length(channels),
+                                 initial = 0,
+                                 char = "+",
+                                 style = 3,
+                                 width = 50,
+                                 file = stderr())
     utils::setTxtProgressBar(pb,i)
-
-    channel <- channels[1]
-
 
     for (channel in channels){
         i <- i +1
@@ -365,44 +322,18 @@ PeacoQCSignalStability <- function(ff,
             utils::setTxtProgressBar(pb,i)
             next()
         }
-
-        peak_values <- list()
-
-        for (peak in unique(peak_frame$Cluster)){
-            peak_ind <- peak_frame$Cluster == peak
-            peak_data <- peak_frame[peak_ind,]
-            peak_vector <- rep(stats::median(peak_data$Peak),
-                length(breaks))
-
-            peak_vector[as.numeric(peak_data$Bin)] <- peak_data$Peak
-
-            names(peak_vector) <- seq_len(length(peak_vector))
-
-            peak_values[[peak]] <- peak_vector
-
-        }
-
-        peak_values_bin[[channel]] <- peak_values
-
+        peak_values_bin[[channel]] <- ExtractPeakValues(peak_frame, breaks)
         results[[channel]] <- peak_frame
-
         utils::setTxtProgressBar(pb,i)
     }
 
     close(pb)
 
-    peak_values <- unlist(peak_values_bin, recursive = FALSE)
-
-    all_peaks <- do.call(cbind, peak_values)
-
-    all_peaks <- as.data.frame(all_peaks)
-
-    rownames(all_peaks) <- names(peak_values[[1]])
-
+    all_peak_values <- unlist(peak_values_bin, recursive = FALSE)
+    all_peaks <- as.data.frame(do.call(cbind, all_peak_values))
+    rownames(all_peaks) <- names(all_peak_values[[1]])
 
     outlier_bins <- rep(TRUE, nrow(all_peaks))
-
-
 
     # ------------------------ Isolation Tree  --------------------------------
 
@@ -414,51 +345,19 @@ PeacoQCSignalStability <- function(ff,
                 ". There are no good cells left to perform quality control.")))
         }
 
-        data_for_trees <- all_peaks[outlier_bins,]
-
-        tree <- isolationTreeSD(data_for_trees, gain_limit = IT_limit)
+        tree <- isolationTreeSD(all_peaks, gain_limit = IT_limit)
         results$IT <- tree
-
-        scores_to_use <- stats::na.omit(tree$res[,
-            c("n_datapoints", "anomaly_score")])
-        node_to_keep <- rownames(scores_to_use)[
-            which.max(scores_to_use$n_datapoints)]
-
-        IT_cells <- rep(TRUE, nrow(ff))
-
-
-        bins_isolated <- tree$selection[as.numeric(node_to_keep),]
-        names(bins_isolated) <- which(outlier_bins == TRUE)
-
-        outlier_bins[outlier_bins] <- bins_isolated
-
-        removed_cells_IT <- unlist(breaks[names(bins_isolated)
-            [which(bins_isolated == FALSE)]])
-        removed_cells_IT <- removed_cells_IT[!duplicated(removed_cells_IT)]
-
-        IT_cells[removed_cells_IT] <- FALSE
-
-        results$OutlierIT <- IT_cells
-
-
-        perc_IT <- length(removed_cells_IT)/nrow(ff)
-        perc_IT <- perc_IT * 100
-
+        outlier_bins <- tree$selection[as.numeric(tree$nodes_to_keep),]
+        names(outlier_bins) <- seq_along(outlier_bins)
+        IT_cells <- RemovedBins(breaks, !outlier_bins, nrow(ff))
+        results$OutlierIT <- IT_cells$bins
+        results$ITPercentage <- (length(IT_cells$cells)/nrow(ff))* 100
         message(paste0("IT analysis removed ",
-            paste0(round(perc_IT,2),
-                " % of the measurements" )))
-
-        results$ITPercentage <- perc_IT
-
-
-
+                       paste0(round(results$ITPercentage,2),
+                              " % of the measurements" )))
     }
 
-
     # ------------------------ Outliers based on mad --------------------------
-
-    # Bins that were selected based on their mad
-
 
     if (determine_good_cells == "all" || determine_good_cells == "MAD"){
 
@@ -468,49 +367,19 @@ PeacoQCSignalStability <- function(ff,
                 ". There are no good cells left to perform quality control.")))
         }
 
-        perc_not_outliers <- length(which(outlier_bins == TRUE))/
-            length(outlier_bins)
+        MAD_results <- MADOutlierMethod(all_peaks, outlier_bins,
+                                        MAD, perc_not_outliers)
+        mad_cells <- RemovedBins(breaks, MAD_results$MAD_bins, nrow(ff))
+        results$OutlierMads <- mad_cells$bins
+        results$ContributionMad <- MAD_results$Contribution_MAD
+        results$MADPercentage <- (length(mad_cells$cells)/nrow(ff))*100
 
-
-        outlier_bins_df <- MADOutlierMethod(all_peaks[outlier_bins,],MAD)
-
-        outlier_bins_MAD <- apply(outlier_bins_df, 1, any)
-
-        names(outlier_bins_MAD) <- which(outlier_bins == TRUE)
-
-        contribution_MAD <- apply(outlier_bins_df, 2,
-            function(x){length(which(x == TRUE))/
-                    (length(x)*perc_not_outliers)})
-
-        contribution_MAD <- round(contribution_MAD*100,2)
-
-        mad_cells <- rep(TRUE, nrow(ff))
-
-        removed_cells_MAD <- unlist(breaks[names(outlier_bins_MAD)
-            [which(outlier_bins_MAD == TRUE)]])
-        removed_cells_MAD <- removed_cells_MAD[!duplicated(removed_cells_MAD)]
-
-        perc_MAD <- length(removed_cells_MAD)/nrow(ff)
-
-        perc_MAD <- perc_MAD * 100
+        outlier_bins[outlier_bins] <- !MAD_results$MAD_bins
 
         message(paste0("MAD analysis removed ",
-            paste0(round(perc_MAD,2),
-                " % of the measurements" )))
-
-        results$ContributionMad <- contribution_MAD
-
-        results$MADPercentage <- perc_MAD
-
-        mad_cells[removed_cells_MAD] <- FALSE
-
-        results$OutlierMads <- mad_cells
-
-        outlier_bins[outlier_bins] <- !outlier_bins_MAD
-
+                       paste0(round(results$MADPercentage,2),
+                              " % of the measurements" )))
     }
-
-
 
     # ------------------------- indicate bad cells ----------------------------
 
@@ -520,66 +389,37 @@ PeacoQCSignalStability <- function(ff,
         # Determine which cells should also be removed because they
         # fall inbetween FALSE regions
         outlier_bins_new <- inverse.rle(within.list(rle(outlier_bins),
-            values[lengths<consecutive_bins]
-            <- FALSE))
-
-        consecutive_cells <- rep(TRUE, nrow(ff))
+            values[lengths<consecutive_bins] <- FALSE))
 
         consecutive_bins_to_remove <- !(outlier_bins_new == outlier_bins)
-
         names(consecutive_bins_to_remove) <- seq_along(outlier_bins_new)
 
-        removed_cells_consec <- unlist(breaks[
-            names(consecutive_bins_to_remove)
-            [which(consecutive_bins_to_remove == TRUE)]])
-        removed_cells_consec <- removed_cells_consec[
-            !duplicated(removed_cells_consec)]
-
-
-        consecutive_cells[removed_cells_consec] <- FALSE
-
-        results$ConsecutiveCells <- consecutive_cells
-
-
+        consecutive_cells <- RemovedBins(breaks,
+                                         consecutive_bins_to_remove,
+                                         nrow(ff))
+        names(outlier_bins_new) <- names(outlier_bins)
         outlier_bins <- outlier_bins_new
+        bad_cells <- RemovedBins(breaks, !outlier_bins, nrow(ff))
 
-        to_remove_bins <- which(outlier_bins == FALSE)
-
-
-        removed_cells <- unlist(breaks[to_remove_bins])
-
-        removed_cells <- removed_cells[!duplicated(removed_cells)]
-
-
-        # Summary of entire analysis
-        bad_cells <- rep(TRUE, nrow(ff))
-
-        bad_cells[removed_cells] <- FALSE
-
-        ff_orig <- Append_GoodCells(ff,  bad_cells)
-
-
-        percentage_removed <- (length(which(bad_cells == FALSE))/
-                length(bad_cells))*100
-
-        message(paste0("The algorithm removed ",
-            round(percentage_removed,2),
-            "% of the measurements"))
-
-        results$remove_bins <- to_remove_bins
-        results$GoodCells <- bad_cells
-        results$PercentageRemoved <- percentage_removed
+        results$ConsecutiveCells <- consecutive_cells$bins
+        results$GoodCells <- bad_cells$bins
+        results$PercentageRemoved <- (length(bad_cells$cells)/
+                                          nrow(ff))*100
         results$FinalFF <- ff[results$GoodCells,]
 
-        if(percentage_removed > 70){
-            warning(StrMessage(paste0("There was ", round(percentage_removed,3),
-                "% of the measurements removed for file ",
+        message(paste0("The algorithm removed ",
+                       round(results$PercentageRemoved,2),
+                       " % of the measurements"))
+
+        if(results$PercentageRemoved > 70){
+            warning(StrMessage(paste0("There was ",
+                                      round(results$PercentageRemoved,3),
+                " % of the measurements removed for file ",
                 basename(ff@description$FILENAME))))
         }
 
-
         # -----------------  Does the file need to be saved in an fcs? ---------
-        if (save_fcs == TRUE & !is.null(output_directory)){
+        if (save_fcs & !is.null(output_directory)){
             message("Saving fcs file")
             flowCore::write.FCS(ff[results$GoodCells,],file.path(fcs_directory,
                 paste0(sub(".fcs",
@@ -588,45 +428,29 @@ PeacoQCSignalStability <- function(ff,
                     paste0(suffix_fcs,".fcs"))))
         }
 
-
         # ----------------- Does an overview file need to be generated? --------
-        changing_channel <- "No increasing or decreasing effect"
-        if (report == TRUE & !is.null(output_directory)){
-            if (!is.null(weird_channel_decreasing)){
-                changing_channel <- "Decreasing channel"
-            }
-            if (!is.null(weird_channel_increasing)){
-                changing_channel <- "Increasing channel"
-            }
-            if (!is.null(weird_channel_decreasing) &
-                    !is.null(weird_channel_increasing)){
-                changing_channel <- "Increasing and decreasing channel"
-            }
-
-
+        if (report & !is.null(output_directory)){
             utils::write.table(t(c(
                 basename(ff@description$FILENAME),
                 nrow(ff),
-                percentage_removed,
+                results$PercentageRemoved,
                 determine_good_cells,perc_MAD,
                 perc_IT, MAD, IT_limit, consecutive_bins,
-                events_per_bin, changing_channel)),
+                events_per_bin, list_weird_channels$Changing_channel)),
                 report_location, sep = "\t", append = TRUE, row.names = FALSE,
                 quote = FALSE, col.names = FALSE)
         }
     }
 
-
     #---------------- Does the file need to be plotted? ------------------------
 
-    if (plot == TRUE & !is.null(output_directory)){
+    if (plot & !is.null(output_directory)){
         if(determine_good_cells %in% c("all", "IT", "MAD")){
             title_FR = paste0(round(results$PercentageRemoved, 3),
                 "% of the data was removed.")
         } else {
             title_FR = ""
         }
-
         message("Plotting the results")
         PlotPeacoQC(ff = ff,
             display_peaks = results,
@@ -637,7 +461,6 @@ PeacoQCSignalStability <- function(ff,
     }
 
     return(results)
-
 }
 #' @title Visualise deleted cells of PeacoQC
 #'
@@ -656,18 +479,22 @@ PeacoQCSignalStability <- function(ff,
 #' @param channels Indices of names of the channels in the flowframe that have
 #' to be displayed
 #' @param output_directory Directory where the plots should be generated. Set
-#' to NULL if no plots need to be generated
+#' to NULL if no plots need to be generated. The default is the working
+#' directory.
 #' @param display_cells The number of measurements that should be displayed.
-#' (The number of dots that are displayed for every channel)
+#' (The number of dots that are displayed for every channel) The default is
+#' 5000.
 #' @param manual_cells Give a vector (TRUE/FALSE) with annotations for each cell
-#' to compare the automated QC with.
-#' @param title_FR The title that has to be displayed above the flow rate figure
+#' to compare the automated QC with. The default is NULL.
+#' @param title_FR The title that has to be displayed above the flow rate
+#' figure. Default is NULL.
 #' @param display_peaks If the result of \code{PeacoQC} is given, all the
 #' quality control results will be visualised. If set to TRUE: \code{PeacoQC}
 #' will be run and only the peaks will be displayed without any quality control.
 #' If set to FALSE, no peaks will be displayed and only the events will be
-#' displayed.
-#' @param prefix The prefix that will be given to the generated png file
+#' displayed. Default is TRUE.
+#' @param prefix The prefix that will be given to the generated png file.
+#' Default is "PeacoQC_".
 #' @param time_unit The number of time units grouped together for visualising
 #' event rate. The default is set to 100, resulting in events per second for
 #' most flow datasets. Suggested to adapt for mass cytometry data.
@@ -757,7 +584,7 @@ PlotPeacoQC <- function(ff,
 
     # If display_peaks == TRUE, the peaks should be calculated by using PeacoQC
     if (is(display_peaks, "logical")){
-        if(display_peaks == TRUE){
+        if(display_peaks){
             message("Running PeacoQC to determine peaks")
             peaks <- PeacoQCSignalStability(ff,
                 channels,
@@ -1124,12 +951,13 @@ PlotPeacoQC <- function(ff,
 #' @param report_location The path to the PeacoQC report generated by
 #' \code{PeacoQC}.
 #' @param show_values If set to TRUE, the percentages of removed values
-#' will be displayed on the heatmap.
+#' will be displayed on the heatmap. Default is TRUE.
 #' @param show_row_names If set to FALSE, the filenames will not be displayed
-#' on the heatmap.
+#' on the heatmap. Default is TRUE.
 #' @param latest_tests If this is set to TRUE, only the latest quality control
-#' run will be displayed in the heatmap.
-#' @param title The title that should be given to the heatmap.
+#' run will be displayed in the heatmap. Default is FALSE.
+#' @param title The title that should be given to the heatmap. Default is
+#' "PeacoQC_report".
 #' @param ... Extra parameters to be given to the \code{Heatmap} function
 #' (eg. row_split)
 #' @return This function returns nothing but generates a heatmap that can be
@@ -1182,7 +1010,7 @@ PeacoQCHeatmap <- function(
 
 
 
-    if (latest_tests == TRUE){
+    if (latest_tests){
         report_table <- report_table[!duplicated(report_table$Filename,
             fromLast = TRUE),]
         rownames(report_table) <- report_table$Filename
@@ -1274,7 +1102,7 @@ PeacoQCHeatmap <- function(
 
     report_matrix <- data.matrix(report_table[,c(3,5,6)])
 
-    if(show_values == TRUE){
+    if(show_values){
         cell_fun = function(j, i, x, y, width, height, fill)
         {
             grid.text(sprintf("%.1f", report_matrix[i, j]), x, y,
@@ -1314,46 +1142,48 @@ PeacoQCHeatmap <- function(
 #'
 #' @usage
 #'
-#' PeacoQC(ff, channels, remove_margins = TRUE, compensation_matrix,
-#'         transformation_list, channel_specifications = NULL,
+#' PeacoQC(ff, channels, remove_margins = TRUE, compensation_matrix = NULL,
+#'         transformation_list = NULL, channel_specifications = NULL,
 #'         determine_good_cells = "all", plot = TRUE, save_fcs = TRUE,
 #'         output_directory = ".", name_directory = "PeacoQC_results",
-#'         report = TRUE, events_per_bin = 2000, MAD = 5, IT_limit = 0.55,
+#'         report = TRUE, events_per_bin = 2000, MAD = 6, IT_limit = 0.55,
 #'         consecutive_bins = 5, remove_zeros = FALSE, suffix_fcs = "_QC",  ...)
 #'
 #' @param ff A flowframe or the location of an fcs file
 #' @param channels Indices or namers of the channels in the flowframe on which
 #' peaks have to be determined.
 #' @param remove_margins If set to FALSE, the margins will not be removed.
+#' Default is TRUE.
 #' @param channel_specifications A list of lists with parameter specifications
 #' for certain channels. This parameter should only be used if the values in
 #' the internal parameters description is too strict or wrong for a number or
 #' all channels. This should be one list per channel with first a minRange and
 #' then a maxRange value. This list should have the channel name found back in
 #' \code{colnames(ff@exprs)}. If a channel is not listed in this parameter, its
-#' default internal values will be used.
+#' default internal values will be used. Default is NULL.
 #' @param compensation_matrix The compensation matrix that will be used by the
-#' flowCore function compensate.
+#' flowCore function compensate. Default is NULL.
 #' @param transformation_list The transformation list for all the channels
-#' that should be transformed.
+#' that should be transformed. Default is NULL.
 #' @param determine_good_cells If set to FALSE, the algorithm will only
 #' determine peaks. If it is set to "all", the bad measurements will be
 #' filtered out based on the MAD and IT analysis. It can also be put to "MAD"
-#' or "IT" to only use one method of filtering.
+#' or "IT" to only use one method of filtering. Default is "all".
 #' @param plot If set to TRUE, the \code{PlotPeacoQC} function is run to make
-#' an overview plot of the deleted measurements.
+#' an overview plot of the deleted measurements. Default is TRUE.
 #' @param save_fcs If set to TRUE, the compensated, transformed and cleaned fcs
 #' file will be saved in the \code{output_directory} as: filename_QC.fcs.
+#' Default is TRUE.
 #' @param output_directory Directory where a new folder will be created that
 #' consists of the generated fcs files, plots and report. If set to NULL,
-#' nothing will be stored.
+#' nothing will be stored. Default folder is the working directory,
 #' @param name_directory Name of folder that will be generated in
-#' \code{output_directory}.
+#' \code{output_directory}. Default is "PeacoQC_results".
 #' @param report Overview text report that is generated after PeacoQC is run.
-#' If set to FALSE, no report will be generated.
+#' If set to FALSE, no report will be generated. Default is TRUE.
 #' @param events_per_bin Number of events that are put in one bin.
 #' Default is 2000.
-#' @param MAD The MAD parameter. Default is 5. If this is increased, the
+#' @param MAD The MAD parameter. Default is 6. If this is increased, the
 #' algorithm becomes less strict.
 #' @param IT_limit The IsolationTree parameter. Default is 0.55. If this is
 #' increased, the algorithm becomes less strict.
@@ -1361,8 +1191,8 @@ PeacoQCHeatmap <- function(
 #' removed, they will also be marked as 'bad'. The default is 5.
 #' @param remove_zeros If this is set to TRUE, the zero values will be removed
 #' before the peak detection step. They will not be indicated as 'bad' value.
-#' This is recommended when cleaning mass cytometry data.
-#' @param suffix_fcs The suffix given to the new fcs files.
+#' This is recommended when cleaning mass cytometry data. Default is FALSE.
+#' @param suffix_fcs The suffix given to the new fcs files. Default is "_QC".
 #' @param ... Options to pass on to the \code{PlotPeacoQC} function
 #' (display_cells, manual_cells, prefix)
 #'
@@ -1406,8 +1236,8 @@ PeacoQC <- function(
     ff,
     channels,
     remove_margins = TRUE,
-    compensation_matrix,
-    transformation_list,
+    compensation_matrix = NULL,
+    transformation_list = NULL,
     channel_specifications = NULL,
     determine_good_cells = "all",
     plot = TRUE,
@@ -1416,7 +1246,7 @@ PeacoQC <- function(
     name_directory = "PeacoQC_results",
     report = TRUE,
     events_per_bin = 2000,
-    MAD = 5,
+    MAD = 6,
     IT_limit = 0.55,
     consecutive_bins = 5,
     remove_zeros = FALSE,
@@ -1425,11 +1255,11 @@ PeacoQC <- function(
 ) {
 
 
-    if (is.null(compensation_matrix) & remove_margins == TRUE)
+    if (is.null(compensation_matrix) & remove_margins)
         warning(StrMessage("If the data is already compensated, it could be that
             the RemoveMargins function will not work correctly."))
 
-    if(remove_margins == TRUE){
+    if(remove_margins){
         #Remove margins
         ff <- RemoveMargins(
             ff = ff,

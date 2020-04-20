@@ -114,7 +114,7 @@ FindThemPeaks <- function (channel_data, remove_zeros)
 {
 
 
-    if (remove_zeros == TRUE){
+    if (remove_zeros){
         # Remove all zeros before calculating densities
         channel_data <- channel_data[channel_data !=0]
     }
@@ -219,10 +219,20 @@ MADOutliers <- function(peak, MAD) {
             TRUE, FALSE))
     return(outliers)}
 
-MADOutlierMethod<- function(peak_frame, MAD) {
+MADOutlierMethod<- function(peaks, outlier_bins, MAD, perc_not_outliers) {
+    perc_not_outliers <- length(which(outlier_bins == TRUE))/
+        length(outlier_bins)
+    peak_frame <- peaks[outlier_bins,]
     to_remove_bins_df <- apply(peak_frame, 2, MADOutliers, MAD)
+    outlier_bins_MAD <- apply(to_remove_bins_df, 1, any)
+    contribution_MAD <- apply(to_remove_bins_df, 2,
+                              function(x){length(which(x == TRUE))/
+                                      (length(x)*perc_not_outliers)})
+    contribution_MAD <- round(contribution_MAD*100,2)
+    names(outlier_bins_MAD) <- which(outlier_bins == TRUE)
 
-    return(to_remove_bins_df)
+    return(list("MAD_bins" = outlier_bins_MAD,
+           "Contribution_MAD" = contribution_MAD))
 }
 
 
@@ -301,7 +311,7 @@ isolationTreeSD <- function(x, max_depth = as.integer(ceiling(log2(nrow(x)))),
                     }
                     gain <- (base_sd - mean(c(sd_1,sd_2)))/base_sd
 
-                    if (is.na(gain) == TRUE){
+                    if (is.na(gain)){
                         next()
                     }
                     if(gain >= gain_max_col){
@@ -373,8 +383,16 @@ isolationTreeSD <- function(x, max_depth = as.integer(ceiling(log2(nrow(x)))),
     res$n_datapoints = rowSums(selection)
     res$anomaly_score = 2^(-(res$path_length)/(avgPL(sum(res$n_datapoints))))
 
-    return(list(res = res,
-        selection = selection))
+
+    scores_to_use <- stats::na.omit(res[,
+                                        c("n_datapoints", "anomaly_score")])
+    nodes_to_keep <- rownames(scores_to_use)[
+        which.max(scores_to_use$n_datapoints)]
+
+
+    return(list("res" = res,
+        "selection" = selection,
+        "nodes_to_keep" = nodes_to_keep))
 }
 
 
@@ -396,7 +414,7 @@ avgPL <- function(n_datapoints){
 
 # --------------------------- append column to ff -----------------------------
 
-Append_GoodCells <- function(ff, bad_cells){
+AppendGoodCells <- function(ff, bad_cells){
 
     pd <- flowWorkspace::pData(flowCore::parameters(ff))
     new_pd_name <-  ncol(ff@exprs) +1
@@ -410,4 +428,140 @@ Append_GoodCells <- function(ff, bad_cells){
     ff
 
 }
+
+
+# ------------------------- Make Breaks ---------------------------------------
+
+
+MakeBreaks <- function(events_per_bin, nr_events){
+    # Split the ff up in bins (overlapping)
+    breaks <- SplitWithOverlap(seq_len(nr_events),
+                               events_per_bin,
+                               ceiling(events_per_bin/2))
+
+    names(breaks) <- seq_along(breaks)
+
+
+    # If not enough bins are made, at least 100 should be present
+    if (length(breaks) < 100){
+        events_per_bin <- ceiling(nr_events/100) *2
+        breaks <- SplitWithOverlap(seq_len(nr_events),
+                                   events_per_bin,
+                                   ceiling(events_per_bin/2))
+
+        names(breaks) <- seq_along(breaks)
+
+    }
+
+    return(breaks)
+}
+
+
+# ------------------ Find Increasing or decreasing channels -------------------
+
+FindIncreasingDecreasingChannels <- function(breaks, ff, channels){
+
+    weird_channel_decreasing <- list()
+    weird_channel_increasing <- list()
+
+    for (channel in channels){
+
+        channel_medians <- vapply(breaks,
+                                  function(x){
+                                      stats::median(ff@exprs[x,channel])},
+                                  FUN.VALUE = numeric(1))
+
+        smoothed <- stats::ksmooth(seq_along(channel_medians),
+                                   channel_medians,
+                                   x.points = seq_along(channel_medians),
+                                   bandwidth = 50)
+
+        increasing <- cummax(smoothed$y) == smoothed$y
+        decreasing <- cummin(smoothed$y) == smoothed$y
+
+        marker_name <- flowCore::getChannelMarker(ff, channel)$desc
+        if(is.na(marker_name))
+            marker_name <- channel
+
+        if (length(which(increasing)) > (3/4)*length(increasing)){
+            weird_channel_increasing <- c(weird_channel_increasing, channel)
+        } else if (length(which(decreasing)) > (3/4)*length(decreasing)){
+            weird_channel_decreasing <- c(weird_channel_decreasing, channel)
+        }
+
+    }
+
+    changing_channel <- "No increasing or decreasing effect"
+        if (length(weird_channel_decreasing)>0){
+            changing_channel <- "Decreasing channel"
+        }
+        if (length(weird_channel_increasing)>0){
+            changing_channel <- "Increasing channel"
+        }
+        if (length(weird_channel_decreasing) >0 &
+            length(weird_channel_increasing)>0){
+            changing_channel <- "Increasing and decreasing channel"
+        }
+
+
+    return(list("Increasing" = weird_channel_increasing,
+                "Decreasing" = weird_channel_decreasing,
+                "Changing_channel" = changing_channel))
+}
+
+
+# ------------------------- Extract peak values --------------------------------
+
+ExtractPeakValues <- function(peak_frame, breaks){
+
+    peak_values <- list()
+
+    for (peak in unique(peak_frame$Cluster)){
+        peak_ind <- peak_frame$Cluster == peak
+        peak_data <- peak_frame[peak_ind,]
+        peak_vector <- rep(stats::median(peak_data$Peak),
+                           length(breaks))
+
+        peak_vector[as.numeric(peak_data$Bin)] <- peak_data$Peak
+
+        names(peak_vector) <- seq_len(length(peak_vector))
+
+        peak_values[[peak]] <- peak_vector
+
+    }
+
+    return(peak_values)
+}
+
+
+# ---------------------- Removed cells ----------------------------------------
+
+RemovedCells <- function(breaks, outlier_bins){
+
+    removed_cells <- unlist(breaks[names(outlier_bins)
+                                   [which(outlier_bins)]])
+    removed_cells <- removed_cells[!duplicated(removed_cells)]
+
+    return(removed_cells)
+
+}
+
+# ------------------------------ Removed bins ---------------------------------
+
+
+RemovedBins <- function(breaks, outlier_bins, length){
+    removed_cells <- RemovedCells(breaks, outlier_bins)
+
+    # Summary of entire analysis
+    bad_cells <- rep(TRUE, length)
+    bad_cells[removed_cells] <- FALSE
+
+    return(list("bins" = bad_cells,
+                "cells" = removed_cells))
+
+
+}
+
+
+
 
