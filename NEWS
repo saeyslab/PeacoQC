@@ -80,4 +80,12 @@ PeacoQC (version 0.99.18)
 
 Split up PlotPeacoQC in multiple functions
 Alter code to suffice to Bioconductor rules
+Add warning to vignette that directories will be made in the working directory
+Remove figure from package
+================================================================================
+
+PeacoQC (version 0.99.19)
+------------------------
+
+Remove general PeacoQC function and rename PeacoQCSignalStability to PeacoQC
 ================================================================================

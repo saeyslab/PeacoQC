@@ -329,14 +329,14 @@ CheckInputPlot <- function(ff, channels, output_directory,
     if (is(display_peaks, "logical")){
         if(display_peaks){
             message("Running PeacoQC to determine peaks")
-            peaks <- PeacoQCSignalStability(ff,
-                                            channels,
-                                            determine_good_cells=FALSE,
-                                            output_directory=NULL,
-                                            plot=FALSE,
-                                            save_fcs=FALSE,
-                                            report=FALSE,
-                                            ...)
+            peaks <- PeacoQC(ff,
+                            channels,
+                            determine_good_cells=FALSE,
+                            output_directory=NULL,
+                            plot=FALSE,
+                            save_fcs=FALSE,
+                            report=FALSE,
+                            ...)
         } else{peaks <- FALSE}
     } else { peaks <- display_peaks}
 

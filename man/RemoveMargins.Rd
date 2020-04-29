@@ -2,13 +2,13 @@
 % Please edit documentation in R/PeacoQC.R
 \name{RemoveMargins}
 \alias{RemoveMargins}
-\title{Remove margin events}
+\title{Remove margin events of flow cytometry data}
 \usage{
 RemoveMargins(ff, channels,
 channel_specifications=NULL, output="frame")
 }
 \arguments{
-\item{ff}{A flowframe}
+\item{ff}{A flowframe that contains flow cytometry data.}
 
 \item{channels}{The channel indices or channel names that have to be checked
 for margin events}

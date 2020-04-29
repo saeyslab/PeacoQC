@@ -2,59 +2,42 @@
 % Please edit documentation in R/PeacoQC.R
 \name{PeacoQC}
 \alias{PeacoQC}
-\title{Full PeacoQC pre-processing pipeline}
+\title{Peak-based detection of high quality cytometry data}
 \usage{
-PeacoQC(ff, channels, remove_margins=TRUE, compensation_matrix=NULL,
-        transformation_list=NULL, channel_specifications=NULL,
-        determine_good_cells="all", plot=TRUE, save_fcs=TRUE,
-        output_directory=".", name_directory="PeacoQC_results",
-        report=TRUE, events_per_bin=2000, MAD=6, IT_limit=0.55,
-        consecutive_bins=5, remove_zeros=FALSE, suffix_fcs="_QC",  ...)
+PeacoQC(ff, channels, determine_good_cells="all",
+        plot=TRUE, save_fcs=TRUE, output_directory=".",
+        name_directory="PeacoQC_results", report=TRUE,
+        events_per_bin=2000, MAD=6, IT_limit=0.55,
+        consecutive_bins=5, remove_zeros=FALSE, suffix_fcs="_QC", ...)
 }
 \arguments{
-\item{ff}{A flowframe or the location of an fcs file}
+\item{ff}{A flowframe or the location of an fcs file. Make sure that the
+flowframe is compensated and transformed. If it is mass cytometry data, only
+a transformation is necessary.}
 
-\item{channels}{Indices or namers of the channels in the flowframe on which
+\item{channels}{Indices or names of the channels in the flowframe on which
 peaks have to be determined.}
-
-\item{remove_margins}{If set to FALSE, the margins will not be removed.
-Default is TRUE.}
-
-\item{compensation_matrix}{The compensation matrix that will be used by the
-flowCore function compensate. Default is NULL.}
-
-\item{transformation_list}{The transformation list for all the channels
-that should be transformed. Default is NULL.}
-
-\item{channel_specifications}{A list of lists with parameter specifications
-for certain channels. This parameter should only be used if the values in
-the internal parameters description is too strict or wrong for a number or
-all channels. This should be one list per channel with first a minRange and
-then a maxRange value. This list should have the channel name found back in
-\code{colnames(flowCore::exprs(ff))}. If a channel is not listed in this
-parameter, its default internal values will be used. Default is NULL.}
 
 \item{determine_good_cells}{If set to FALSE, the algorithm will only
 determine peaks. If it is set to "all", the bad measurements will be
 filtered out based on the MAD and IT analysis. It can also be put to "MAD"
-or "IT" to only use one method of filtering. Default is "all".}
+or "IT" to only use one method of filtering.}
 
 \item{plot}{If set to TRUE, the \code{PlotPeacoQC} function is run to make
 an overview plot of the deleted measurements. Default is TRUE.}
 
-\item{save_fcs}{If set to TRUE, the compensated, transformed and cleaned fcs
-file will be saved in the \code{output_directory} as: filename_QC.fcs.
-Default is TRUE.}
+\item{save_fcs}{If set to TRUE, the cleaned fcs file will be saved in the
+\code{output_directory} as: filename_QC.fcs. Default is TRUE.}
 
 \item{output_directory}{Directory where a new folder will be created that
 consists of the generated fcs files, plots and report. If set to NULL,
-nothing will be stored. Default folder is the working directory,}
+nothing will be stored.The default folder is the working directory.}
 
 \item{name_directory}{Name of folder that will be generated in
-\code{output_directory}. Default is "PeacoQC_results".}
+\code{output_directory}. The default is "PeacoQC_results".}
 
 \item{report}{Overview text report that is generated after PeacoQC is run.
-If set to FALSE, no report will be generated. Default is TRUE.}
+If set to FALSE, no report will be generated. The default is TRUE.}
 
 \item{events_per_bin}{Number of events that are put in one bin.
 Default is 2000.}
@@ -86,16 +69,14 @@ seperatly. The GoodCells list is also given where 'good' measurements are
 indicated as TRUE and the to be removed measurements as FALSE.
 }
 \description{
-Method to run general pre-processing and quality control
-workflow. The method will first remove margins and compensate and transform
-the flowframe. This is followed by the \code{PeacoQCSignalStability}
-function that will check the data on anomalies that occured during
-measurement.
+\code{PeacoQC} will determine peaks on the channels in the
+flowframe. Then it will remove anomalies caused by e.g. clogs, changes in
+speed etc. by using an IsolationTree and/or the MAD method.
 }
 \examples{
 # General pipeline for preprocessing and quality control with PeacoQC
 
-# Read in raw data
+# Read in raw fcs file
 fileName <- system.file("extdata", "111.fcs", package="PeacoQC")
 ff <- flowCore::read.FCS(fileName)
 
@@ -103,18 +84,17 @@ ff <- flowCore::read.FCS(fileName)
 # and on which the quality control should be done
 channels <- c(1, 3, 5:14, 18, 21)
 
-# Compensation matrix (is most of the time stored in the flowframe as
-# flowCore::description(ff)$SPILL or flowCore::description(ff)$SPILLOVER)
-compensation_matrix <- flowCore::description(ff)$SPILL
+ff <- RemoveMargins(ff=ff, channels=channels, output="frame")
 
-# Store the transformation list
-transformation_list <- flowCore::estimateLogicle(ff,
-                                colnames(compensation_matrix))
+# Compensate and transform the data
 
+ff <- flowCore::compensate(ff, flowCore::description(ff)$SPILL)
+ff <- flowCore::transform(ff,
+                            flowCore::estimateLogicle(ff,
+                            colnames(flowCore::description(ff)$SPILL)))
 #Run PeacoQC
-PeacoQC_res <- PeacoQC(ff=ff,
-                        channels=channels,
-                        compensation_matrix=compensation_matrix,
-                        transformation_list=transformation_list)
+PeacoQC_res <- PeacoQC(ff, channels,
+                        determine_good_cells="all",
+                        plot=TRUE, save_fcs=TRUE)
 
 }
