@@ -1,6 +1,6 @@
 Package: PeacoQC
 Title: Peak-based selection of high quality cytometry data
-Version: 0.99.17
+Version: 0.99.18
 Authors@R: 
     person(given = "Annelies",
            family = "Emmaneel",
@@ -29,6 +29,7 @@ Imports:
 RoxygenNote: 7.1.0
 Suggests: 
     knitr,
-    rmarkdown
+    rmarkdown,
+    BiocStyle
 VignetteBuilder: knitr
 biocViews: FlowCytometry, QualityControl, Preprocessing, PeakDetection

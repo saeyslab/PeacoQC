@@ -4,12 +4,12 @@
 \alias{PeacoQC}
 \title{Full PeacoQC pre-processing pipeline}
 \usage{
-PeacoQC(ff, channels, remove_margins = TRUE, compensation_matrix = NULL,
-        transformation_list = NULL, channel_specifications = NULL,
-        determine_good_cells = "all", plot = TRUE, save_fcs = TRUE,
-        output_directory = ".", name_directory = "PeacoQC_results",
-        report = TRUE, events_per_bin = 2000, MAD = 6, IT_limit = 0.55,
-        consecutive_bins = 5, remove_zeros = FALSE, suffix_fcs = "_QC",  ...)
+PeacoQC(ff, channels, remove_margins=TRUE, compensation_matrix=NULL,
+        transformation_list=NULL, channel_specifications=NULL,
+        determine_good_cells="all", plot=TRUE, save_fcs=TRUE,
+        output_directory=".", name_directory="PeacoQC_results",
+        report=TRUE, events_per_bin=2000, MAD=6, IT_limit=0.55,
+        consecutive_bins=5, remove_zeros=FALSE, suffix_fcs="_QC",  ...)
 }
 \arguments{
 \item{ff}{A flowframe or the location of an fcs file}
@@ -31,8 +31,8 @@ for certain channels. This parameter should only be used if the values in
 the internal parameters description is too strict or wrong for a number or
 all channels. This should be one list per channel with first a minRange and
 then a maxRange value. This list should have the channel name found back in
-\code{colnames(ff@exprs)}. If a channel is not listed in this parameter, its
-default internal values will be used. Default is NULL.}
+\code{colnames(flowCore::exprs(ff))}. If a channel is not listed in this
+parameter, its default internal values will be used. Default is NULL.}
 
 \item{determine_good_cells}{If set to FALSE, the algorithm will only
 determine peaks. If it is set to "all", the bad measurements will be
@@ -96,12 +96,12 @@ measurement.
 # General pipeline for preprocessing and quality control with PeacoQC
 
 # Read in raw data
-fileName <- system.file("extdata", "111.fcs", package = "PeacoQC")
+fileName <- system.file("extdata", "111.fcs", package="PeacoQC")
 ff <- flowCore::read.FCS(fileName)
 
 # Define channels where the margin events should be removed
 # and on which the quality control should be done
-channels <- c(1,3,5:14,18,21)
+channels <- c(1, 3, 5:14, 18, 21)
 
 # Compensation matrix (is most of the time stored in the flowframe as
 # flowCore::description(ff)$SPILL or flowCore::description(ff)$SPILLOVER)
@@ -112,9 +112,9 @@ transformation_list <- flowCore::estimateLogicle(ff,
                                 colnames(compensation_matrix))
 
 #Run PeacoQC
-PeacoQC_res <- PeacoQC(ff = ff,
-                        channels = channels,
-                        compensation_matrix = compensation_matrix,
-                        transformation_list = transformation_list)
+PeacoQC_res <- PeacoQC(ff=ff,
+                        channels=channels,
+                        compensation_matrix=compensation_matrix,
+                        transformation_list=transformation_list)
 
 }

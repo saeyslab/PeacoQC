@@ -4,11 +4,11 @@
 \alias{PeacoQCSignalStability}
 \title{Peak-based detection of high quality cytometry data}
 \usage{
-PeacoQCSignalStability(ff,channels, determine_good_cells = "all",
-        plot = TRUE, save_fcs = TRUE, output_directory = ".",
-        name_directory = "PeacoQC_results", report = TRUE,
-        events_per_bin = 2000, MAD = 6, IT_limit = 0.55,
-        consecutive_bins = 5, remove_zeros = FALSE, suffix_fcs = "_QC", ...)
+PeacoQCSignalStability(ff, channels, determine_good_cells="all",
+        plot=TRUE, save_fcs=TRUE, output_directory=".",
+        name_directory="PeacoQC_results", report=TRUE,
+        events_per_bin=2000, MAD=6, IT_limit=0.55,
+        consecutive_bins=5, remove_zeros=FALSE, suffix_fcs="_QC", ...)
 }
 \arguments{
 \item{ff}{A flowframe or the location of an fcs file}
@@ -75,16 +75,16 @@ speed etc. by using an IsolationTree and/or the MAD method.
 # General pipeline for preprocessing and quality control with PeacoQC
 
 # Read in compensated and transformed data
-fileName <- system.file("extdata", "111_Comp_Trans.fcs", package = "PeacoQC")
+fileName <- system.file("extdata", "111_Comp_Trans.fcs", package="PeacoQC")
 ff <- flowCore::read.FCS(fileName)
 
 # Define channels where the margin events should be removed
 # and on which the quality control should be done
-channels <- c(1,3,5:14,18,21)
+channels <- c(1, 3, 5:14, 18, 21)
 
 #Run PeacoQC
 PeacoQC_res <- PeacoQCSignalStability(ff, channels,
-                    determine_good_cells = "all",
-                    plot = TRUE, save_fcs = TRUE)
+                    determine_good_cells="all",
+                    plot=TRUE, save_fcs=TRUE)
 
 }

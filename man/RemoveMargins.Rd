@@ -5,7 +5,7 @@
 \title{Remove margin events}
 \usage{
 RemoveMargins(ff, channels,
-channel_specifications = NULL, output = "frame")
+channel_specifications=NULL, output="frame")
 }
 \arguments{
 \item{ff}{A flowframe}
@@ -18,8 +18,9 @@ for certain channels. This parameter should only be used if the values in
 the internal parameters description is too strict or wrong for a number or
 all channels. This should be one list per channel with first a minRange and
 then a maxRange value. This list should have the channel name found back in
-\code{colnames(ff@exprs)}. If a channel is not listed in this parameter, its
-default internal values will be used. The default of this parameter is NULL.}
+\code{colnames(flowCore::exprs(ff))}. If a channel is not listed in this
+parameter, its default internal values will be used. The default of this
+parameter is NULL.}
 
 \item{output}{If set to "full", a list with the filtered flowframe and the
 indices of the margin event is returned. If set to "frame", only the
@@ -36,11 +37,11 @@ flowframe based on the internal description of the fcs file.
 }
 \examples{
 # Read in raw data
-fileName <- system.file("extdata", "111.fcs", package = "PeacoQC")
+fileName <- system.file("extdata", "111.fcs", package="PeacoQC")
 ff <- flowCore::read.FCS(fileName)
 
 # Define channels where the margin events should be removed
-channels <- c(1,3,5:14,18,21)
+channels <- c(1, 3, 5:14, 18, 21)
 
 # Remove margins
 
@@ -48,9 +49,9 @@ ff_cleaned <- RemoveMargins(ff, channels)
 
 # If an internal value is wrong for a channels (e.g. FSC-A)
 
-channel_specifications <- list("FSC-A" = c(-111, 262144))
+channel_specifications <- list("FSC-A"=c(-111, 262144))
 ff_cleaned <- RemoveMargins(
     ff,
     channels,
-    channel_specifications = channel_specifications)
+    channel_specifications=channel_specifications)
 }

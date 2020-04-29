@@ -4,9 +4,9 @@
 \alias{PlotPeacoQC}
 \title{Visualise deleted cells of PeacoQC}
 \usage{
-PlotPeacoQC(ff, channels, output_directory = ".", display_cells = 5000,
-            manual_cells = NULL, title_FR = NULL, display_peaks = TRUE,
-            prefix = "PeacoQC_", time_unit = 100, ...)
+PlotPeacoQC(ff, channels, output_directory=".", display_cells=5000,
+            manual_cells=NULL, title_FR=NULL, display_peaks=TRUE,
+            prefix="PeacoQC_", time_unit=100, ...)
 }
 \arguments{
 \item{ff}{A flowframe}
@@ -60,27 +60,27 @@ any annotation.
 ## Plotting the results of PeacoQC
 
 # Read in transformed and compensated data
-fileName <- system.file("extdata", "111_Comp_Trans.fcs", package = "PeacoQC")
+fileName <- system.file("extdata", "111_Comp_Trans.fcs", package="PeacoQC")
 ff <- flowCore::read.FCS(fileName)
 
 # Define channels on which the quality control should be done and the
 # plots should be made
-channels <- c(1,3,5:14,18,21)
+channels <- c(1, 3, 5:14, 18, 21)
 
 # Run PeacoQC
 PeacoQC_res <- PeacoQCSignalStability(ff,
     channels,
-    determine_good_cells = "all",
-    plot = FALSE,
-    save_fcs = TRUE)
+    determine_good_cells="all",
+    plot=FALSE,
+    save_fcs=TRUE)
 
 # Run PlotPeacoQC
-PlotPeacoQC(ff, channels, display_peaks = PeacoQC_res)
+PlotPeacoQC(ff, channels, display_peaks=PeacoQC_res)
 
 ## Plot only the peaks (No quality control)
-PlotPeacoQC(ff, channels, display_peaks = TRUE)
+PlotPeacoQC(ff, channels, display_peaks=TRUE)
 
 ## Plot only the dots of the file
-PlotPeacoQC(ff, channels, display_peaks = FALSE)
+PlotPeacoQC(ff, channels, display_peaks=FALSE)
 
 }

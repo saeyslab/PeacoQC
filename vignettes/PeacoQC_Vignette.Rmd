@@ -1,16 +1,18 @@
 ---
 title: "PeacoQC"
-output: rmarkdown::html_vignette
+author: "Annelies Emmaneel"
+package: PeacoQC
+output: BiocStyle::html_document
 vignette: >
     %\VignetteIndexEntry{PeacoQC_Vignette}
     %\VignetteEngine{knitr::rmarkdown}
     %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
+```{r, include=FALSE}
 knitr::opts_chunk$set(
-collapse = TRUE,
-comment = "#>"
+collapse=TRUE, 
+comment="#>"
 )
 ```
 
@@ -33,6 +35,15 @@ library(PeacoQC)
 
 ```
 
+
+## WARNING
+Please be aware of the fact that this vignette will create a directory in your
+current working directory. Since this package is meant to be run on multiple 
+files and the figures are directly created in this directory. 
+Please check the folders corresponding to the output_directory variable when 
+called for in the chuncks of code.
+
+
 ## Standard pre-processing and quality control pipeline
 
 The following pipeline is recommended to use for pre-processing your data.
@@ -45,12 +56,12 @@ this sample.
 
 ```{r, warning=FALSE, fig.show='hide'}
 # Specify flowframe path and read your flowframe
-fileName <- system.file("extdata", "111.fcs", package = "PeacoQC")
+fileName <- system.file("extdata", "111.fcs", package="PeacoQC")
 ff <- flowCore::read.FCS(fileName)
 
 
 # Determine channels on which quality control should be done
-channels <- c(1,3,5:14,18,21)
+channels <- c(1, 3, 5:14, 18, 21)
 
 # Store compensation matrix
 compensation_matrix <- flowCore::description(ff)$SPILL
@@ -63,13 +74,14 @@ transformation_list <- flowCore::estimateLogicle(ff,
 # Run PeacoQC and save the cleaned flowframe as an fcs file and plot the results
 # of this quality control step.
 peacoqc_res <- PeacoQC(
-    ff = ff,
-    compensation_matrix = compensation_matrix,
-    transformation_list = transformation_list,
-    channels = channels,
-    determine_good_cells = "all",
-    save_fcs = TRUE,
-    plot = TRUE)
+    ff=ff, 
+    compensation_matrix=compensation_matrix, 
+    transformation_list=transformation_list, 
+    channels=channels, 
+    determine_good_cells="all", 
+    save_fcs=TRUE, 
+    plot=TRUE,
+    output_directory = "PeacoQC_Example1")
 
 
 # Filtered flowframe is stored in peacoqc_res$FinalFF and can be used for 
@@ -85,12 +97,12 @@ something specific but it is easier to use the bigger PeacoQC workflow function.
 
 ```{r, warning=FALSE, fig.show='hide'}
 # Specify flowframe path and read your flowframe
-fileName <- system.file("extdata", "111.fcs", package = "PeacoQC")
+fileName <- system.file("extdata", "111.fcs", package="PeacoQC")
 ff <- flowCore::read.FCS(fileName)
 
 
 # Determine channels on which quality control should be done
-channels <- c(1,3,5:14,18,21)
+channels <- c(1, 3, 5:14, 18, 21)
 
 
 # Remove margins
@@ -99,7 +111,7 @@ channels <- c(1,3,5:14,18,21)
 # If this is not possible, you can specify the internal parameters in the 
 # channel_specifications parameter.
 
-ff <- RemoveMargins(ff = ff, channels = channels, output = "frame")
+ff <- RemoveMargins(ff=ff, channels=channels, output="frame")
 
 
 # Compensate and transform the data
@@ -111,11 +123,12 @@ ff <- flowCore::transform(ff,
 # Run PeacoQC and save the cleaned flowframe as an fcs file and plot the results
 # of this quality control step.
 peacoqc_res <- PeacoQCSignalStability(
-    ff = ff,
-    channels = channels,
-    determine_good_cells = "all",
-    save_fcs = TRUE,
-    plot = TRUE)
+    ff=ff, 
+    channels=channels, 
+    determine_good_cells="all", 
+    save_fcs=TRUE, 
+    plot=TRUE,
+    output_directory = "PeacoQC_Example2")
 
 
 # Filtered flowframe is stored in peacoqc_res$FinalFF and can be used for 
@@ -137,28 +150,32 @@ cytometry data. You should play a bit with the parameter until you don't see
 the picketfencing effect anymore in the event rate plot (Top left in the 
 overview).
 
-```{r}
+Note that this chunck of code will not be excecuted and that no results will 
+appear in your working directory. This is an example of how to work with mass
+cytometry data.
+
+```{r, eval = FALSE}
 # # Example of how the code could look for mass cytometry data
-# 
-# ff <- read.FCS(File)
-# 
-# # You don't have to remove margin events or compensate the data but you  
-# # should transform it
-# channels <- c(3,5,6:53)
-# 
-# transform_list <- flowCore::transformList(
-#     colnames(ff)[channels], 
-#     flowCore::arcsinhTransform(a = 0, b = 1/5, c = 0))
-# 
-# peacoqc_results <- PeacoQC(ff, 
-#     channels = channels,
-#     remove_margins = FALSE,
-#     compensation_matrix = NULL,
-#     transformation_list = transform_list,
-#     IT_limit = 0.6,
-#     remove_zeros = TRUE,
-#     time_units = 50000)
-# 
+
+ff <- read.FCS(file)
+
+# You don't have to remove margin events or compensate the data but you
+# should transform it
+channels <- c(3, 5, 6:53)
+
+transform_list <- flowCore::transformList(
+    colnames(ff)[channels],
+    flowCore::arcsinhTransform(a=0, b=1/5, c=0))
+
+peacoqc_results <- PeacoQC(ff,
+    channels=channels,
+    remove_margins=FALSE,
+    compensation_matrix=NULL,
+    transformation_list=transform_list,
+    IT_limit=0.6,
+    remove_zeros=TRUE,
+    time_units=50000)
+
 ```
 
 
@@ -172,16 +189,16 @@ to be more strict. If it seems that the MAD parameter removes too much, you can
 also increase this to make PeacoQC more strict.
 It is also recommended to determine your transformlist on one compensated file.
 
-```{r, warning=FALSE, out.width='100%'}
+```{r, warning=FALSE}
 
 # Change IT_limit for one compensated and transformed file. 
-# (Higher = more strict, lower = less strict)
+# (Higher=more strict, lower=less strict)
 # The fcs file should not be saved since we are still optimising the parameters
-fileName <- system.file("extdata", "111.fcs", package = "PeacoQC")
+fileName <- system.file("extdata", "111.fcs", package="PeacoQC")
 ff <- flowCore::read.FCS(fileName)
 
 # Determine channels on which quality control should be done
-channels <- c(1,3,5:14,18,21)
+channels <- c(1, 3, 5:14, 18, 21)
 
 
 # Compensate and determine transformation list for one file
@@ -192,62 +209,54 @@ transformation_list <- flowCore::estimateLogicle(ff,
 
 
 peacoqc_res <- PeacoQC(
-    ff,
-    channels,
-    compensation_matrix = compensation_matrix,
-    transformation_list = transformation_list,
-    determine_good_cells = "all",
-    save_fcs = FALSE,
-    plot = TRUE,
-    IT_limit = 0.6
+    ff, 
+    channels, 
+    compensation_matrix=compensation_matrix, 
+    transformation_list=transformation_list, 
+    determine_good_cells="all", 
+    save_fcs=FALSE, 
+    plot=TRUE, 
+    IT_limit=0.6,
+    output_directory = "PeacoQC_Example3"
 )
 
 
-# This line is to show you what the results are from the PeacoQC run
-plot_path <- system.file("extdata", 
-    "PeacoQC_111_Comp_Trans.png", 
-    package = "PeacoQC")
-knitr::include_graphics(plot_path)
-
-# As you can see on the figure, the Isolation Tree analysis removed the first
-# part of the data while the MAD analysis did not remove anything.
+```
 
 
+```{r, eval = FALSE}
 
 # You can also change the MAD parameter to a lower value 
 # (to make it more strict) or to a higher value (to make it less strict). 
 # Since the MAD analysis does not remove something, this is not neccesary now.
 
-# peacoqc_res <- PeacoQC(
-#     ff,
-#     channels,
-#     compensation_matrix = compensation_matrix,
-#     transformation_list = transformation_list,
-#     determine_good_cells = "all",
-#     save_fcs = FALSE,
-#     plot = TRUE,
-#     MAD = 12
-# )
-
+peacoqc_res <- PeacoQC(
+    ff,
+    channels,
+    compensation_matrix=compensation_matrix,
+    transformation_list=transformation_list,
+    determine_good_cells="all",
+    save_fcs=FALSE,
+    plot=TRUE,
+    MAD=12
+)
 
 
 # When the correct parameters are chosen you can run the different files in 
 # a for loop
 
-# for (file in files){
-#   ff <- flowCore::read.FCS(file)
+for (file in files){
+    ff <- flowCore::read.FCS(file)
 
-#   peacoqc_res <- PeacoQC(
-#     ff, 
-#     channels,
-#     compensation_matrix = compensation_matrix,
-#     transformation_list = transformation_list,
-#     determine_good_cells = "all",
-#     IT_limit = 0.6,
-#     save_fcs = T,
-#     plot = T)
-#   
-# }
+    peacoqc_res <- PeacoQC(
+                            ff,
+                            channels,
+                            compensation_matrix=compensation_matrix,
+                            transformation_list=transformation_list,
+                            determine_good_cells="all",
+                            IT_limit=0.6,
+                            save_fcs=T,
+                            plot=T)}
 
 ```
 
@@ -258,19 +267,19 @@ In order to get an overview on how much the quality control removed,
 the PeacoQCHeatmap allows for a visualised representation of the different 
 conditions and the different percentages that were removed in different runs.
 
-```{r, fig.width=7, fig.height=8}
+```{r}
 # Find the path to the report that was created by using the PeacoQC function
-location <- system.file("extdata", "PeacoQC_report.txt", package = "PeacoQC")
+location <- system.file("extdata", "PeacoQC_report.txt", package="PeacoQC")
 
 # Make heatmap overview of the quality control run
-PeacoQCHeatmap(report_location = location)
+PeacoQCHeatmap(report_location=location)
 
 # Make heatmap with only the runs of the last test
-PeacoQCHeatmap(report_location = location, latest_tests = TRUE)
+PeacoQCHeatmap(report_location=location, latest_tests=TRUE)
 
 # Make heatmap with row annotation
-PeacoQCHeatmap(report_location = location, 
-    row_split = c("r1", "r2", rep("r3",2), rep("r4", 16)))
+PeacoQCHeatmap(report_location=location, 
+    row_split=c("r1", "r2", rep("r3", 2), rep("r4", 16)))
 
 ```
 
@@ -282,17 +291,19 @@ The PlotPeacoQC function can also be used to only display the peaks of the
 different channels without doing any quality control. It can even be used to 
 only display the measurements.
 
-```{r, warning=FALSE, fig.show='hide'}
+These results will appear in the PeacoQC_plots folder.
+
+```{r, warning=FALSE, fig.show= 'hide'}
 # Load in compensated and transformed flowframe
 
-fileName <- system.file("extdata", "111_Comp_Trans.fcs", package = "PeacoQC")
+fileName <- system.file("extdata", "111_Comp_Trans.fcs", package="PeacoQC")
 ff <- flowCore::read.FCS(fileName)
 
 # Plot only the peaks (No quality control)
-PlotPeacoQC(ff, channels, display_peaks = TRUE)
+PlotPeacoQC(ff, channels, display_peaks=TRUE, prefix = "PeacoQC_peaks_")
 
 # Plot only the dots of the file
-PlotPeacoQC(ff, channels, display_peaks = FALSE)
+PlotPeacoQC(ff, channels, display_peaks=FALSE, prefix = "PeacoQC_nopeaks_")
 
 
 ```
