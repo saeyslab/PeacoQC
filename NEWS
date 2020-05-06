@@ -89,3 +89,9 @@ PeacoQC (version 0.99.19)
 
 Remove general PeacoQC function and rename PeacoQCSignalStability to PeacoQC
 ================================================================================
+
+PeacoQC (version 0.99.20)
+------------------------
+
+Imported "Original_ID" column to cleaned flowframes.
+================================================================================

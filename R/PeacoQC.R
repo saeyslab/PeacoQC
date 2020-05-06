@@ -42,7 +42,9 @@
 #'     channel_specifications=channel_specifications)
 #' @return This function returns either a filtered flowframe when the
 #' \code{output} parameter is set to "frame" or a list containing the filtered
-#' flowframe and a TRUE/FALSE list indicating the margin events.
+#' flowframe and a TRUE/FALSE list indicating the margin events. An extra column
+#' named "Original_ID" is added to the flowframe where the cells are given their
+#'  original cell id.
 #' @importFrom flowWorkspace pData
 #' @importFrom methods is
 #' @export
@@ -108,12 +110,16 @@ RemoveMargins <- function(
             basename(flowCore::description(ff)$FILENAME),
             ". This should be verified.")))
     }
+
+    new_ff <- ff[selection, ]
+    new_ff <- AppendCellID(new_ff, which(selection))
+
     if (output == "full"){
         return(
-            list("flowframe"=ff[selection, ],
+            list("flowframe"=new_ff,
                 "indices_margins"=which(selection == FALSE)))
     } else if (output == "frame"){
-        return(ff[selection, ])
+        return(new_ff)
     }
 }
 #' @title Peak-based detection of high quality cytometry data
@@ -141,7 +147,10 @@ RemoveMargins <- function(
 #' @param plot If set to TRUE, the \code{PlotPeacoQC} function is run to make
 #' an overview plot of the deleted measurements. Default is TRUE.
 #' @param save_fcs If set to TRUE, the cleaned fcs file will be saved in the
-#' \code{output_directory} as: filename_QC.fcs. Default is TRUE.
+#' \code{output_directory} as: filename_QC.fcs. The _QC name can be altered with
+#' the \code{suffix_fcs} parameter. An extra column named "Original_ID" is added
+#' to this fcs file where the cells are given their original cell id.
+#' Default is TRUE.
 #' @param output_directory Directory where a new folder will be created that
 #' consists of the generated fcs files, plots and report. If set to NULL,
 #' nothing will be stored.The default folder is the working directory.
@@ -336,11 +345,15 @@ PeacoQC <- function(ff,
         # -----------------  Does the file need to be saved in an fcs? ---------
         if (save_fcs & !is.null(output_directory)){
             message("Saving fcs file")
-            flowCore::write.FCS(ff[results$GoodCells, ],
+            new_ff <- ff[results$GoodCells, ]
+
+            if (!("Original_ID" %in% colnames(ff))){
+                new_ff <- AppendCellID(new_ff, which(results$GoodCells))}
+            flowCore::write.FCS(new_ff,
                     file.path(fcs_directory,
                         paste0(sub(".fcs",
                                 "",
-                                basename(flowCore::description(ff)$FILENAME)),
+                            basename(flowCore::description(new_ff)$FILENAME)),
                             paste0(suffix_fcs, ".fcs"))))
         }
 

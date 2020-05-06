@@ -27,7 +27,10 @@ or "IT" to only use one method of filtering.}
 an overview plot of the deleted measurements. Default is TRUE.}
 
 \item{save_fcs}{If set to TRUE, the cleaned fcs file will be saved in the
-\code{output_directory} as: filename_QC.fcs. Default is TRUE.}
+\code{output_directory} as: filename_QC.fcs. The _QC name can be altered with
+the \code{suffix_fcs} parameter. An extra column named "Original_ID" is added
+to this fcs file where the cells are given their original cell id.
+Default is TRUE.}
 
 \item{output_directory}{Directory where a new folder will be created that
 consists of the generated fcs files, plots and report. If set to NULL,

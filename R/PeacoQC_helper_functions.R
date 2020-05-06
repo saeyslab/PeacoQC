@@ -444,19 +444,12 @@ avgPL <- function(n_datapoints){
 
 # --------------------------- append column to ff -----------------------------
 
-AppendGoodCells <- function(ff, bad_cells){
+AppendCellID <- function(new_ff, cell_id){
 
-    pd <- flowWorkspace::pData(flowCore::parameters(ff))
-    new_pd_name <-  ncol(flowCore::exprs(ff)) +1
-    new_pd_name <- paste0("$P", new_pd_name)
-    new_pd <- data.frame(name="GoodCells", desc="PeacoQC_Cells", range=1,
-                        minRange=0, maxRange=1)
-    rownames(new_pd) <- new_pd_name
-    pd <- rbind(pd, new_pd)
-    flowCore::exprs(ff) <- cbind(flowCore::exprs(ff),
-                                "GoodCells"=as.numeric(bad_cells))
-    flowWorkspace::pData(flowCore::parameters(ff)) <- pd
-    ff
+    matrix_cell_id <- matrix(data = cell_id, ncol = 1,
+                             dimnames = list(c(), list("Original_ID")))
+    new_ff <- flowCore::fr_append_cols(new_ff, matrix_cell_id)
+    return(new_ff)
 
 }
 

@@ -29,7 +29,9 @@ filtered flowframe is returned. The default is "frame".}
 \value{
 This function returns either a filtered flowframe when the
 \code{output} parameter is set to "frame" or a list containing the filtered
-flowframe and a TRUE/FALSE list indicating the margin events.
+flowframe and a TRUE/FALSE list indicating the margin events. An extra column
+named "Original_ID" is added to the flowframe where the cells are given their
+ original cell id.
 }
 \description{
 \code{RemoveMargins} will remove margin events from the
