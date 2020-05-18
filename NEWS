@@ -101,3 +101,9 @@ PeacoQC (version 0.99.21)
 
 Removed ff error
 ================================================================================
+
+PeacoQC (version 0.99.22)
+------------------------
+
+Replaced description function with keyword function of flowCore
+================================================================================

@@ -520,7 +520,7 @@ FindIncreasingDecreasingChannels <- function(breaks, ff, channels){
         length(weird_channel_increasing) > 0) {
         warning(StrMessage(c("There seems to be an increasing or decreasing
             trend in a channel ",
-            " for ", basename(flowCore::description(ff)$FILENAME),
+            " for ", basename(flowCore::keyword(ff)$FILENAME),
             ". Please inspect this in the overview figure.")))
     }
 

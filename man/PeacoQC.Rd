@@ -91,10 +91,10 @@ ff <- RemoveMargins(ff=ff, channels=channels, output="frame")
 
 # Compensate and transform the data
 
-ff <- flowCore::compensate(ff, flowCore::description(ff)$SPILL)
+ff <- flowCore::compensate(ff, flowCore::keyword(ff)$SPILL)
 ff <- flowCore::transform(ff,
                             flowCore::estimateLogicle(ff,
-                            colnames(flowCore::description(ff)$SPILL)))
+                            colnames(flowCore::keyword(ff)$SPILL)))
 #Run PeacoQC
 PeacoQC_res <- PeacoQC(ff, channels,
                         determine_good_cells="all",

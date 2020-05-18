@@ -107,7 +107,7 @@ RemoveMargins <- function(
         warning(StrMessage(c("More then ",
             round(length(which(selection == FALSE))/length(selection) * 100, 2),
             "% is considered as a margin event in file ",
-            basename(flowCore::description(ff)$FILENAME),
+            basename(flowCore::keyword(ff)$FILENAME),
             ". This should be verified.")))
     }
 
@@ -195,10 +195,10 @@ RemoveMargins <- function(
 #'
 #' # Compensate and transform the data
 #'
-#' ff <- flowCore::compensate(ff, flowCore::description(ff)$SPILL)
+#' ff <- flowCore::compensate(ff, flowCore::keyword(ff)$SPILL)
 #' ff <- flowCore::transform(ff,
 #'                             flowCore::estimateLogicle(ff,
-#'                             colnames(flowCore::description(ff)$SPILL)))
+#'                             colnames(flowCore::keyword(ff)$SPILL)))
 #' #Run PeacoQC
 #' PeacoQC_res <- PeacoQC(ff, channels,
 #'                         determine_good_cells="all",
@@ -263,9 +263,9 @@ PeacoQC <- function(ff,
     }
 
     # Searching for the name of the ff
-    if (length(flowCore::description(ff)$FILENAME)>0){
+    if (length(flowCore::keyword(ff)$FILENAME)>0){
         message("Starting quality control analysis for ",
-                basename(flowCore::description(ff)$FILENAME))
+                basename(flowCore::keyword(ff)$FILENAME))
     }
 
     # Make an empty list for the eventual results
@@ -339,7 +339,7 @@ PeacoQC <- function(ff,
 
         if(results$PercentageRemoved > 70){
             warning(StrMessage("More than 70% was removed from file ",
-                        basename(flowCore::description(ff)$FILENAME)))
+                        basename(flowCore::keyword(ff)$FILENAME)))
         }
 
         # -----------------  Does the file need to be saved in an fcs? ---------
@@ -353,14 +353,14 @@ PeacoQC <- function(ff,
                     file.path(fcs_directory,
                         paste0(sub(".fcs",
                                 "",
-                            basename(flowCore::description(new_ff)$FILENAME)),
+                            basename(flowCore::keyword(new_ff)$FILENAME)),
                             paste0(suffix_fcs, ".fcs"))))
         }
 
         # ----------------- Does an overview file need to be generated? --------
         if (report & !is.null(output_directory)){
             utils::write.table(t(c(
-                basename(flowCore::description(ff)$FILENAME),
+                basename(flowCore::keyword(ff)$FILENAME),
                 nrow(ff),
                 results$PercentageRemoved,
                 determine_good_cells, results$MADPercentage,
@@ -504,7 +504,7 @@ PlotPeacoQC <- function(ff,
         scores_time <- ""
     }
 
-    filename <- basename(flowCore::description(ff)$FILENAME)
+    filename <- basename(flowCore::keyword(ff)$FILENAME)
 
     # Name to put on plotfile
     name <- sub(".fcs", "", filename)
