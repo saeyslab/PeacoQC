@@ -633,13 +633,15 @@ CheckInputSignalStability <- function(ff, channels, determine_good_cells, plot,
 }
 
 # -------------------------------- Remove short regions ------------------------
-RemoveShortRegions <- function(nr_cells,
+RemoveShortRegions <- function(ff,
                                 outlier_bins,
                                 consecutive_bins,
                                 breaks,
                                 results){
     # Determine which cells should also be removed because they
     # fall inbetween FALSE regions
+
+    nr_cells <- nrow(ff)
     outlier_bins_new <- inverse.rle(within.list(rle(outlier_bins),
                                     values[lengths<consecutive_bins] <- FALSE))
     consecutive_bins_to_remove <- !(outlier_bins_new == outlier_bins)

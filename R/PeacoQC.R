@@ -330,7 +330,7 @@ PeacoQC <- function(ff,
     if (determine_good_cells %in% c("all", "IT", "MAD")){
 
         ## Sofie: New function RemoveShortRegions
-        results <- RemoveShortRegions(nrow(ff), outlier_bins, consecutive_bins,
+        results <- RemoveShortRegions(ff, outlier_bins, consecutive_bins,
                                         breaks, results)
 
         message("The algorithm removed ",
@@ -510,12 +510,17 @@ PlotPeacoQC <- function(ff,
     name <- sub(".fcs", "", filename)
 
     if (is(display_peaks, "list")){
-        blocks <- MakeOverviewBlocks(peaks, time_channel)
-            }
+        blocks <- MakeOverviewBlocks(ff, peaks, time_channel)
+    } else {
+        blocks <- NULL
+    }
+
 
     if (!is.null(manual_cells)){
         manual_blocks <-  MakeManualBlocks(manual_cells)
-        }
+    } else {
+        manual_blocks <- NULL
+    }
 
     if (length(time_channel) > 0){
         if (is(display_peaks, "list")){
@@ -529,8 +534,8 @@ PlotPeacoQC <- function(ff,
     }
 
     plot_list <- BuildChannelPlots(channels, peaks, display_peaks,
-                                    display_cells, manual_cells, ff,
-                                    blocks, plot_list)
+                                    display_cells, manual_cells, manual_blocks,
+                                    ff, blocks, plot_list)
 
     MakeNicePlots(display_peaks, plot_list, channels, plot_directory,
                     prefix, name)

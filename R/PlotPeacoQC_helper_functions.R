@@ -1,4 +1,4 @@
-MakeOverviewBlocks <- function(peaks, time_channel){
+MakeOverviewBlocks <- function(ff, peaks, time_channel){
     run_length <- rle(peaks$GoodCells)
 
     full_QC_vector <- ifelse(peaks$GoodCells == TRUE, TRUE, FALSE)
@@ -235,7 +235,8 @@ MakeMidBreaks <- function(peaks, ncells){
 }
 
 BuildChannelPlots <- function(channels, peaks, display_peaks, display_cells,
-                                manual_cells, ff, blocks, plot_list){
+                                manual_cells, manual_blocks,  ff, blocks,
+                                plot_list){
     if(is(peaks, "list")){
         mid_breaks <- MakeMidBreaks(peaks, nrow(ff))
     }
