@@ -77,9 +77,9 @@ ff <- RemoveMargins(ff=ff, channels=channels, output="frame")
 
 
 # Compensate and transform the data
-ff <- flowCore::compensate(ff, flowCore::description(ff)$SPILL)
+ff <- flowCore::compensate(ff, flowCore::keyword(ff)$SPILL)
 ff <- flowCore::transform(ff, 
-    flowCore::estimateLogicle(ff, colnames(flowCore::description(ff)$SPILL)))
+    flowCore::estimateLogicle(ff, colnames(flowCore::keyword(ff)$SPILL)))
 
 
 # Run PeacoQC and save the cleaned flowframe as an fcs file and plot the results
@@ -164,9 +164,9 @@ channels <- c(1, 3, 5:14, 18, 21)
 ff <- RemoveMargins(ff=ff, channels=channels, output="frame")
 
 # Compensate and transform the data
-ff <- flowCore::compensate(ff, flowCore::description(ff)$SPILL)
+ff <- flowCore::compensate(ff, flowCore::keyword(ff)$SPILL)
 ff <- flowCore::transform(ff, 
-    flowCore::estimateLogicle(ff, colnames(flowCore::description(ff)$SPILL)))
+    flowCore::estimateLogicle(ff, colnames(flowCore::keyword(ff)$SPILL)))
 
 
 # Run PeacoQC and save the cleaned flowframe as an fcs file and plot the results
@@ -212,10 +212,10 @@ for (file in files){
     ff <- RemoveMargins(ff=ff, channels=channels, output="frame")
     
     # Compensate and transform the data
-    ff <- flowCore::compensate(ff, flowCore::description(ff)$SPILL)
+    ff <- flowCore::compensate(ff, flowCore::keyword(ff)$SPILL)
     ff <- flowCore::transform(ff, 
                                 flowCore::estimateLogicle(ff, 
-                                colnames(flowCore::description(ff)$SPILL)))
+                                colnames(flowCore::keyword(ff)$SPILL)))
     peacoqc_res <- PeacoQC(
                             ff,
                             channels,

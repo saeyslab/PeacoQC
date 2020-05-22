@@ -467,8 +467,8 @@ MakeBreaks <- function(events_per_bin, nr_events){
 
 
     # If not enough bins are made, at least 100 should be present
-    if (length(breaks) < 100){
-        events_per_bin <- ceiling(nr_events/100) *2
+    if (length(breaks) < 200){
+        events_per_bin <- ceiling(nr_events/200) *2
         breaks <- SplitWithOverlap(seq_len(nr_events),
                                     events_per_bin,
                                     ceiling(events_per_bin/2))
