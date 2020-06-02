@@ -68,11 +68,11 @@ RemoveMargins <- function(
     if(is.null(names(channel_specifications)) &
             !is.null(channel_specifications))
         stop(StrMessage("channel_specifications should be a list of named lists.
-            Make sure that the names correspend with the channel names."))
+            Make sure that the names correspond with the channel names."))
     if(!all(names(channel_specifications) %in% colnames(flowCore::exprs(ff))) &
             !is.null(channel_specifications))
         stop(StrMessage("channel_specifications should be a list of named lists.
-            Make sure that the names correspend with the channel names."))
+            Make sure that the names correspond with the channel names."))
     if(!is.numeric(channels) & !all(channels%in% colnames(flowCore::exprs(ff)))|
             is.null(channels))
         stop(StrMessage("Make sure that you use indices or the colnames in the
@@ -347,8 +347,10 @@ PeacoQC <- function(ff,
             message("Saving fcs file")
             new_ff <- ff[results$GoodCells, ]
 
-            if (!("Original_ID" %in% colnames(ff))){
+            if (!("Original_ID" %in% colnames(flowCore::exprs(new_ff)))){
                 new_ff <- AppendCellID(new_ff, which(results$GoodCells))}
+            else {flowCore::exprs(new_ff)[,"Original_ID"] <-
+                flowCore::exprs(ff)[,"Original_ID"][results$GoodCells]}
             flowCore::write.FCS(new_ff,
                     file.path(fcs_directory,
                         paste0(sub(".fcs",

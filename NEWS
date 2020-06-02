@@ -108,8 +108,14 @@ PeacoQC (version 0.99.22)
 Replaced description function with keyword function of flowCore
 ================================================================================
 
-PeacoQC (version 0.99.22)
+PeacoQC (version 0.99.23-25)
 ------------------------
 
-Restore 100 value
+Test 100 bin max value
+================================================================================
+
+PeacoQC (version 0.99.26)
+------------------------
+
+Typo corrections + Original_ID bug fixed
 ================================================================================
