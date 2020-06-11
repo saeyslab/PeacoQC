@@ -132,7 +132,7 @@ RemoveMargins <- function(
 #' PeacoQC(ff, channels, determine_good_cells="all",
 #'         plot=TRUE, save_fcs=TRUE, output_directory=".",
 #'         name_directory="PeacoQC_results", report=TRUE,
-#'         events_per_bin=2000, MAD=6, IT_limit=0.55,
+#'         events_per_bin=FindEventsPerBin(nrow(ff)), MAD=6, IT_limit=0.6,
 #'         consecutive_bins=5, remove_zeros=FALSE, suffix_fcs="_QC", ...)
 #'
 #' @param ff A flowframe or the location of an fcs file. Make sure that the
@@ -159,7 +159,7 @@ RemoveMargins <- function(
 #' @param report Overview text report that is generated after PeacoQC is run.
 #' If set to FALSE, no report will be generated. The default is TRUE.
 #' @param events_per_bin Number of events that are put in one bin.
-#' Default is 2000.
+#' Default is calculated based on the rows in \code{ff}
 #' @param MAD The MAD parameter. Default is 6. If this is increased, the
 #' algorithm becomes less strict.
 #' @param IT_limit The IsolationTree parameter. Default is 0.55. If this is
@@ -170,6 +170,8 @@ RemoveMargins <- function(
 #' before the peak detection step. They will not be indicated as 'bad' value.
 #' This is recommended when cleaning mass cytometry data. Default is FALSE.
 #' @param suffix_fcs The suffix given to the new fcs files. Default is "_QC".
+#' @param force If this is set to TRUE, the IT has to be used with flowframes
+#' that contain less than 40000 cells. Default is FALSE.
 #' @param ... Options to pass on to the \code{PlotPeacoQC} function
 #' (display_cells, manual_cells, prefix)
 #'
@@ -216,12 +218,13 @@ PeacoQC <- function(ff,
                     output_directory=".",
                     name_directory="PeacoQC_results",
                     report=TRUE,
-                    events_per_bin=2000,
+                    events_per_bin= FindEventsPerBin(nrow(ff)),
                     MAD=6,
-                    IT_limit=0.55,
+                    IT_limit=0.6,
                     consecutive_bins=5,
                     remove_zeros=FALSE,
                     suffix_fcs="_QC",
+                    force = FALSE,
                     ...
 ){
 
@@ -296,16 +299,17 @@ PeacoQC <- function(ff,
     # ------------------------ Isolation Tree  --------------------------------
 
     if (determine_good_cells == "all" || determine_good_cells == "IT"){
-
-        IT_res <- isolationTreeSD(all_peaks_res$all_peaks,
-                                    gain_limit=IT_limit)
-        IT_cells <- RemovedBins(breaks, !IT_res$outlier_bins, nrow(ff))
-        outlier_bins <- IT_res$outlier_bins
-        results$IT <- IT_res$res
-        results$OutlierIT <- IT_cells$cells
-        results$ITPercentage <- (length(IT_cells$cell_ids)/nrow(ff))* 100
-        message("IT analysis removed ", round(results$ITPercentage, 2),
-                "% of the measurements" )
+        if (events_per_bin >= 500 || force == TRUE){
+            IT_res <- isolationTreeSD(x = all_peaks_res$all_peaks,
+                                      gain_limit=IT_limit)
+            IT_cells <- RemovedBins(breaks, !IT_res$outlier_bins, nrow(ff))
+            outlier_bins <- IT_res$outlier_bins
+            results$IT <- IT_res$res
+            results$OutlierIT <- IT_cells$cells
+            results$ITPercentage <- (length(IT_cells$cell_ids)/nrow(ff))* 100
+            message("IT analysis removed ", round(results$ITPercentage, 2),
+                    "% of the measurements" )
+        }
     }
 
     # ------------------------ Outliers based on mad --------------------------

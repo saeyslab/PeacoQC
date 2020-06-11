@@ -7,7 +7,7 @@
 PeacoQC(ff, channels, determine_good_cells="all",
         plot=TRUE, save_fcs=TRUE, output_directory=".",
         name_directory="PeacoQC_results", report=TRUE,
-        events_per_bin=2000, MAD=6, IT_limit=0.55,
+        events_per_bin=FindEventsPerBin(nrow(ff)), MAD=6, IT_limit=0.6,
         consecutive_bins=5, remove_zeros=FALSE, suffix_fcs="_QC", ...)
 }
 \arguments{
@@ -43,7 +43,7 @@ nothing will be stored.The default folder is the working directory.}
 If set to FALSE, no report will be generated. The default is TRUE.}
 
 \item{events_per_bin}{Number of events that are put in one bin.
-Default is 2000.}
+Default is calculated based on the rows in \code{ff}}
 
 \item{MAD}{The MAD parameter. Default is 6. If this is increased, the
 algorithm becomes less strict.}
@@ -59,6 +59,9 @@ before the peak detection step. They will not be indicated as 'bad' value.
 This is recommended when cleaning mass cytometry data. Default is FALSE.}
 
 \item{suffix_fcs}{The suffix given to the new fcs files. Default is "_QC".}
+
+\item{force}{If this is set to TRUE, the IT has to be used with flowframes
+that contain less than 40000 cells. Default is FALSE.}
 
 \item{...}{Options to pass on to the \code{PlotPeacoQC} function
 (display_cells, manual_cells, prefix)}

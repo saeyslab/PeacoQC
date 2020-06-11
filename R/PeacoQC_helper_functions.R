@@ -226,10 +226,14 @@ TooSmallClusters <- function(data, clusters ){
 MADOutliers <- function(peak, MAD) {
 
 
-    kernel <- stats::ksmooth(seq_along(peak),
-                                peak,
-                                x.points=seq_along(peak),
-                                bandwidth=50)
+    # kernel <- stats::ksmooth(seq_along(peak),
+    #                             peak,
+    #                             x.points=seq_along(peak),
+    #                             bandwidth=50)
+
+
+    kernel <- stats::smooth.spline(seq_along(peak), peak, spar=0.5)
+
 
     median_peak <- stats::median(kernel$y, na.rm=TRUE)
     mad_peak <- stats::mad(kernel$y)
@@ -467,8 +471,7 @@ MakeBreaks <- function(events_per_bin, nr_events){
 
 
     # If not enough bins are made, at least 100 should be present
-    if (length(breaks) < 100){
-        events_per_bin <- ceiling(nr_events/100) *2
+    if (length(breaks) < 150){
         breaks <- SplitWithOverlap(seq_len(nr_events),
                                     events_per_bin,
                                     ceiling(events_per_bin/2))
@@ -478,6 +481,23 @@ MakeBreaks <- function(events_per_bin, nr_events){
     }
 
     return(list("breaks"=breaks, "events_per_bin"=events_per_bin))
+}
+
+
+FindEventsPerBin <- function(nr_events){
+    if (nr_events > 150000){
+        events_per_bin <- 2000
+    } else if (nr_events < 150000 & nr_events > 75000){
+        events_per_bin <- 1000
+    } else if (nr_events < 75000 & nr_events >= 40000){
+        events_per_bin <- 500
+    } else{
+        warning(StrMessage("The flowframe consists of less then 40.000 cells. This means
+                that the IT analysis could not work properly and will not be used
+                for cleaning."))
+        events_per_bin <- ceiling(nr_events/150) *2
+    }
+    return(events_per_bin)
 }
 
 
