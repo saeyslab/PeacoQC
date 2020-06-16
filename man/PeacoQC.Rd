@@ -8,7 +8,8 @@ PeacoQC(ff, channels, determine_good_cells="all",
         plot=TRUE, save_fcs=TRUE, output_directory=".",
         name_directory="PeacoQC_results", report=TRUE,
         events_per_bin=FindEventsPerBin(nrow(ff)), MAD=6, IT_limit=0.6,
-        consecutive_bins=5, remove_zeros=FALSE, suffix_fcs="_QC", ...)
+        consecutive_bins=5, remove_zeros=FALSE, suffix_fcs="_QC",
+        force=FALSE, ...)
 }
 \arguments{
 \item{ff}{A flowframe or the location of an fcs file. Make sure that the

@@ -122,6 +122,81 @@ RemoveMargins <- function(
         return(new_ff)
     }
 }
+
+#' @title Remove doublet events from flow cytometry data
+#'
+#' @description \code{RemoveDoublets} will remove doublet events from the
+#' flowframe based on two channels.
+#'
+#' @usage RemoveDoublets(ff, channel1="FSC-A", channel2="FSC-H", width=NULL,
+#' verbose=FALSE, output="frame")
+#'
+#' @param ff A flowframe that contains flow cytometry data.
+#' @param channel1 The first channels that will be used to determine the
+#' doublet events. Default is "FSC-A"
+#' @param channel2 The second channels that will be used to determine the
+#' doublet events. Default is "FSC-H"
+#' @param width Bandwidth above the ratio allowed (cells are kept if their
+#' ratio is smaller than the median ratio + \code{width}). If NULL (default),
+#' the bandwidth is estimated as 2 times the median absolute devation of the
+#' ratios.
+#' @param verbose If set to TRUE, the median ratio and width will be printed.
+#' Default is FALSE.
+#' @param output If set to "full", a list with the filtered flowframe and the
+#' indices of the doublet event is returned. If set to "frame", only the
+#' filtered flowframe is returned. The default is "frame".
+#'
+#' @examples
+#' # Read in data
+#' fileName <- system.file("extdata", "111.fcs", package="PeacoQC")
+#' ff <- flowCore::read.FCS(fileName)
+#'
+#' # Remove doublets
+#' ff_cleaned <- RemoveDoublets(ff)
+#' @return This function returns either a filtered flowframe when the
+#' \code{output} parameter is set to "frame" or a list containing the filtered
+#' flowframe and a TRUE/FALSE list indicating the margin events. An extra column
+#' named "Original_ID" is added to the flowframe where the cells are given their
+#' original cell id.
+#' @importFrom methods is
+#' @export
+
+RemoveDoublets <- function(ff,
+                           channel1="FSC-A",
+                           channel2="FSC-H",
+                           width=NULL,
+                           verbose=FALSE,
+                           output="frame"){
+
+    if (!is(ff, "flowFrame"))
+        stop("ff should be a flowframe.")
+
+    # Calculate the ratios
+    ratio <- flowCore::exprs(ff)[,channel1] /
+        (1+ flowCore::exprs(ff)[,channel2])
+
+    # Define the region that is accepted
+    r <- stats::median(ratio)
+    if(is.null(width)){ width <- 2*stats::mad(ratio) }
+    if(verbose) message(paste0("Median ratio: ", r,", width: ", width))
+
+    # Make selection
+    selection <- ratio < r+width
+
+    new_ff <- ff[selection, ]
+
+    if (!("Original_ID" %in% colnames(flowCore::exprs(new_ff)))){
+        new_ff <- AppendCellID(new_ff, which(selection))}
+
+    if (output == "full"){
+        return(
+            list("flowframe"=new_ff,
+                 "indices_doublets"=which(selection == FALSE)))
+    } else if (output == "frame"){
+        return(new_ff)
+    }
+}
+
 #' @title Peak-based detection of high quality cytometry data
 #'
 #' @description \code{PeacoQC} will determine peaks on the channels in the
@@ -133,7 +208,8 @@ RemoveMargins <- function(
 #'         plot=TRUE, save_fcs=TRUE, output_directory=".",
 #'         name_directory="PeacoQC_results", report=TRUE,
 #'         events_per_bin=FindEventsPerBin(nrow(ff)), MAD=6, IT_limit=0.6,
-#'         consecutive_bins=5, remove_zeros=FALSE, suffix_fcs="_QC", ...)
+#'         consecutive_bins=5, remove_zeros=FALSE, suffix_fcs="_QC",
+#'         force=FALSE, ...)
 #'
 #' @param ff A flowframe or the location of an fcs file. Make sure that the
 #' flowframe is compensated and transformed. If it is mass cytometry data, only
@@ -353,8 +429,6 @@ PeacoQC <- function(ff,
 
             if (!("Original_ID" %in% colnames(flowCore::exprs(new_ff)))){
                 new_ff <- AppendCellID(new_ff, which(results$GoodCells))}
-            else {flowCore::exprs(new_ff)[,"Original_ID"] <-
-                flowCore::exprs(ff)[,"Original_ID"][results$GoodCells]}
             flowCore::write.FCS(new_ff,
                     file.path(fcs_directory,
                         paste0(sub(".fcs",
@@ -732,3 +806,4 @@ PeacoQCHeatmap <- function(
 
     draw(ph, annotation_legend_side="bottom", heatmap_legend_side="bottom")
 }
+

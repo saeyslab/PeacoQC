@@ -3,6 +3,7 @@
 export(PeacoQC)
 export(PeacoQCHeatmap)
 export(PlotPeacoQC)
+export(RemoveDoublets)
 export(RemoveMargins)
 import(ComplexHeatmap)
 import(ggplot2)

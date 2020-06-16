@@ -126,3 +126,10 @@ PeacoQC (version 0.99.27-28)
 Correct for different events_per_bin situations. Increase IT_limit default.
 Change kernel function for smooth.spline in MAD detection (less strict)
 ================================================================================
+
+PeacoQC (version 0.99.29)
+------------------------
+
+Added RemoveDoublets function
+================================================================================
+
