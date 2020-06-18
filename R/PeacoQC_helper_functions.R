@@ -675,6 +675,8 @@ RemoveShortRegions <- function(ff,
     bad_cells <- RemovedBins(breaks, !outlier_bins, nr_cells)
 
     results$ConsecutiveCells <- consecutive_cells$cells
+    results$ConsecutiveCellsPercentage <- (length(consecutive_cells$cell_ids)/
+                                              nr_cells)*100
     results$GoodCells <- bad_cells$cells
     results$PercentageRemoved <- (length(bad_cells$cell_ids)/
                                     nr_cells)*100
