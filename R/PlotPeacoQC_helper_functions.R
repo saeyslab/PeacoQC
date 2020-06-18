@@ -125,14 +125,30 @@ BuildTimePlot <- function(ff, blocks=NULL, scores_time, time_unit=100){
 
 
 MakeContributions <- function(peaks, channel, marker){
-    contribution_MAD <- sum(peaks$ContributionMad
+
+    contributions <- marker
+
+    contribution_MAD_channel <- max(peaks$ContributionMad
                             [grep(channel,
                                     names(peaks$ContributionMad))])
-    contribution_IT <- ifelse(length(grep(channel,
-                                    peaks$IT$split_column)) > 0, "+", "/")
+    if (exists("IT", peaks)){
+        contribution_IT_channel <- ifelse(length(grep(channel,
+                                        peaks$IT$split_column)) > 0, "+", "/")
+    } else{ contribution_IT_channel <- "/"}
 
-    contributions <- paste0(marker, "\n", "IT: ", contribution_IT,
-                            " MAD: ", contribution_MAD, "%")
+    if (contribution_MAD_channel > 0 || contribution_IT_channel != "/" ){
+        contributions <- paste0(contributions, "\n")
+
+        if (contribution_IT_channel != "/"){
+            contributions <- paste0(contributions, "IT: +")}
+        if (contribution_MAD_channel > 0 & contribution_IT_channel != "/"){
+            contributions <- paste0(contributions, " ")
+        }
+        if (contribution_MAD_channel > 0){
+            contributions <- paste0(contributions, "MAD: ",
+                                    contribution_MAD_channel, "%")
+            }
+    }
 
     if (length(grep(channel, peaks$WeirdChannels$Increasing)) > 0) {
         contributions <- paste0(contributions, "\n",

@@ -4,7 +4,7 @@
 \alias{PlotPeacoQC}
 \title{Visualise deleted cells of PeacoQC}
 \usage{
-PlotPeacoQC(ff, channels, output_directory=".", display_cells=5000,
+PlotPeacoQC(ff, channels, output_directory=".", display_cells=2000,
             manual_cells=NULL, title_FR=NULL, display_peaks=TRUE,
             prefix="PeacoQC_", time_unit=100, ...)
 }

@@ -326,7 +326,8 @@ PeacoQC <- function(ff,
             if (!file.exists(report_location)) {
                 utils::write.table(t(c("Filename", "Nr. Measurements",
                                         "% Full analysis", "Analysis by",
-                                        "% MAD analysis", "% IT analysis",
+                                        "% IT analysis", "% MAD analysis",
+                                        "% Consecutive cells",
                                         "MAD", "IT limit", "Consecutive bins",
                                         "events_per_bin",
                                         "Increasing/Decreasing channel")),
@@ -385,6 +386,8 @@ PeacoQC <- function(ff,
             results$ITPercentage <- (length(IT_cells$cell_ids)/nrow(ff))* 100
             message("IT analysis removed ", round(results$ITPercentage, 2),
                     "% of the measurements" )
+        } else{
+            results$ITPercentage <- NA
         }
     }
 
@@ -443,8 +446,9 @@ PeacoQC <- function(ff,
                 basename(flowCore::keyword(ff)$FILENAME),
                 nrow(ff),
                 results$PercentageRemoved,
-                determine_good_cells, results$MADPercentage,
-                results$ITPercentage, MAD, IT_limit, consecutive_bins,
+                determine_good_cells, results$ITPercentage,
+                results$MADPercentage, results$ConsecutiveCellsPercentage,
+                MAD, IT_limit, consecutive_bins,
                 events_per_bin, list_weird_channels$Changing_channel)),
                 report_location, sep="\t", append=TRUE, row.names=FALSE,
                 quote=FALSE, col.names=FALSE)
@@ -480,7 +484,7 @@ PeacoQC <- function(ff,
 #' any annotation.
 #'
 #' @usage
-#' PlotPeacoQC(ff, channels, output_directory=".", display_cells=5000,
+#' PlotPeacoQC(ff, channels, output_directory=".", display_cells=2000,
 #'             manual_cells=NULL, title_FR=NULL, display_peaks=TRUE,
 #'             prefix="PeacoQC_", time_unit=100, ...)
 #'
@@ -548,7 +552,7 @@ PeacoQC <- function(ff,
 PlotPeacoQC <- function(ff,
     channels,
     output_directory=".",
-    display_cells=5000,
+    display_cells=2000,
     manual_cells=NULL,
     title_FR=NULL,
     display_peaks=TRUE,
@@ -777,7 +781,7 @@ PeacoQCHeatmap <- function(
             "Increasing/Decreasing channel"]),
         col=list("Incr/Decr"=col_incr_decr_channel))
 
-    report_matrix <- data.matrix(report_table[, c(3, 5, 6)])
+    report_matrix <- data.matrix(report_table[, c(3, 5, 6, 7)])
 
     if(show_values){
         cell_fun=function(j, i, x, y, width, height, fill)

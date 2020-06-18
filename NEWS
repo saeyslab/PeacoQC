@@ -133,3 +133,9 @@ PeacoQC (version 0.99.29)
 Added RemoveDoublets function
 ================================================================================
 
+PeacoQC (version 0.99.30)
+------------------------
+
+Alter plot function to only show MAD and IT results when necessary
+Add consecutive bin results to heatmap
+================================================================================
