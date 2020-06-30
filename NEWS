@@ -139,3 +139,10 @@ PeacoQC (version 0.99.30)
 Alter plot function to only show MAD and IT results when necessary
 Add consecutive bin results to heatmap
 ================================================================================
+
+PeacoQC (version 0.99.31)
+------------------------
+
+Alter plot parameter in PeacoQC to a number when to plot
+Add Events per bin parameter in PeacoQC heatmap
+================================================================================

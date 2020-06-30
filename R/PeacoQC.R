@@ -209,7 +209,7 @@ RemoveDoublets <- function(ff,
 #'         name_directory="PeacoQC_results", report=TRUE,
 #'         events_per_bin=FindEventsPerBin(nrow(ff)), MAD=6, IT_limit=0.6,
 #'         consecutive_bins=5, remove_zeros=FALSE, suffix_fcs="_QC",
-#'         force=FALSE, ...)
+#'         force=FALSE, repeat_IT = TRUE, ...)
 #'
 #' @param ff A flowframe or the location of an fcs file. Make sure that the
 #' flowframe is compensated and transformed. If it is mass cytometry data, only
@@ -220,8 +220,12 @@ RemoveDoublets <- function(ff,
 #' determine peaks. If it is set to "all", the bad measurements will be
 #' filtered out based on the MAD and IT analysis. It can also be put to "MAD"
 #' or "IT" to only use one method of filtering.
-#' @param plot If set to TRUE, the \code{PlotPeacoQC} function is run to make
-#' an overview plot of the deleted measurements. Default is TRUE.
+#' @param plot When PeacoQC removes more than the specified percentage, an
+#' overview plot will be made of all the selected channels and the deleted
+#' measurements. If set to TRUE, the \code{PlotPeacoQC} function is
+#' run to make an overview plot of the deleted measurements, even when
+#' nothing is removed. Default is set to 20. If an increasing or decreasing
+#' trend is found, a figure will also be made except if plot is set to FALSE.
 #' @param save_fcs If set to TRUE, the cleaned fcs file will be saved in the
 #' \code{output_directory} as: filename_QC.fcs. The _QC name can be altered with
 #' the \code{suffix_fcs} parameter. An extra column named "Original_ID" is added
@@ -248,6 +252,9 @@ RemoveDoublets <- function(ff,
 #' @param suffix_fcs The suffix given to the new fcs files. Default is "_QC".
 #' @param force If this is set to TRUE, the IT has to be used with flowframes
 #' that contain less than 40000 cells. Default is FALSE.
+#' @param repeat_IT Sometimes the IT does not work properly for too many bins.
+#' If repeat_IT is TRUE, a check will be done to see if the IT has to remove
+#' more than 50% of the data. Default is TRUE.
 #' @param ... Options to pass on to the \code{PlotPeacoQC} function
 #' (display_cells, manual_cells, prefix)
 #'
@@ -280,7 +287,7 @@ RemoveDoublets <- function(ff,
 #' #Run PeacoQC
 #' PeacoQC_res <- PeacoQC(ff, channels,
 #'                         determine_good_cells="all",
-#'                         plot=TRUE, save_fcs=TRUE)
+#'                         save_fcs=TRUE)
 #'
 #' @importFrom methods is
 #'
@@ -289,18 +296,19 @@ RemoveDoublets <- function(ff,
 PeacoQC <- function(ff,
                     channels,
                     determine_good_cells="all",
-                    plot=TRUE,
+                    plot = 20,
                     save_fcs=TRUE,
                     output_directory=".",
                     name_directory="PeacoQC_results",
                     report=TRUE,
-                    events_per_bin= FindEventsPerBin(nrow(ff)),
+                    events_per_bin=FindEventsPerBin(nrow(ff)),
                     MAD=6,
                     IT_limit=0.6,
                     consecutive_bins=5,
                     remove_zeros=FALSE,
                     suffix_fcs="_QC",
                     force = FALSE,
+                    repeat_IT = TRUE,
                     ...
 ){
 
@@ -324,12 +332,14 @@ PeacoQC <- function(ff,
             report_location <- file.path(storing_directory,
                                             paste0("PeacoQC_report", ".txt"))
             if (!file.exists(report_location)) {
-                utils::write.table(t(c("Filename", "Nr. Measurements",
+                utils::write.table(t(c("Filename",
+                                       "Nr. Measurements before cleaning",
+                                       "Nr. Measurements after cleaning",
                                         "% Full analysis", "Analysis by",
                                         "% IT analysis", "% MAD analysis",
                                         "% Consecutive cells",
                                         "MAD", "IT limit", "Consecutive bins",
-                                        "events_per_bin",
+                                        "Events per bin",
                                         "Increasing/Decreasing channel")),
                                         report_location, sep="\t",
                                         row.names=FALSE,
@@ -365,8 +375,10 @@ PeacoQC <- function(ff,
     # Check if there is an increasing or decreasing trend in the channels
 
     list_weird_channels <- FindIncreasingDecreasingChannels(breaks,
-                                                            ff, channels)
-    results$WeirdChannels <- list_weird_channels
+                                                            ff, channels,
+                                                            plot)
+    plot <- list_weird_channels$plot
+    results$WeirdChannels <- list_weird_channels[1:3]
 
     all_peaks_res <- DeterminePeaksAllChannels(ff, channels,
                                                 breaks, remove_zeros, results)
@@ -386,10 +398,43 @@ PeacoQC <- function(ff,
             results$ITPercentage <- (length(IT_cells$cell_ids)/nrow(ff))* 100
             message("IT analysis removed ", round(results$ITPercentage, 2),
                     "% of the measurements" )
+
+
+            if (results$ITPercentage > 50 &
+                events_per_bin %in% c(1000,2000) &
+                repeat_IT == TRUE){
+
+                message("Repeating IT analysis with more bins")
+                events_per_bin <- events_per_bin/2
+
+                # Make the breaks for the entire flowframe
+                res_breaks <- MakeBreaks(events_per_bin, nrow(ff))
+                breaks <- res_breaks$breaks
+
+
+                all_peaks_res <- DeterminePeaksAllChannels(ff, channels,
+                                                           breaks,
+                                                           remove_zeros,
+                                                           results)
+                IT_res <- isolationTreeSD(x = all_peaks_res$all_peaks,
+                                          gain_limit=IT_limit)
+                IT_cells <- RemovedBins(breaks, !IT_res$outlier_bins, nrow(ff))
+                new_IT_percentage <- (length(IT_cells$cell_ids)/nrow(ff))* 100
+
+                if (new_IT_percentage < 20){
+                    outlier_bins <- IT_res$outlier_bins
+                    results$IT <- IT_res$res
+                    results$OutlierIT <- IT_cells$cells
+                    results$ITPercentage <- (length(IT_cells$cell_ids)/
+                                                 nrow(ff))* 100
+                    results$EventsPerBin <- res_breaks$events_per_bin
+                }
+            }
         } else{
             results$ITPercentage <- NA
         }
     }
+
 
     # ------------------------ Outliers based on mad --------------------------
 
@@ -445,6 +490,7 @@ PeacoQC <- function(ff,
             utils::write.table(t(c(
                 basename(flowCore::keyword(ff)$FILENAME),
                 nrow(ff),
+                nrow(new_ff),
                 results$PercentageRemoved,
                 determine_good_cells, results$ITPercentage,
                 results$MADPercentage, results$ConsecutiveCellsPercentage,
@@ -457,22 +503,23 @@ PeacoQC <- function(ff,
 
     #---------------- Does the file need to be plotted? ------------------------
 
-    if (plot & !is.null(output_directory)){
-        if(determine_good_cells %in% c("all", "IT", "MAD")){
-            title_FR <- paste0(round(results$PercentageRemoved, 3),
-                            "% of the data was removed.")
-        } else {
-            title_FR <- ""
+    if (results$PercentageRemoved >= plot | plot %in% c(TRUE, "all")){
+        if (!is.null(output_directory)){
+            if(determine_good_cells %in% c("all", "IT", "MAD")){
+                title_FR <- paste0(round(results$PercentageRemoved, 3),
+                                   "% of the data was removed.")
+            } else {
+                title_FR <- ""
+            }
+            message("Plotting the results")
+            PlotPeacoQC(ff=ff,
+                        display_peaks=results,
+                        output_directory=storing_directory,
+                        channels=results$Channels,
+                        title_FR=title_FR,
+                        ...)
         }
-        message("Plotting the results")
-        PlotPeacoQC(ff=ff,
-                    display_peaks=results,
-                    output_directory=storing_directory,
-                    channels=results$Channels,
-                    title_FR=title_FR,
-                    ...)
     }
-
     return(results)
 }
 #' @title Visualise deleted cells of PeacoQC
@@ -714,10 +761,16 @@ PeacoQCHeatmap <- function(
 
         rownames(report_table)  <- unique_table_names
     }
+
+    report_table$`Events per bin`[which(report_table$`Events per bin` <
+        500)] <- "<500"
+
     annotation_frame <- data.frame(
         "Consecutive bins"=factor(report_table$`Consecutive bins`),
         "IT limit"=factor(report_table$`IT limit`),
-        "MAD"=factor(report_table$MAD), check.names=FALSE)
+        "MAD"=factor(report_table$MAD),
+        "Events per bin" = factor(report_table$`Events per bin`),
+        check.names=FALSE)
 
     rownames(annotation_frame) <- rownames(report_table)
 
@@ -727,9 +780,13 @@ PeacoQCHeatmap <- function(
     col_MAD <- t2(length(unique(annotation_frame$MAD)))
     t3 <- colorRampPalette(c("#B2CEDE", "#AD7A99"))
     col_IT <- t3(length(unique(annotation_frame$`IT limit`)))
+    t4 <- colorRampPalette(c("#5AAA95", "#474973"))
+    col_events <- t4(length(unique(annotation_frame$`Events per bin`)))
+
     names(col_cons) <- unique(annotation_frame$`Consecutive bins`)
     names(col_MAD) <- unique(annotation_frame$MAD)
     names(col_IT) <- unique(annotation_frame$`IT limit`)
+    names(col_events) <- unique(annotation_frame$`Events per bin`)
 
 
     analysis <- report_table$`Analysis by`
@@ -738,20 +795,23 @@ PeacoQCHeatmap <- function(
         ha <- rowAnnotation(df=annotation_frame,
             col=list("Consecutive bins"=col_cons,
                 "MAD"=col_MAD,
-                "IT limit"=col_IT))
+                "IT limit"=col_IT,
+                "Events per bin"=col_events))
 
     } else if(length(unique(analysis)) == 1 & unique(analysis) == "IT"){
         ha <- rowAnnotation(
             "Consecutive bins"=annotation_frame$`Consecutive bins`,
             "IT limit"=annotation_frame$`IT limit`,
             col=list("Consecutive bins"=col_cons,
-                "IT limit"=col_IT))
-    }else if(length(unique(analysis)) == 1 & unique(analysis) == "MAD"){
+                     "IT limit"=col_IT,
+                     "Events per bin"=col_events))
+    } else if(length(unique(analysis)) == 1 & unique(analysis) == "MAD"){
         ha <- rowAnnotation(
             "Consecutive bins"=annotation_frame$`Consecutive bins`,
             "MAD"=annotation_frame$MAD,
             col=list("Consecutive bins"=col_cons,
-                "MAD"=col_MAD))
+                     "MAD"=col_MAD,
+                     "Events per bin"=col_events))
 
     }
 
@@ -781,7 +841,7 @@ PeacoQCHeatmap <- function(
             "Increasing/Decreasing channel"]),
         col=list("Incr/Decr"=col_incr_decr_channel))
 
-    report_matrix <- data.matrix(report_table[, c(3, 5, 6, 7)])
+    report_matrix <- data.matrix(report_table[, c(4, 6, 7, 8)])
 
     if(show_values){
         cell_fun=function(j, i, x, y, width, height, fill)

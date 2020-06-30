@@ -9,7 +9,7 @@ PeacoQC(ff, channels, determine_good_cells="all",
         name_directory="PeacoQC_results", report=TRUE,
         events_per_bin=FindEventsPerBin(nrow(ff)), MAD=6, IT_limit=0.6,
         consecutive_bins=5, remove_zeros=FALSE, suffix_fcs="_QC",
-        force=FALSE, ...)
+        force=FALSE, repeat_IT = TRUE, ...)
 }
 \arguments{
 \item{ff}{A flowframe or the location of an fcs file. Make sure that the
@@ -24,8 +24,12 @@ determine peaks. If it is set to "all", the bad measurements will be
 filtered out based on the MAD and IT analysis. It can also be put to "MAD"
 or "IT" to only use one method of filtering.}
 
-\item{plot}{If set to TRUE, the \code{PlotPeacoQC} function is run to make
-an overview plot of the deleted measurements. Default is TRUE.}
+\item{plot}{When PeacoQC removes more than the specified percentage, an
+overview plot will be made of all the selected channels and the deleted
+measurements. If set to TRUE, the \code{PlotPeacoQC} function is
+run to make an overview plot of the deleted measurements, even when
+nothing is removed. Default is set to 20. If an increasing or decreasing
+trend is found, a figure will also be made except if plot is set to FALSE.}
 
 \item{save_fcs}{If set to TRUE, the cleaned fcs file will be saved in the
 \code{output_directory} as: filename_QC.fcs. The _QC name can be altered with
@@ -63,6 +67,10 @@ This is recommended when cleaning mass cytometry data. Default is FALSE.}
 
 \item{force}{If this is set to TRUE, the IT has to be used with flowframes
 that contain less than 40000 cells. Default is FALSE.}
+
+\item{repeat_IT}{Sometimes the IT does not work properly for too many bins.
+If repeat_IT is TRUE, a check will be done to see if the IT has to remove
+more than 50% of the data. Default is TRUE.}
 
 \item{...}{Options to pass on to the \code{PlotPeacoQC} function
 (display_cells, manual_cells, prefix)}
@@ -102,6 +110,6 @@ ff <- flowCore::transform(ff,
 #Run PeacoQC
 PeacoQC_res <- PeacoQC(ff, channels,
                         determine_good_cells="all",
-                        plot=TRUE, save_fcs=TRUE)
+                        save_fcs=TRUE)
 
 }

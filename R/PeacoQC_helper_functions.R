@@ -146,7 +146,6 @@ FindThemPeaks <- function (channel_data, remove_zeros)
         channel_data <- channel_data[channel_data !=0]
     }
 
-
     if (length(channel_data) < 3) {
         return(NA)
     }
@@ -166,9 +165,9 @@ FindThemPeaks <- function (channel_data, remove_zeros)
         (dens$y[2:(n-1)] > (1/3 * max(dens$y)))
     peaks <- dens$x[-1][selection]
 
-    if (all(is.na(peaks))) {
-        peaks <- dens$x[which.max(dens$y)]
-    }
+    # if (all(is.na(peaks))) {
+    #     peaks <- dens$x[which.max(dens$y)]
+    # }
 
     return(peaks)
 }
@@ -321,7 +320,7 @@ isolationTreeSD <- function(x, max_depth=as.integer(ceiling(log2(nrow(x)))),
             split_value <- NA
             split_col <- NA
 
-            col <- 1
+            col <- 19
             for(col in seq_len(ncol(x))){
                 x_col <- sort(x[rows, col])
                 base_sd <- stats::sd(x_col)
@@ -492,9 +491,9 @@ FindEventsPerBin <- function(nr_events){
     } else if (nr_events < 75000 & nr_events >= 40000){
         events_per_bin <- 500
     } else{
-        warning(StrMessage("The flowframe consists of less then 40.000 cells. This means
-                that the IT analysis could not work properly and will not be used
-                for cleaning."))
+        warning(StrMessage("The flowframe consists of less then 40.000 cells.
+        This means that the IT analysis could not work properly and will not be
+        used for cleaning."))
         events_per_bin <- ceiling(nr_events/150) *2
     }
     return(events_per_bin)
@@ -503,7 +502,7 @@ FindEventsPerBin <- function(nr_events){
 
 # ------------------ Find Increasing or decreasing channels -------------------
 
-FindIncreasingDecreasingChannels <- function(breaks, ff, channels){
+FindIncreasingDecreasingChannels <- function(breaks, ff, channels, plot){
 
     weird_channel_decreasing <- list()
     weird_channel_increasing <- list()
@@ -542,6 +541,9 @@ FindIncreasingDecreasingChannels <- function(breaks, ff, channels){
             trend in a channel ",
             " for ", basename(flowCore::keyword(ff)$FILENAME),
             ". Please inspect this in the overview figure.")))
+        if (plot != FALSE){
+            plot <- TRUE
+        }
     }
 
     changing_channel <- "No increasing or decreasing effect"
@@ -559,7 +561,8 @@ FindIncreasingDecreasingChannels <- function(breaks, ff, channels){
 
     return(list("Increasing"=weird_channel_increasing,
                 "Decreasing"=weird_channel_decreasing,
-                "Changing_channel"=changing_channel))
+                "Changing_channel"=changing_channel,
+                "plot" = plot))
 }
 
 
