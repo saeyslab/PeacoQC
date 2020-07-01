@@ -146,3 +146,9 @@ PeacoQC (version 0.99.31)
 Alter plot parameter in PeacoQC to a number when to plot
 Add Events per bin parameter in PeacoQC heatmap
 ================================================================================
+
+PeacoQC (version 0.99.32)
+------------------------
+
+Fix determine_good_cells = FALSE bug
+================================================================================
