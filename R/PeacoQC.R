@@ -470,6 +470,10 @@ PeacoQC <- function(ff,
                         basename(flowCore::keyword(ff)$FILENAME)))
         }
 
+        if(results$PercentageRemoved >= plot | plot %in% c(TRUE, "all")){
+            plot <- TRUE
+        }
+
         # -----------------  Does the file need to be saved in an fcs? ---------
         if (save_fcs & !is.null(output_directory)){
             message("Saving fcs file")
@@ -503,7 +507,7 @@ PeacoQC <- function(ff,
 
     #---------------- Does the file need to be plotted? ------------------------
 
-    if (results$PercentageRemoved >= plot | plot %in% c(TRUE, "all")){
+    if(plot == TRUE){
         if (!is.null(output_directory)){
             if(determine_good_cells %in% c("all", "IT", "MAD")){
                 title_FR <- paste0(round(results$PercentageRemoved, 3),
@@ -640,7 +644,7 @@ PlotPeacoQC <- function(ff,
     # Name to put on plotfile
     name <- sub(".fcs", "", filename)
 
-    if (is(display_peaks, "list")){
+    if (is(display_peaks, "list") && display_peaks$Analysis != FALSE){
         blocks <- MakeOverviewBlocks(ff, peaks, time_channel)
     } else {
         blocks <- NULL
@@ -654,7 +658,7 @@ PlotPeacoQC <- function(ff,
     }
 
     if (length(time_channel) > 0){
-        if (is(display_peaks, "list")){
+        if (is(display_peaks, "list") && display_peaks$Analysis != FALSE){
             p_time <- BuildTimePlot(ff, blocks$overview_blocks_time,
                                     scores_time, time_unit)
         } else{ p_time <- BuildTimePlot(ff, scores_time=scores_time,
