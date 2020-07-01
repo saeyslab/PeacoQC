@@ -644,7 +644,11 @@ PlotPeacoQC <- function(ff,
     # Name to put on plotfile
     name <- sub(".fcs", "", filename)
 
+<<<<<<< HEAD
     if (is(display_peaks, "list") && display_peaks$Analysis != FALSE){
+=======
+    if (is(display_peaks, "list") & display_peaks$Analysis != FALSE){
+>>>>>>> 92de9212b75627bb72ea52d845d3bd01bb7c2415
         blocks <- MakeOverviewBlocks(ff, peaks, time_channel)
     } else {
         blocks <- NULL
@@ -658,7 +662,11 @@ PlotPeacoQC <- function(ff,
     }
 
     if (length(time_channel) > 0){
+<<<<<<< HEAD
         if (is(display_peaks, "list") && display_peaks$Analysis != FALSE){
+=======
+        if (is(display_peaks, "list") & display_peaks$Analysis != FALSE){
+>>>>>>> 92de9212b75627bb72ea52d845d3bd01bb7c2415
             p_time <- BuildTimePlot(ff, blocks$overview_blocks_time,
                                     scores_time, time_unit)
         } else{ p_time <- BuildTimePlot(ff, scores_time=scores_time,
