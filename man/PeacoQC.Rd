@@ -5,7 +5,7 @@
 \title{Peak-based detection of high quality cytometry data}
 \usage{
 PeacoQC(ff, channels, determine_good_cells="all",
-        plot=TRUE, save_fcs=TRUE, output_directory=".",
+        plot=20, save_fcs=TRUE, output_directory=".",
         name_directory="PeacoQC_results", report=TRUE,
         events_per_bin=FindEventsPerBin(nrow(ff)), MAD=6, IT_limit=0.6,
         consecutive_bins=5, remove_zeros=FALSE, suffix_fcs="_QC",
@@ -70,7 +70,7 @@ that contain less than 40000 cells. Default is FALSE.}
 
 \item{repeat_IT}{Sometimes the IT does not work properly for too many bins.
 If repeat_IT is TRUE, a check will be done to see if the IT has to remove
-more than 50% of the data. Default is TRUE.}
+more than half of the data. Default is TRUE.}
 
 \item{...}{Options to pass on to the \code{PlotPeacoQC} function
 (display_cells, manual_cells, prefix)}

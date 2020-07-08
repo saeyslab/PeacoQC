@@ -1,21 +1,63 @@
-Filename	Nr. Measurements	% Full analysis	Analysis by	% MAD analysis	% IT analysis	MAD	IT limit	Consecutive bins	events_per_bin	Increasing/Decreasing channel
-Sample1	589559	67.6029031869584	all	0	67.6029031869584	4	0.4	1	2000	No increasing or decreasing effect
-Sample1	589559	39.4462640719589	all	0	36.2235162214469	10	0.55	10	2000	No increasing or decreasing effect
-Sample1	589559	37.0716077610553	all	0	36.2235162214469	10	0.55	5	2000	No increasing or decreasing effect
-Sample2	1110941	61.2040603416383	all	0.540082686659328	60.7539914360889	10	0.55	5	2000	No increasing or decreasing effect
-Sample1	589559	39.4462640719589	all	0	36.2235162214469	10	0.55	10	2000	No increasing or decreasing effect
-Sample2	1110941	2.7766350883037	all	2.7766350883037	0	10	0.55	10	2000	No increasing or decreasing effect
-Sample3	1102026	0.00235929097861575	all	0	0.00235929097861575	10	0.55	10	2000	No increasing or decreasing effect
-Sample4	1234865	0	all	0	0	10	0.55	10	2000	No increasing or decreasing effect
-Sample5	1315826	0	all	0	0	10	0.55	10	2000	No increasing or decreasing effect
-Sample6	976582	5.83668345310481	all	5.83668345310481	0	10	0.55	10	2000	No increasing or decreasing effect
-Sample7	982741	14.9581629340793	all	12.7195263044892	2.64566147133375	10	0.55	10	2000	No increasing or decreasing effect
-Sample8	1035941	6.17795801112226	all	6.17795801112226	0	10	0.55	10	2000	No increasing or decreasing effect
-Sample9	1148590	36.0441933152822	all	4.96260632601712	30.3850808382452	10	0.55	10	2000	No increasing or decreasing effect
-Sample10	900832	49.491137082164	all	0	49.491137082164	10	0.55	10	2000	No increasing or decreasing effect
-Sample11	1109156	50.8635394840762	all	0	50.8635394840762	10	0.55	10	2000	No increasing or decreasing effect
-Sample12	988131	0	all	0	0	10	0.55	10	2000	No increasing or decreasing effect
-Sample13	986378	0	all	0	0	10	0.55	10	2000	No increasing or decreasing effect
-Sample14	977031	0.00317287783089789	all	0	0.00317287783089789	10	0.55	10	2000	No increasing or decreasing effect
-Sample15	1067004	2.90533118901148	all	2.53044974526806	0	10	0.55	10	2000	No increasing or decreasing effect
-Sample16	940286	1.27620745177531	all	1.16985683079403	0.212701241962552	10	0.55	10	2000	No increasing or decreasing effect
+Filename	Nr. Measurements before cleaning	Nr. Measurements after cleaning	% Full analysis	Analysis by	% IT analysis	% MAD analysis	% Consecutive cells	MAD	IT limit	Consecutive bins	Events per bin	Increasing/Decreasing channel
+001_comp_trans.fcs	97945	97945	0	all	0	0	0	6	0.55	5	500	No increasing or decreasing effect
+002_comp_trans.fcs	202971	185721	8.49875105310611	all	0	8.49875105310611	0	6	0.55	5	1500	No increasing or decreasing effect
+003_comp_trans.fcs	135179	124679	7.76747867642163	all	5.54819905458688	4.62349921215573	0	6	0.55	5	500	No increasing or decreasing effect
+004_comp_trans.fcs	249904	249750	0.0616236634867789	all	0.0616236634867789	0	0	6	0.55	5	1500	No increasing or decreasing effect
+005_comp_trans.fcs	72341	65341	9.67639374628496	all	0	9.67639374628496	0	6	0.55	5	500	No increasing or decreasing effect
+006_comp_trans.fcs	282296	257546	8.76739309094001	all	0	8.76739309094001	0	6	0.55	5	1500	No increasing or decreasing effect
+007_comp_trans.fcs	95222	88972	6.56360924996324	all	0	6.56360924996324	0	6	0.55	5	500	No increasing or decreasing effect
+001_comp_trans.fcs	97945	97945	0	all	0	0	0	6	0.55	5	500	No increasing or decreasing effect
+002_comp_trans.fcs	202971	185721	8.49875105310611	all	0	8.49875105310611	0	6	0.55	5	1500	No increasing or decreasing effect
+003_comp_trans.fcs	135179	124679	7.76747867642163	all	5.54819905458688	4.62349921215573	0	6	0.55	5	500	No increasing or decreasing effect
+004_comp_trans.fcs	249904	249750	0.0616236634867789	all	0.0616236634867789	0	0	6	0.55	5	1500	No increasing or decreasing effect
+005_comp_trans.fcs	72341	65341	9.67639374628496	all	0	9.67639374628496	0	6	0.55	5	500	No increasing or decreasing effect
+006_comp_trans.fcs	282296	257546	8.76739309094001	all	0	8.76739309094001	0	6	0.55	5	1500	No increasing or decreasing effect
+007_comp_trans.fcs	95222	88972	6.56360924996324	all	0	6.56360924996324	0	6	0.55	5	500	No increasing or decreasing effect
+008_comp_trans.fcs	167547	157547	5.96847451759805	all	0	5.96847451759805	0	6	0.55	5	1000	No increasing or decreasing effect
+009_comp_trans.fcs	288604	269854	6.49679145126194	all	0	6.49679145126194	0	6	0.55	5	1500	No increasing or decreasing effect
+010_comp_trans.fcs	472790	432790	8.46041582943802	all	0	8.46041582943802	0	6	0.55	5	2000	No increasing or decreasing effect
+011_comp_trans.fcs	194047	193000	0.539560003504306	all	0.539560003504306	0	0	6	0.55	5	1000	No increasing or decreasing effect
+012_comp_trans.fcs	129343	129343	0	all	0	0	0	6	0.55	5	500	No increasing or decreasing effect
+013_comp_trans.fcs	60584	56084	7.42770368414103	all	0	7.42770368414103	0	6	0.55	5	500	No increasing or decreasing effect
+014_comp_trans.fcs	603227	603227	0	all	0	0	0	6	0.55	5	2000	No increasing or decreasing effect
+015_comp_trans.fcs	94557	92807	1.85073553517984	all	0	1.85073553517984	0	6	0.55	5	500	No increasing or decreasing effect
+016_comp_trans.fcs	86382	78882	8.68236438146836	all	0	8.68236438146836	0	6	0.55	5	500	No increasing or decreasing effect
+017_comp_trans.fcs	162212	156712	3.39062461470175	all	0	3.39062461470175	0	6	0.55	5	1000	No increasing or decreasing effect
+018_comp_trans.fcs	27604	27604	0	all	NA	2.15186204897841	0	6	0.55	5	370	No increasing or decreasing effect
+019_comp_trans.fcs	706309	656000	7.12280319237048	all	0	7.12280319237048	0	6	0.55	5	2000	No increasing or decreasing effect
+020_comp_trans.fcs	158943	143943	9.43734546346804	all	0	9.43734546346804	0	6	0.55	5	1000	No increasing or decreasing effect
+021_comp_trans.fcs	147555	147555	0	all	0	0	0	6	0.55	5	500	No increasing or decreasing effect
+022_comp_trans.fcs	93550	93500	0.0534473543559594	all	0.0534473543559594	0	0	6	0.55	5	500	No increasing or decreasing effect
+023_comp_trans.fcs	95508	95508	0	all	0	0	0	6	0.55	5	500	No increasing or decreasing effect
+024_comp_trans.fcs	82555	82555	0	all	0	0	0	6	0.55	5	500	No increasing or decreasing effect
+025_comp_trans.fcs	120658	110408	8.49508528236835	all	0	8.49508528236835	0	6	0.55	5	500	No increasing or decreasing effect
+026_comp_trans.fcs	612758	612758	0	all	0	0	0	6	0.55	5	2000	No increasing or decreasing effect
+027_comp_trans.fcs	652236	644000	1.2627331211402	all	0	1.2627331211402	0	6	0.55	5	2000	No increasing or decreasing effect
+028_comp_trans.fcs	374778	340778	9.07203731275582	all	5.06966791006943	4.26919402953215	0	6	0.55	5	2000	No increasing or decreasing effect
+029_comp_trans.fcs	94778	84500	10.8442887589947	all	0.0295427208845935	10.8147460381101	0	6	0.55	5	500	No increasing or decreasing effect
+059_comp_trans.fcs	863261	823261	4.63359285314638	all	0.231679642657319	4.40191321048906	0	6	0.55	5	2000	No increasing or decreasing effect
+079_comp_trans.fcs	450910	413910	8.20562861768424	all	0	8.20562861768424	0	6	0.55	5	2000	No increasing or decreasing effect
+080_comp_trans.fcs	961194	910194	5.30590078589754	all	1.14440997342888	4.26552808278038	0.520186351558582	6	0.55	5	2000	No increasing or decreasing effect
+095_comp_trans.fcs	626821	586821	6.38140713217968	all	0.478605534913476	6.22187195387519	0	6	0.55	5	2000	No increasing or decreasing effect
+121_comp_trans.fcs	109626	100626	8.20973126812982	all	4.78900990640906	3.64876945250214	0.912192363125536	6	0.55	5	500	No increasing or decreasing effect
+147_comp_trans.fcs	61658	56250	8.77096240552726	all	8.51471017548412	0.256252230043141	0	6	0.55	5	500	No increasing or decreasing effect
+155_comp_trans.fcs	964956	871956	9.63774514071108	all	0	9.63774514071108	0	6	0.55	5	2000	No increasing or decreasing effect
+262_comp_trans.fcs	409271	375000	8.37366928025685	all	2.26524723227397	6.35275892990219	0.733010645757945	6	0.55	5	2000	No increasing or decreasing effect
+263_comp_trans.fcs	306178	154178	49.6443245432396	all	49.6443245432396	0	0	6	0.55	5	2000	No increasing or decreasing effect
+294_comp_trans.fcs	935494	897494	4.06202498359156	all	0.962058548745369	3.09996643484619	0.213790788610082	6	0.55	5	2000	No increasing or decreasing effect
+295_comp_trans.fcs	650657	601657	7.53084958741703	all	0	7.53084958741703	0	6	0.55	5	2000	No increasing or decreasing effect
+300_comp_trans.fcs	744405	661405	11.1498445066865	all	0.671677379920876	10.4781671267657	0.806012855905052	6	0.55	5	2000	No increasing or decreasing effect
+314_comp_trans.fcs	91948	91948	0	all	0	0	0	6	0.55	5	500	No increasing or decreasing effect
+318_comp_trans.fcs	673774	561774	16.6227844945041	all	1.03892403090651	15.4354427448967	0.445253156102788	6	0.55	5	2000	No increasing or decreasing effect
+324_comp_trans.fcs	154718	143218	7.4328778810481	all	3.87802324228597	5.81703486342895	0	6	0.55	5	1000	No increasing or decreasing effect
+325_comp_trans.fcs	45986	45986	0	all	0	0	0	6	0.55	5	614	No increasing or decreasing effect
+327_comp_trans.fcs	48497	47849	1.33616512361589	all	0	1.33616512361589	0	6	0.55	5	648	No increasing or decreasing effect
+347_comp_trans.fcs	413860	385860	6.76557289904799	all	4.34929686367371	4.10766926013628	0	6	0.55	5	2000	No increasing or decreasing effect
+387_comp_trans.fcs	520079	517000	0.592025442288575	all	0	0.592025442288575	0	6	0.55	5	2000	No increasing or decreasing effect
+410_comp_trans.fcs	141113	141113	0	all	0	0	0	6	0.55	5	500	No increasing or decreasing effect
+418_comp_trans.fcs	142990	142990	0	all	0	0	0	6	0.55	5	500	No increasing or decreasing effect
+431_comp_trans.fcs	405308	366308	9.62231192081084	all	0	9.62231192081084	0	6	0.55	5	2000	No increasing or decreasing effect
+491_comp_trans.fcs	261949	243949	6.8715666026593	all	0	6.8715666026593	0.572630550221608	6	0.55	5	1500	No increasing or decreasing effect
+542_comp_trans.fcs	931014	708000	23.9538825409715	all	0.537048852111784	23.3094239184373	0.537048852111784	6	0.55	5	2000	No increasing or decreasing effect
+607_comp_trans.fcs	204348	115098	43.6754947442598	all	35.9680544952728	8.0744612132245	8.0744612132245	6	0.55	5	1500	No increasing or decreasing effect
+748_comp_trans.fcs	187333	150333	19.7509248237096	all	0	19.7509248237096	0	6	0.55	5	1000	No increasing or decreasing effect

@@ -246,7 +246,7 @@ PeacoQCHeatmap(report_location=location, latest_tests=TRUE)
 
 # Make heatmap with row annotation
 PeacoQCHeatmap(report_location=location, 
-    row_split=c("r1", "r2", rep("r3", 2), rep("r4", 16)))
+    row_split=c(rep("r1",7), rep("r2", 55)))
 
 ```
 

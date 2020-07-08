@@ -205,7 +205,7 @@ RemoveDoublets <- function(ff,
 #'
 #' @usage
 #' PeacoQC(ff, channels, determine_good_cells="all",
-#'         plot=TRUE, save_fcs=TRUE, output_directory=".",
+#'         plot=20, save_fcs=TRUE, output_directory=".",
 #'         name_directory="PeacoQC_results", report=TRUE,
 #'         events_per_bin=FindEventsPerBin(nrow(ff)), MAD=6, IT_limit=0.6,
 #'         consecutive_bins=5, remove_zeros=FALSE, suffix_fcs="_QC",
@@ -254,7 +254,7 @@ RemoveDoublets <- function(ff,
 #' that contain less than 40000 cells. Default is FALSE.
 #' @param repeat_IT Sometimes the IT does not work properly for too many bins.
 #' If repeat_IT is TRUE, a check will be done to see if the IT has to remove
-#' more than 50% of the data. Default is TRUE.
+#' more than half of the data. Default is TRUE.
 #' @param ... Options to pass on to the \code{PlotPeacoQC} function
 #' (display_cells, manual_cells, prefix)
 #'
@@ -296,7 +296,7 @@ RemoveDoublets <- function(ff,
 PeacoQC <- function(ff,
                     channels,
                     determine_good_cells="all",
-                    plot = 20,
+                    plot=20,
                     save_fcs=TRUE,
                     output_directory=".",
                     name_directory="PeacoQC_results",
@@ -470,14 +470,15 @@ PeacoQC <- function(ff,
                         basename(flowCore::keyword(ff)$FILENAME)))
         }
 
-        if(results$PercentageRemoved >= plot | plot %in% c(TRUE, "all")){
+        if(plot != FALSE &
+           results$PercentageRemoved >= plot | plot %in% c(TRUE, "all")){
             plot <- TRUE
         }
+        new_ff <- ff[results$GoodCells, ]
 
         # -----------------  Does the file need to be saved in an fcs? ---------
         if (save_fcs & !is.null(output_directory)){
             message("Saving fcs file")
-            new_ff <- ff[results$GoodCells, ]
 
             if (!("Original_ID" %in% colnames(flowCore::exprs(new_ff)))){
                 new_ff <- AppendCellID(new_ff, which(results$GoodCells))}
@@ -644,11 +645,8 @@ PlotPeacoQC <- function(ff,
     # Name to put on plotfile
     name <- sub(".fcs", "", filename)
 
-<<<<<<< HEAD
+
     if (is(display_peaks, "list") && display_peaks$Analysis != FALSE){
-=======
-    if (is(display_peaks, "list") & display_peaks$Analysis != FALSE){
->>>>>>> 92de9212b75627bb72ea52d845d3bd01bb7c2415
         blocks <- MakeOverviewBlocks(ff, peaks, time_channel)
     } else {
         blocks <- NULL
@@ -662,11 +660,7 @@ PlotPeacoQC <- function(ff,
     }
 
     if (length(time_channel) > 0){
-<<<<<<< HEAD
         if (is(display_peaks, "list") && display_peaks$Analysis != FALSE){
-=======
-        if (is(display_peaks, "list") & display_peaks$Analysis != FALSE){
->>>>>>> 92de9212b75627bb72ea52d845d3bd01bb7c2415
             p_time <- BuildTimePlot(ff, blocks$overview_blocks_time,
                                     scores_time, time_unit)
         } else{ p_time <- BuildTimePlot(ff, scores_time=scores_time,
@@ -729,8 +723,8 @@ PlotPeacoQC <- function(ff,
 #' PeacoQCHeatmap(report_location=location, latest_tests=TRUE)
 #'
 #' # Make heatmap with row annotation
-#' PeacoQCHeatmap(report_location=location,
-#'     row_split=c("r1", "r2", rep("r3", 2), rep("r4", 16)))
+#'PeacoQCHeatmap(report_location=location,
+#'               row_split=c(rep("r1",7), rep("r2", 55)))
 #'
 #' @importFrom grDevices colorRampPalette
 #' @export
@@ -774,8 +768,10 @@ PeacoQCHeatmap <- function(
         rownames(report_table)  <- unique_table_names
     }
 
-    report_table$`Events per bin`[which(report_table$`Events per bin` <
-        500)] <- "<500"
+    small_event_files <- which(report_table$`Events per bin` < 500)
+
+    if (length(small_event_files) > 0){
+        report_table$`Events per bin`[small_event_files] <- "<500"}
 
     annotation_frame <- data.frame(
         "Consecutive bins"=factor(report_table$`Consecutive bins`),

@@ -165,9 +165,9 @@ FindThemPeaks <- function (channel_data, remove_zeros)
         (dens$y[2:(n-1)] > (1/3 * max(dens$y)))
     peaks <- dens$x[-1][selection]
 
-    # if (all(is.na(peaks))) {
-    #     peaks <- dens$x[which.max(dens$y)]
-    # }
+    if (all(is.na(peaks))) {
+        peaks <- dens$x[which.max(dens$y)]
+    }
 
     return(peaks)
 }
@@ -484,14 +484,16 @@ MakeBreaks <- function(events_per_bin, nr_events){
 
 
 FindEventsPerBin <- function(nr_events){
-    if (nr_events > 150000){
+    if (nr_events >= 2000000){
+        events_per_bin <- 3000
+    } else if (nr_events < 2000000 & nr_events >= 250000){
         events_per_bin <- 2000
-    } else if (nr_events < 150000 & nr_events > 75000){
+    } else if (nr_events < 250000 & nr_events >= 75000){
         events_per_bin <- 1000
-    } else if (nr_events < 75000 & nr_events >= 40000){
+    } else if (nr_events < 75000 & nr_events >= 36000){
         events_per_bin <- 500
     } else{
-        warning(StrMessage("The flowframe consists of less then 40.000 cells.
+        warning(StrMessage("The flowframe consists of less then 36.000 cells.
         This means that the IT analysis could not work properly and will not be
         used for cleaning."))
         events_per_bin <- ceiling(nr_events/150) *2

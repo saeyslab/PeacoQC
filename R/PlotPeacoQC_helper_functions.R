@@ -269,11 +269,7 @@ BuildChannelPlots <- function(channels, peaks, display_peaks, display_cells,
         maximum <- max(flowCore::exprs(ff)[, channel])
         range <- abs(minimum) + abs(maximum)
 
-<<<<<<< HEAD
         if (is(display_peaks, "list") && display_peaks$Analysis != FALSE){
-=======
-        if (is(display_peaks, "list") & display_peaks$Analysis != FALSE){
->>>>>>> 92de9212b75627bb72ea52d845d3bd01bb7c2415
             contributions <- MakeContributions(peaks, channel, marker)
         } else{contributions <- marker}
 
@@ -289,11 +285,7 @@ BuildChannelPlots <- function(channels, peaks, display_peaks, display_cells,
             theme(plot.title=element_text(hjust=0),
                     panel.grid=element_blank())
 
-<<<<<<< HEAD
         if (is(display_peaks, "list") && display_peaks$Analysis != FALSE) {
-=======
-        if (is(display_peaks, "list") & display_peaks$Analysis != FALSE) {
->>>>>>> 92de9212b75627bb72ea52d845d3bd01bb7c2415
             p <- BuildBackgroundQCPlot(p, blocks$Overview_blocks)
         }
 
@@ -380,11 +372,7 @@ MakeNicePlots <- function(display_peaks, plot_list, channels, plot_directory,
 
     g <- ggplotGrob(plot_list[[1]] + theme(legend.position="bottom"))$grobs
 
-<<<<<<< HEAD
     if (!(is(display_peaks, "logical")) && display_peaks$Analysis != FALSE){
-=======
-    if (!(is(display_peaks, "logical")) & display_peaks$Analysis != FALSE){
->>>>>>> 92de9212b75627bb72ea52d845d3bd01bb7c2415
         legend <- g[[which(vapply(g,
                                     function(x) x$name,
                                     FUN.VALUE=character(1)) == "guide-box")]]
