@@ -397,4 +397,3 @@ MakeNicePlots <- function(display_peaks, plot_list, channels, plot_directory,
             final_plots, width=n_col * 5,
             height=n_row * 3, limitsize=FALSE)
 }
-

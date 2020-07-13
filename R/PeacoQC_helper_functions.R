@@ -26,8 +26,8 @@ DeterminePeaksAllChannels <- function(ff, channels, breaks,
     for (channel in channels){
         i <- i +1
 
-        peak_frame <- DetermineAllPeaks(ff, channel, breaks, remove_zeros)
-
+        channel_data <- flowCore::exprs(ff)[,channel]
+        peak_frame <- DetermineAllPeaks(channel_data, breaks, remove_zeros)
         if (is(peak_frame, "logical")){
             utils::setTxtProgressBar(pb, i)
             next()
@@ -39,6 +39,7 @@ DeterminePeaksAllChannels <- function(ff, channels, breaks,
 
     close(pb)
 
+
     all_peak_values <- unlist(peak_values_bin, recursive=FALSE)
     all_peaks <- as.data.frame(do.call(cbind, all_peak_values))
     rownames(all_peaks) <- names(all_peak_values[[1]])
@@ -47,24 +48,35 @@ DeterminePeaksAllChannels <- function(ff, channels, breaks,
 }
 
 
-DetermineAllPeaks <- function(ff, channel, breaks, remove_zeros){
+DetermineAllPeaks <- function(channel_data, breaks, remove_zeros){
 
-    full_channel_peaks <- FindThemPeaks(flowCore::exprs(ff)[, channel],
+    full_channel_peaks <- FindThemPeaks(channel_data,
                                         remove_zeros)
 
     if(all(is.na(full_channel_peaks) == TRUE)) return(NA)
 
     peak_results <- list()
 
-    minimum <- min(flowCore::exprs(ff)[, channel])
-    maximum <- max(flowCore::exprs(ff)[, channel])
+    minimum <- min(channel_data)
+    maximum <- max(channel_data)
     range <- abs(minimum) + abs(maximum)
 
-    peaks <- lapply(breaks, function(x){
-        FindThemPeaks(flowCore::exprs(ff)[x, channel],
-                        remove_zeros)})
 
-    names(peaks) <- seq_len(length(peaks))
+    channel_breaks <- lapply(breaks, function(x)channel_data[x])
+
+
+    peaks <- list()
+
+    for (channel_break in names(channel_breaks)){
+        result_peak <- FindThemPeaks(channel_breaks[[channel_break]],
+                                     remove_zeros)
+        peaks[[channel_break]] <- result_peak
+    }
+
+    # peaks <- lapply(channel_breaks, function(x){
+    #     FindThemPeaks(x,remove_zeros)})
+    #
+    # names(peaks) <- seq_len(length(peaks))
 
     peak_frame <- plyr::ldply(peaks, cbind)
 
@@ -82,12 +94,8 @@ DetermineAllPeaks <- function(ff, channel, breaks, remove_zeros){
     nr_peaks <- unique(lengths)
     nr_peaks_in_bins <- tabulate(match(lengths, nr_peaks))
 
-
-    total_full_length_peaks <- length(full_channel_peaks)
-
-
     most_occuring_peaks <- max(nr_peaks[which(tabulate(match(lengths, nr_peaks))
-                                                > 0.1*length(lengths))])
+                                              > 0.2*length(lengths))])
 
     ind_bins_nr_peaks <- lengths == most_occuring_peaks
     limited_nr_peaks <- do.call(rbind, peaks[ind_bins_nr_peaks])
@@ -96,7 +104,7 @@ DetermineAllPeaks <- function(ff, channel, breaks, remove_zeros){
     if (length(medians_to_use) > 1) {
 
         peak_clustering <- stats::kmeans(peak_frame[, 2],
-                                            centers=medians_to_use)
+                                         centers=medians_to_use)
 
         cluster_medians <- peak_clustering$centers
 
@@ -108,25 +116,25 @@ DetermineAllPeaks <- function(ff, channel, breaks, remove_zeros){
 
         to_use_clusters <- names(cluster_medians)[
             vapply(full_channel_peaks,
-                    function(x)which.min(abs(x-cluster_medians)),
-                    FUN.VALUE=numeric(1))]
+                   function(x)which.min(abs(x-cluster_medians)),
+                   FUN.VALUE=numeric(1))]
 
         peak_frame <- peak_frame[peak_frame$Cluster %in% to_use_clusters, ]
 
         final_medians <- medians_to_use[which(names(cluster_medians) %in%
-                                                to_use_clusters)]
+                                                  to_use_clusters)]
 
 
     } else { # If only one peak was found per bin, no kmeans has to happen
         peak_frame <- cbind(peak_frame, "Cluster"=rep("1",
-                                                        dim(peak_frame)[1]))
+                                                      dim(peak_frame)[1]))
         final_medians <- stats::median(peak_frame$Peak)
     }
 
     bin_list <- lapply(unique(peak_frame$Bin),
-                        DuplicatePeaks,
-                        peak_frame,
-                        final_medians)
+                       DuplicatePeaks,
+                       peak_frame,
+                       final_medians)
 
     peak_frame <- do.call(rbind, bin_list)
     rownames(peak_frame) <- seq_len(dim(peak_frame)[1])
@@ -144,17 +152,15 @@ FindThemPeaks <- function (channel_data, remove_zeros)
     if (remove_zeros){
         # Remove all zeros before calculating densities
         channel_data <- channel_data[channel_data !=0]
-    }
+        }
 
     if (length(channel_data) < 3) {
         return(NA)
     }
 
-
-
     dens <- stats::density(channel_data[!is.na(channel_data)], adjust=1)
-    dens <- stats::smooth.spline(dens$x, dens$y, spar=0.6)
-    dens$y[which(dens$y < 0)] <- 0
+    # dens <- stats::smooth.spline(dens$x, dens$y, spar=0.6)
+    # dens$y[which(dens$y < 0)] <- 0
 
     if (all(is.na(dens)))
         return(NA)
@@ -320,7 +326,7 @@ isolationTreeSD <- function(x, max_depth=as.integer(ceiling(log2(nrow(x)))),
             split_value <- NA
             split_col <- NA
 
-            col <- 19
+            col <- 1
             for(col in seq_len(ncol(x))){
                 x_col <- sort(x[rows, col])
                 base_sd <- stats::sd(x_col)
@@ -483,20 +489,38 @@ MakeBreaks <- function(events_per_bin, nr_events){
 }
 
 
-FindEventsPerBin <- function(nr_events){
-    if (nr_events >= 2000000){
-        events_per_bin <- 3000
-    } else if (nr_events < 2000000 & nr_events >= 250000){
-        events_per_bin <- 2000
-    } else if (nr_events < 250000 & nr_events >= 75000){
-        events_per_bin <- 1000
-    } else if (nr_events < 75000 & nr_events >= 36000){
-        events_per_bin <- 500
-    } else{
-        warning(StrMessage("The flowframe consists of less then 36.000 cells.
+FindEventsPerBin <- function(remove_zeros, ff, channels){
+    nr_events <- nrow(ff)
+    if (remove_zeros == FALSE){
+        if (nr_events >= 2000000){
+            events_per_bin <- 3000
+        } else if (nr_events < 2000000 & nr_events >= 250000){
+            events_per_bin <- 2000
+        } else if (nr_events < 250000 & nr_events >= 75000){
+            events_per_bin <- 1000
+        } else if (nr_events < 75000 & nr_events >= 36000){
+            events_per_bin <- 500
+        } else{
+            warning(StrMessage("The flowframe consists of less then 36.000 cells.
         This means that the IT analysis could not work properly and will not be
         used for cleaning."))
-        events_per_bin <- ceiling(nr_events/150) *2
+            events_per_bin <- ceiling(nr_events/150) *2
+        }
+    } else{
+        events_per_bin <- NA
+        min_nr_events <- min(nrow(ff) - apply(flowCore::exprs(ff)[,channels], 2,
+                                              function(x)sum(x == 0)))/100
+        for (pot_events in c(500,1000,2000,3000,4000)){
+            if ((nrow(ff)/pot_events)*2 < min_nr_events &
+                (nrow(ff)/pot_events)*2 > 100){
+                events_per_bin <- pot_events
+            }
+        }
+        if (is.na(events_per_bin)){
+            warning(StrMessage("There are too many zero values for a certain
+                                   channel to allow for a decent IT analysis."))
+            events_per_bin <- FindEventsPerBin(remove_zeros = F, ff, channels) *2
+        }
     }
     return(events_per_bin)
 }
@@ -511,10 +535,11 @@ FindIncreasingDecreasingChannels <- function(breaks, ff, channels, plot){
 
     for (channel in channels){
 
+        channel_data <- flowCore::exprs(ff)[,channel]
+
         channel_medians <- vapply(breaks,
                                     function(x){
-                                        stats::median(flowCore::exprs(ff)
-                                                    [x, channel])},
+                                        stats::median(channel_data[x])},
                                     FUN.VALUE=numeric(1))
 
         smoothed <- stats::ksmooth(seq_along(channel_medians),

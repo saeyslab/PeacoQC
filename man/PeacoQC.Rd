@@ -7,9 +7,9 @@
 PeacoQC(ff, channels, determine_good_cells="all",
         plot=20, save_fcs=TRUE, output_directory=".",
         name_directory="PeacoQC_results", report=TRUE,
-        events_per_bin=FindEventsPerBin(nrow(ff)), MAD=6, IT_limit=0.6,
-        consecutive_bins=5, remove_zeros=FALSE, suffix_fcs="_QC",
-        force=FALSE, repeat_IT = TRUE, ...)
+        events_per_bin=FindEventsPerBin(remove_zeros, ff, channels),
+         MAD=6, IT_limit=0.6, consecutive_bins=5, remove_zeros=FALSE,
+        suffix_fcs="_QC", force=FALSE, repeat_IT = TRUE, ...)
 }
 \arguments{
 \item{ff}{A flowframe or the location of an fcs file. Make sure that the
