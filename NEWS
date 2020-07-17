@@ -165,3 +165,9 @@ PeacoQC (version 0.99.34)
 Modify FindEventsPerBin to allow for better mass cytometry analysis
 Alter PeacoQC Peakfinding algorithm to speed up and improve
 ================================================================================
+
+PeacoQC (version 0.99.35)
+------------------------
+
+Update FindEventsPerBin
+================================================================================

@@ -492,13 +492,13 @@ MakeBreaks <- function(events_per_bin, nr_events){
 FindEventsPerBin <- function(remove_zeros, ff, channels){
     nr_events <- nrow(ff)
     if (remove_zeros == FALSE){
-        if (nr_events >= 2000000){
+        if (nr_events >= 500000){
             events_per_bin <- 3000
-        } else if (nr_events < 2000000 & nr_events >= 250000){
+        } else if (nr_events < 500000 & nr_events >= 250000){
             events_per_bin <- 2000
-        } else if (nr_events < 250000 & nr_events >= 75000){
+        } else if (nr_events < 250000 & nr_events >= 50000){
             events_per_bin <- 1000
-        } else if (nr_events < 75000 & nr_events >= 36000){
+        } else if (nr_events < 50000 & nr_events >= 36000){
             events_per_bin <- 500
         } else{
             warning(StrMessage("The flowframe consists of less then 36.000 cells.

@@ -209,7 +209,7 @@ RemoveDoublets <- function(ff,
 #'         name_directory="PeacoQC_results", report=TRUE,
 #'         events_per_bin=FindEventsPerBin(remove_zeros, ff, channels),
 #'          MAD=6, IT_limit=0.6, consecutive_bins=5, remove_zeros=FALSE,
-#'         suffix_fcs="_QC", force=FALSE, repeat_IT = TRUE, ...)
+#'         suffix_fcs="_QC", force=FALSE, ...)
 #'
 #' @param ff A flowframe or the location of an fcs file. Make sure that the
 #' flowframe is compensated and transformed. If it is mass cytometry data, only
@@ -252,9 +252,6 @@ RemoveDoublets <- function(ff,
 #' @param suffix_fcs The suffix given to the new fcs files. Default is "_QC".
 #' @param force If this is set to TRUE, the IT has to be used with flowframes
 #' that contain less than 40000 cells. Default is FALSE.
-#' @param repeat_IT Sometimes the IT does not work properly for too many bins.
-#' If repeat_IT is TRUE, a check will be done to see if the IT has to remove
-#' more than half of the data. Default is TRUE.
 #' @param ... Options to pass on to the \code{PlotPeacoQC} function
 #' (display_cells, manual_cells, prefix)
 #'
@@ -309,7 +306,6 @@ PeacoQC <- function(ff,
                     remove_zeros=FALSE,
                     suffix_fcs="_QC",
                     force = FALSE,
-                    repeat_IT = TRUE,
                     ...
 ){
 
@@ -399,39 +395,7 @@ PeacoQC <- function(ff,
             results$ITPercentage <- (length(IT_cells$cell_ids)/nrow(ff))* 100
             message("IT analysis removed ", round(results$ITPercentage, 2),
                     "% of the measurements" )
-
-
-            if (results$ITPercentage > 50 &
-                events_per_bin %in% c(1000,2000) &
-                repeat_IT == TRUE){
-
-                message("Repeating IT analysis with more bins")
-                events_per_bin <- events_per_bin/2
-
-                # Make the breaks for the entire flowframe
-                res_breaks <- MakeBreaks(events_per_bin, nrow(ff))
-                breaks <- res_breaks$breaks
-
-
-                all_peaks_res <- DeterminePeaksAllChannels(ff, channels,
-                                                           breaks,
-                                                           remove_zeros,
-                                                           results)
-                IT_res <- isolationTreeSD(x = all_peaks_res$all_peaks,
-                                          gain_limit=IT_limit)
-                IT_cells <- RemovedBins(breaks, !IT_res$outlier_bins, nrow(ff))
-                new_IT_percentage <- (length(IT_cells$cell_ids)/nrow(ff))* 100
-
-                if (new_IT_percentage < 20){
-                    outlier_bins <- IT_res$outlier_bins
-                    results$IT <- IT_res$res
-                    results$OutlierIT <- IT_cells$cells
-                    results$ITPercentage <- (length(IT_cells$cell_ids)/
-                                                 nrow(ff))* 100
-                    results$EventsPerBin <- res_breaks$events_per_bin
-                }
-            }
-        } else{
+                    } else{
             results$ITPercentage <- NA
         }
     }
