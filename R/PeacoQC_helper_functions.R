@@ -95,7 +95,7 @@ DetermineAllPeaks <- function(channel_data, breaks, remove_zeros){
     nr_peaks_in_bins <- tabulate(match(lengths, nr_peaks))
 
     most_occuring_peaks <- max(nr_peaks[which(tabulate(match(lengths, nr_peaks))
-                                              > 0.2*length(lengths))])
+                                              > 0.1*length(lengths))])
 
     ind_bins_nr_peaks <- lengths == most_occuring_peaks
     limited_nr_peaks <- do.call(rbind, peaks[ind_bins_nr_peaks])
@@ -474,16 +474,16 @@ MakeBreaks <- function(events_per_bin, nr_events){
 
     names(breaks) <- seq_along(breaks)
 
-
-    # If not enough bins are made, at least 100 should be present
-    if (length(breaks) < 150){
-        breaks <- SplitWithOverlap(seq_len(nr_events),
-                                    events_per_bin,
-                                    ceiling(events_per_bin/2))
-
-        names(breaks) <- seq_along(breaks)
-
-    }
+#
+#     # If not enough bins are made, at least 100 should be present
+#     if (length(breaks) < 150){
+#         breaks <- SplitWithOverlap(seq_len(nr_events),
+#                                     events_per_bin,
+#                                     ceiling(events_per_bin/2))
+#
+#         names(breaks) <- seq_along(breaks)
+#
+#     }
 
     return(list("breaks"=breaks, "events_per_bin"=events_per_bin))
 }
@@ -492,35 +492,60 @@ MakeBreaks <- function(events_per_bin, nr_events){
 FindEventsPerBin <- function(remove_zeros, ff, channels){
     nr_events <- nrow(ff)
     if (remove_zeros == FALSE){
-        if (nr_events >= 500000){
-            events_per_bin <- 3000
-        } else if (nr_events < 500000 & nr_events >= 250000){
-            events_per_bin <- 2000
-        } else if (nr_events < 250000 & nr_events >= 50000){
-            events_per_bin <- 1000
-        } else if (nr_events < 50000 & nr_events >= 36000){
-            events_per_bin <- 500
-        } else{
-            warning(StrMessage("The flowframe consists of less then 36.000 cells.
+        if(nr_events < 50000){
+            warning(StrMessage("The flowframe consists of less then 50.000 cells.
         This means that the IT analysis could not work properly and will not be
         used for cleaning."))
             events_per_bin <- ceiling(nr_events/150) *2
+            return(events_per_bin)
         }
-    } else{
-        events_per_bin <- NA
-        min_nr_events <- min(nrow(ff) - apply(flowCore::exprs(ff)[,channels], 2,
-                                              function(x)sum(x == 0)))/100
-        for (pot_events in c(500,1000,2000,3000,4000)){
-            if ((nrow(ff)/pot_events)*2 < min_nr_events &
-                (nrow(ff)/pot_events)*2 > 100){
-                events_per_bin <- pot_events
+
+        find_events <- FALSE
+        start_events <- 500
+        while(find_events == FALSE){
+            if ((round(nr_events/start_events)*2) %in% c(150:350)){
+                events_per_bin <- start_events
+                return(events_per_bin)
+            } else{
+                start_events = start_events + 500
             }
         }
-        if (is.na(events_per_bin)){
-            warning(StrMessage("There are too many zero values for a certain
+      } else{
+        find_events <- FALSE
+        start_events <- 10000
+        max_nr_bins <- min(apply(flowCore::exprs(ff)[,channels], 2,
+                                 function(x)sum(x != 0)))/150
+        while(find_events == FALSE){
+             if ((round(nr_events/start_events)*2) %in% c(150:max_nr_bins)){
+                events_per_bin <- start_events
+                return(events_per_bin)
+            } else{
+                start_events = start_events - 500
+                if (start_events == 0){
+                    warning(StrMessage("There are too many zero values for a certain
                                    channel to allow for a decent IT analysis."))
-            events_per_bin <- FindEventsPerBin(remove_zeros = F, ff, channels) *2
+                        events_per_bin <- FindEventsPerBin(remove_zeros = FALSE,
+                                                           ff, channels) *2
+                        return(events_per_bin)
+                }
+            }
         }
+
+        # events_per_bin <- NA
+        # max_nr_bins <- min(apply(flowCore::exprs(ff)[,channels], 2,
+        #                          function(x)sum(x != 0)))/100
+        # for (start_events in c(500,1000,2000,3000,4000)){
+        #     if ((nrow(ff)/start_events)*2 < max_nr_bins &
+        #         (nrow(ff)/start_events)*2 > 100){
+        #         events_per_bin <- start_events
+        #     }
+        # }
+        # if (is.na(events_per_bin)){
+        #     warning(StrMessage("There are too many zero values for a certain
+        #                            channel to allow for a decent IT analysis."))
+        #     events_per_bin <- FindEventsPerBin(remove_zeros = FALSE,
+        #                                        ff, channels) *2
+        # }
     }
     return(events_per_bin)
 }
