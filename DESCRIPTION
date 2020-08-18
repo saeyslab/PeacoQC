@@ -1,6 +1,6 @@
 Package: PeacoQC
 Title: Peak-based selection of high quality cytometry data
-Version: 0.99.35
+Version: 0.99.36
 Authors@R: 
     person(given = "Annelies",
            family = "Emmaneel",
