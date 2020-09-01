@@ -383,6 +383,7 @@ isolationTreeSD <- function(x, max_depth=as.integer(ceiling(log2(nrow(x)))),
                             "split_column", "split_value", "to_split")] <- c(
                                 left_id, right_id, gain_max,
                                 colnames(x)[split_col], split_value, FALSE)
+                gain_limit <- gain_max
                 res <- rbind(res,
                             data.frame(id=c(left_id, right_id),
                                         left_child=NA,
@@ -425,6 +426,10 @@ isolationTreeSD <- function(x, max_depth=as.integer(ceiling(log2(nrow(x)))),
     nodes_to_keep <- rownames(scores_to_use)[
         which.max(scores_to_use$n_datapoints)]
 
+
+    # nodes_to_keep <- rownames(scores_to_use)[
+    #   which.min(scores_to_use$anomaly_score)
+    # ]
 
     outlier_bins <- selection[as.numeric(nodes_to_keep), ]
     names(outlier_bins) <- seq_along(outlier_bins)
@@ -503,7 +508,7 @@ FindEventsPerBin <- function(remove_zeros, ff, channels){
         find_events <- FALSE
         start_events <- 500
         while(find_events == FALSE){
-            if ((round(nr_events/start_events)*2) %in% c(150:350)){
+            if ((round(nr_events/start_events)*2) %in% c(150:500)){
                 events_per_bin <- start_events
                 return(events_per_bin)
             } else{
