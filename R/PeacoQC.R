@@ -207,9 +207,10 @@ RemoveDoublets <- function(ff,
 #' PeacoQC(ff, channels, determine_good_cells="all",
 #'         plot=20, save_fcs=TRUE, output_directory=".",
 #'         name_directory="PeacoQC_results", report=TRUE,
-#'         events_per_bin=FindEventsPerBin(remove_zeros, ff, channels),
-#'          MAD=6, IT_limit=0.6, consecutive_bins=5, remove_zeros=FALSE,
-#'         suffix_fcs="_QC", force=FALSE, ...)
+#'         events_per_bin=FindEventsPerBin(remove_zeros, ff, channels,
+#'         min_cells, max_bins, step), min_cells=150, max_bins=500, step=500,
+#'         MAD=6, IT_limit=0.6, consecutive_bins=5, remove_zeros=FALSE,
+#'         suffix_fcs="_QC", force_IT=FALSE, ...)
 #'
 #' @param ff A flowframe or the location of an fcs file. Make sure that the
 #' flowframe is compensated and transformed. If it is mass cytometry data, only
@@ -220,6 +221,13 @@ RemoveDoublets <- function(ff,
 #' determine peaks. If it is set to "all", the bad measurements will be
 #' filtered out based on the MAD and IT analysis. It can also be put to "MAD"
 #' or "IT" to only use one method of filtering.
+#' @param min_cells The minimum amount of cells (nonzero values) that should be
+#' present in one bin. Lowering this parameter can affect the robustness of the
+#' peak detection. Default is 150.
+#' @param max_bins The maximum number of bins that can be used in the cleaning
+#' process. If this value is lowered, larger bins will be made. Default is 500.
+#' @param step The step in events_per_bin to which the parameter is reduced to.
+#' Default is 500.
 #' @param plot When PeacoQC removes more than the specified percentage, an
 #' overview plot will be made of all the selected channels and the deleted
 #' measurements. If set to TRUE, the \code{PlotPeacoQC} function is
@@ -250,8 +258,8 @@ RemoveDoublets <- function(ff,
 #' before the peak detection step. They will not be indicated as 'bad' value.
 #' This is recommended when cleaning mass cytometry data. Default is FALSE.
 #' @param suffix_fcs The suffix given to the new fcs files. Default is "_QC".
-#' @param force If this is set to TRUE, the IT has to be used with flowframes
-#' that contain less than 40000 cells. Default is FALSE.
+#' @param force_IT If this is set to TRUE, the IT has to be used with flowframes
+#' where less than 150 bins are used. Default is FALSE.
 #' @param ... Options to pass on to the \code{PlotPeacoQC} function
 #' (display_cells, manual_cells, prefix)
 #'
@@ -299,13 +307,17 @@ PeacoQC <- function(ff,
                     name_directory="PeacoQC_results",
                     report=TRUE,
                     events_per_bin=FindEventsPerBin(remove_zeros, ff,
-                                                    channels),
+                                                    channels, min_cells,
+                                                    max_bins, step),
+                    min_cells = 150,
+                    max_bins = 500,
+                    step = 500,
                     MAD=6,
                     IT_limit=0.6,
                     consecutive_bins=5,
                     remove_zeros=FALSE,
                     suffix_fcs="_QC",
-                    force = FALSE,
+                    force_IT = FALSE,
                     ...
 ){
 
@@ -366,6 +378,7 @@ PeacoQC <- function(ff,
     # Make the breaks for the entire flowframe
     res_breaks <- MakeBreaks(events_per_bin, nrow(ff))
     breaks <- res_breaks$breaks
+    results$nr_bins <- length(res_breaks$breaks)
 
     results$EventsPerBin <- res_breaks$events_per_bin
 
@@ -385,7 +398,7 @@ PeacoQC <- function(ff,
     # ------------------------ Isolation Tree  --------------------------------
 
     if (determine_good_cells == "all" || determine_good_cells == "IT"){
-        if (events_per_bin >= 500 || force == TRUE){
+        if (length(res_breaks$breaks) >= 150 || force_IT){
             IT_res <- isolationTreeSD(x = all_peaks_res$all_peaks,
                                       gain_limit=IT_limit)
             IT_cells <- RemovedBins(breaks, !IT_res$outlier_bins, nrow(ff))
@@ -395,7 +408,9 @@ PeacoQC <- function(ff,
             results$ITPercentage <- (length(IT_cells$cell_ids)/nrow(ff))* 100
             message("IT analysis removed ", round(results$ITPercentage, 2),
                     "% of the measurements" )
-                    } else{
+        } else {
+            warning("There are not enough bins for a robust isolation tree
+                    analysis.")
             results$ITPercentage <- NA
         }
     }
@@ -733,17 +748,13 @@ PeacoQCHeatmap <- function(
         rownames(report_table)  <- unique_table_names
     }
 
-    small_event_files <- which(report_table$`Events per bin` < 500)
-
-    if (length(small_event_files) > 0){
-        report_table$`Events per bin`[small_event_files] <- "<500"}
-
     annotation_frame <- data.frame(
         "Consecutive bins"=factor(report_table$`Consecutive bins`),
         "IT limit"=factor(report_table$`IT limit`),
         "MAD"=factor(report_table$MAD),
-        "Events per bin" = factor(report_table$`Events per bin`),
+        "Events per bin" = report_table$`Events per bin`,
         check.names=FALSE)
+
 
     rownames(annotation_frame) <- rownames(report_table)
 
@@ -753,13 +764,21 @@ PeacoQCHeatmap <- function(
     col_MAD <- t2(length(unique(annotation_frame$MAD)))
     t3 <- colorRampPalette(c("#B2CEDE", "#AD7A99"))
     col_IT <- t3(length(unique(annotation_frame$`IT limit`)))
-    t4 <- colorRampPalette(c("#5AAA95", "#474973"))
-    col_events <- t4(length(unique(annotation_frame$`Events per bin`)))
+    col_events <- colorRamp2(c(0, max(annotation_frame$`Events per bin`)/2,
+                               max(annotation_frame$`Events per bin`)),
+                             c("#5AAA95", "white", "#474973"))
+
+
+
+    col_events <- colorRamp2(c(0, max(annotation_frame$`Events per bin`)),
+                                   c("#5AAA95", "#474973"))
+    # t4 <- colorRampPalette(c("#5AAA95", "#474973"))
+    # col_events <- t4(length(unique(annotation_frame$`Events per bin`)))
 
     names(col_cons) <- unique(annotation_frame$`Consecutive bins`)
     names(col_MAD) <- unique(annotation_frame$MAD)
     names(col_IT) <- unique(annotation_frame$`IT limit`)
-    names(col_events) <- unique(annotation_frame$`Events per bin`)
+    # names(col_events) <- unique(annotation_frame$`Events per bin`)
 
 
     analysis <- report_table$`Analysis by`
@@ -769,7 +788,12 @@ PeacoQCHeatmap <- function(
             col=list("Consecutive bins"=col_cons,
                 "MAD"=col_MAD,
                 "IT limit"=col_IT,
-                "Events per bin"=col_events))
+                "Events per bin"=col_events),
+                annotation_legend_param =
+                    list("IT limit" = list(ncol = 1),
+                        "MAD" = list(ncol = 1),
+                        "Consecutive bins" = list(ncol = 1),
+                        "Events per bin" = list(direction = "horizontal")))
 
     } else if(length(unique(analysis)) == 1 & unique(analysis) == "IT"){
         ha <- rowAnnotation(
@@ -777,14 +801,22 @@ PeacoQCHeatmap <- function(
             "IT limit"=annotation_frame$`IT limit`,
             col=list("Consecutive bins"=col_cons,
                      "IT limit"=col_IT,
-                     "Events per bin"=col_events))
+                     "Events per bin"=col_events),
+                     annotation_legend_param = list(
+                         "IT limit" = list(ncol = 1),
+                         "Consecutive bins" = list(ncol = 1),
+                         "Events per bin" = list(direction = "horizontal")))
     } else if(length(unique(analysis)) == 1 & unique(analysis) == "MAD"){
         ha <- rowAnnotation(
             "Consecutive bins"=annotation_frame$`Consecutive bins`,
             "MAD"=annotation_frame$MAD,
             col=list("Consecutive bins"=col_cons,
                      "MAD"=col_MAD,
-                     "Events per bin"=col_events))
+                     "Events per bin"=col_events),
+            annotation_legend_param = list(
+                "MAD" = list(ncol = 1),
+                "Consecutive bins" = list(ncol = 1),
+                "Events per bin" = list(direction = "horizontal")))
 
     }
 

@@ -7,9 +7,10 @@
 PeacoQC(ff, channels, determine_good_cells="all",
         plot=20, save_fcs=TRUE, output_directory=".",
         name_directory="PeacoQC_results", report=TRUE,
-        events_per_bin=FindEventsPerBin(remove_zeros, ff, channels),
-         MAD=6, IT_limit=0.6, consecutive_bins=5, remove_zeros=FALSE,
-        suffix_fcs="_QC", force=FALSE, ...)
+        events_per_bin=FindEventsPerBin(remove_zeros, ff, channels,
+        min_cells, max_bins, step), min_cells=150, max_bins=500, step=500,
+        MAD=6, IT_limit=0.6, consecutive_bins=5, remove_zeros=FALSE,
+        suffix_fcs="_QC", force_IT=FALSE, ...)
 }
 \arguments{
 \item{ff}{A flowframe or the location of an fcs file. Make sure that the
@@ -50,6 +51,16 @@ If set to FALSE, no report will be generated. The default is TRUE.}
 \item{events_per_bin}{Number of events that are put in one bin.
 Default is calculated based on the rows in \code{ff}}
 
+\item{min_cells}{The minimum amount of cells (nonzero values) that should be
+present in one bin. Lowering this parameter can affect the robustness of the
+peak detection. Default is 150.}
+
+\item{max_bins}{The maximum number of bins that can be used in the cleaning
+process. If this value is lowered, larger bins will be made. Default is 500.}
+
+\item{step}{The step in events_per_bin to which the parameter is reduced to.
+Default is 500.}
+
 \item{MAD}{The MAD parameter. Default is 6. If this is increased, the
 algorithm becomes less strict.}
 
@@ -65,8 +76,8 @@ This is recommended when cleaning mass cytometry data. Default is FALSE.}
 
 \item{suffix_fcs}{The suffix given to the new fcs files. Default is "_QC".}
 
-\item{force}{If this is set to TRUE, the IT has to be used with flowframes
-that contain less than 40000 cells. Default is FALSE.}
+\item{force_IT}{If this is set to TRUE, the IT has to be used with flowframes
+where less than 150 bins are used. Default is FALSE.}
 
 \item{...}{Options to pass on to the \code{PlotPeacoQC} function
 (display_cells, manual_cells, prefix)}
