@@ -733,17 +733,25 @@ PeacoQCHeatmap <- function(
         rownames(report_table)  <- unique_table_names
     }
 
-    small_event_files <- which(report_table$`Events per bin` < 500)
+    # small_event_files <- which(report_table$`Events per bin` < 500)
 
-    if (length(small_event_files) > 0){
-        report_table$`Events per bin`[small_event_files] <- "<500"}
+    # if (length(small_event_files) > 0){
+    #     report_table$`Events per bin`[small_event_files] <- "<500"}
+
+    # annotation_frame <- data.frame(
+    #     "Consecutive bins"=factor(report_table$`Consecutive bins`),
+    #     "IT limit"=factor(report_table$`IT limit`),
+    #     "MAD"=factor(report_table$MAD),
+    #     "Events per bin" = factor(report_table$`Events per bin`),
+    #     check.names=FALSE)
 
     annotation_frame <- data.frame(
         "Consecutive bins"=factor(report_table$`Consecutive bins`),
         "IT limit"=factor(report_table$`IT limit`),
         "MAD"=factor(report_table$MAD),
-        "Events per bin" = factor(report_table$`Events per bin`),
+        "Events per bin" = report_table$`Events per bin`,
         check.names=FALSE)
+
 
     rownames(annotation_frame) <- rownames(report_table)
 
@@ -753,13 +761,21 @@ PeacoQCHeatmap <- function(
     col_MAD <- t2(length(unique(annotation_frame$MAD)))
     t3 <- colorRampPalette(c("#B2CEDE", "#AD7A99"))
     col_IT <- t3(length(unique(annotation_frame$`IT limit`)))
-    t4 <- colorRampPalette(c("#5AAA95", "#474973"))
-    col_events <- t4(length(unique(annotation_frame$`Events per bin`)))
+    col_events <- colorRamp2(c(0, max(annotation_frame$`Events per bin`)/2,
+                               max(annotation_frame$`Events per bin`)),
+                             c("#5AAA95", "white", "#474973"))
+
+
+
+    col_events <- colorRamp2(c(0, max(annotation_frame$`Events per bin`)),
+                                   c("#5AAA95", "#474973"))
+    # t4 <- colorRampPalette(c("#5AAA95", "#474973"))
+    # col_events <- t4(length(unique(annotation_frame$`Events per bin`)))
 
     names(col_cons) <- unique(annotation_frame$`Consecutive bins`)
     names(col_MAD) <- unique(annotation_frame$MAD)
     names(col_IT) <- unique(annotation_frame$`IT limit`)
-    names(col_events) <- unique(annotation_frame$`Events per bin`)
+    # names(col_events) <- unique(annotation_frame$`Events per bin`)
 
 
     analysis <- report_table$`Analysis by`

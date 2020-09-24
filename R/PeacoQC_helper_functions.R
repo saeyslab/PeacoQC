@@ -494,64 +494,78 @@ MakeBreaks <- function(events_per_bin, nr_events){
 }
 
 
-FindEventsPerBin <- function(remove_zeros, ff, channels){
-    nr_events <- nrow(ff)
-    if (remove_zeros == FALSE){
-        if(nr_events < 50000){
-            warning(StrMessage("The flowframe consists of less then 50.000 cells.
-        This means that the IT analysis could not work properly and will not be
-        used for cleaning."))
-            events_per_bin <- ceiling(nr_events/150) *2
-            return(events_per_bin)
-        }
+FindEventsPerBin <- function(remove_zeros, ff,
+                             channels,
+                             min_cells = 150,
+                             max_bins = 500,
+                             step = 500
+                             ){
 
-        find_events <- FALSE
-        start_events <- 500
-        while(find_events == FALSE){
-            if ((round(nr_events/start_events)*2) %in% c(150:500)){
-                events_per_bin <- start_events
-                return(events_per_bin)
-            } else{
-                start_events = start_events + 500
-            }
-        }
-      } else{
-        find_events <- FALSE
-        start_events <- 10000
-        max_nr_bins <- min(apply(flowCore::exprs(ff)[,channels], 2,
-                                 function(x)sum(x != 0)))/150
-        while(find_events == FALSE){
-             if ((round(nr_events/start_events)*2) %in% c(150:max_nr_bins)){
-                events_per_bin <- start_events
-                return(events_per_bin)
-            } else{
-                start_events = start_events - 500
-                if (start_events == 0){
-                    warning(StrMessage("There are too many zero values for a certain
-                                   channel to allow for a decent IT analysis."))
-                        events_per_bin <- FindEventsPerBin(remove_zeros = FALSE,
-                                                           ff, channels) *2
-                        return(events_per_bin)
-                }
-            }
-        }
+  nr_events <- nrow(ff)
 
-        # events_per_bin <- NA
-        # max_nr_bins <- min(apply(flowCore::exprs(ff)[,channels], 2,
-        #                          function(x)sum(x != 0)))/100
-        # for (start_events in c(500,1000,2000,3000,4000)){
-        #     if ((nrow(ff)/start_events)*2 < max_nr_bins &
-        #         (nrow(ff)/start_events)*2 > 100){
-        #         events_per_bin <- start_events
-        #     }
-        # }
-        # if (is.na(events_per_bin)){
-        #     warning(StrMessage("There are too many zero values for a certain
-        #                            channel to allow for a decent IT analysis."))
-        #     events_per_bin <- FindEventsPerBin(remove_zeros = FALSE,
-        #                                        ff, channels) *2
-        # }
+  if (remove_zeros == TRUE){
+    max_bins_mass <- min(apply(flowCore::exprs(ff)[,channels], 2,
+                          function(x)sum(x != 0)))/min_cells
+
+    if (max_bins_mass < max_bins){
+      max_bins <- max_bins_mass
     }
+
+  }
+
+
+
+  max_cells <- ceiling((nr_events/max_bins)*2)
+  max_cells <- ((max_cells%/%step)*step) + step
+
+  events_per_bin <- max(min_cells, max_cells)
+
+  return(events_per_bin)
+
+
+
+
+
+    # if (remove_zeros == FALSE){
+    #     if(nr_events < 75000){
+    #         warning(StrMessage("The flowframe consists of less then 50.000 cells.
+    #     This means that the IT analysis could not work properly and will not be
+    #     used for cleaning."))
+    #         events_per_bin <- ceiling(nr_events/150) *2
+    #         return(events_per_bin)
+    #     }
+    #
+    #     find_events <- FALSE
+    #     start_events <- 500
+    #     while(find_events == FALSE){
+    #         if ((round(nr_events/start_events)*2) %in% c(150:500)){
+    #             events_per_bin <- start_events
+    #             return(events_per_bin)
+    #         } else{
+    #             start_events = start_events + 500
+    #         }
+    #     }
+    #   } else{
+    #     find_events <- FALSE
+    #     start_events <- 10000
+    #     max_nr_bins <- min(apply(flowCore::exprs(ff)[,channels], 2,
+    #                              function(x)sum(x != 0)))/150
+    #     while(find_events == FALSE){
+    #          if ((round(nr_events/start_events)*2) %in% c(150:max_nr_bins)){
+    #             events_per_bin <- start_events
+    #             return(events_per_bin)
+    #         } else{
+    #             start_events = start_events - 500
+    #             if (start_events == 0){
+    #                 warning(StrMessage("There are too many zero values for a certain
+    #                                channel to allow for a decent IT analysis."))
+    #                     events_per_bin <- FindEventsPerBin(remove_zeros = FALSE,
+    #                                                        ff, channels) *2
+    #                     return(events_per_bin)
+    #             }
+    #         }
+    #     }
+    # }
     return(events_per_bin)
 }
 
