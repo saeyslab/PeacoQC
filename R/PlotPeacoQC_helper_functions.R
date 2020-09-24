@@ -196,8 +196,8 @@ BuildPeaksPlot <- function(p, peaks, channel, mid_breaks, contributions){
             peak_frame$Bin)]
 
         colours <- paste0("grey",
-                            seq_len(20))[seq_len(
-                                max(as.numeric(peak_frame[, "Cluster"])))]
+                            seq_len(20))[seq_len(length(
+                                unique(peak_frame[,"Cluster"])))]
 
         p <- p + geom_line(data=peak_frame, aes(x=Bin,
                                                 y=Peak,

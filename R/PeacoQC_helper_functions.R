@@ -73,11 +73,6 @@ DetermineAllPeaks <- function(channel_data, breaks, remove_zeros){
         peaks[[channel_break]] <- result_peak
     }
 
-    # peaks <- lapply(channel_breaks, function(x){
-    #     FindThemPeaks(x,remove_zeros)})
-    #
-    # names(peaks) <- seq_len(length(peaks))
-
     peak_frame <- plyr::ldply(peaks, cbind)
 
     colnames(peak_frame) <- c("Bin", "Peak")
@@ -103,26 +98,33 @@ DetermineAllPeaks <- function(channel_data, breaks, remove_zeros){
 
     if (length(medians_to_use) > 1) {
 
-        peak_clustering <- stats::kmeans(peak_frame[, 2],
-                                         centers=medians_to_use)
+      names(medians_to_use) <- c(1:length(medians_to_use))
 
-        cluster_medians <- peak_clustering$centers
+      peak_frame <- cbind(peak_frame,
+                          "Cluster"= factor(sapply(peak_frame[,2],
+                                            function(x){which.min(abs(x-medians_to_use))})))
+      final_medians <- medians_to_use
 
-        names(cluster_medians) <- rownames(peak_clustering$centers)
-        peak_frame <- cbind(peak_frame,
-                            "Cluster"=factor(peak_clustering$cluster))
-
-        final_medians <- c()
-
-        to_use_clusters <- names(cluster_medians)[
-            vapply(full_channel_peaks,
-                   function(x)which.min(abs(x-cluster_medians)),
-                   FUN.VALUE=numeric(1))]
-
-        peak_frame <- peak_frame[peak_frame$Cluster %in% to_use_clusters, ]
-
-        final_medians <- medians_to_use[which(names(cluster_medians) %in%
-                                                  to_use_clusters)]
+        # peak_clustering <- stats::kmeans(peak_frame[, 2],
+        #                                  centers=medians_to_use)
+        #
+        # cluster_medians <- peak_clustering$centers
+        #
+        # names(cluster_medians) <- rownames(peak_clustering$centers)
+        # peak_frame <- cbind(peak_frame,
+        #                     "Cluster"=factor(peak_clustering$cluster))
+        #
+        # final_medians <- c()
+        #
+        # to_use_clusters <- names(cluster_medians)[
+        #     vapply(full_channel_peaks,
+        #            function(x)which.min(abs(x-cluster_medians)),
+        #            FUN.VALUE=numeric(1))]
+        #
+        # peak_frame <- peak_frame[peak_frame$Cluster %in% to_use_clusters, ]
+        #
+        # final_medians <- medians_to_use[which(names(cluster_medians) %in%
+        #                                           to_use_clusters)]
 
 
     } else { # If only one peak was found per bin, no kmeans has to happen
