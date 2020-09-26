@@ -105,28 +105,6 @@ DetermineAllPeaks <- function(channel_data, breaks, remove_zeros){
                                             function(x){which.min(abs(x-medians_to_use))})))
       final_medians <- medians_to_use
 
-        # peak_clustering <- stats::kmeans(peak_frame[, 2],
-        #                                  centers=medians_to_use)
-        #
-        # cluster_medians <- peak_clustering$centers
-        #
-        # names(cluster_medians) <- rownames(peak_clustering$centers)
-        # peak_frame <- cbind(peak_frame,
-        #                     "Cluster"=factor(peak_clustering$cluster))
-        #
-        # final_medians <- c()
-        #
-        # to_use_clusters <- names(cluster_medians)[
-        #     vapply(full_channel_peaks,
-        #            function(x)which.min(abs(x-cluster_medians)),
-        #            FUN.VALUE=numeric(1))]
-        #
-        # peak_frame <- peak_frame[peak_frame$Cluster %in% to_use_clusters, ]
-        #
-        # final_medians <- medians_to_use[which(names(cluster_medians) %in%
-        #                                           to_use_clusters)]
-
-
     } else { # If only one peak was found per bin, no kmeans has to happen
         peak_frame <- cbind(peak_frame, "Cluster"=rep("1",
                                                       dim(peak_frame)[1]))
@@ -161,8 +139,6 @@ FindThemPeaks <- function (channel_data, remove_zeros)
     }
 
     dens <- stats::density(channel_data[!is.na(channel_data)], adjust=1)
-    # dens <- stats::smooth.spline(dens$x, dens$y, spar=0.6)
-    # dens$y[which(dens$y < 0)] <- 0
 
     if (all(is.na(dens)))
         return(NA)
@@ -231,12 +207,6 @@ TooSmallClusters <- function(data, clusters ){
 
 
 MADOutliers <- function(peak, MAD) {
-
-
-    # kernel <- stats::ksmooth(seq_along(peak),
-    #                             peak,
-    #                             x.points=seq_along(peak),
-    #                             bandwidth=50)
 
 
     kernel <- stats::smooth.spline(seq_along(peak), peak, spar=0.5)
@@ -420,18 +390,14 @@ isolationTreeSD <- function(x, max_depth=as.integer(ceiling(log2(nrow(x)))),
     }
 
     res$n_datapoints=rowSums(selection)
-    res$anomaly_score=2^(-(res$path_length)/(avgPL(sum(res$n_datapoints))))
+    # res$anomaly_score=2^(-(res$path_length)/(avgPL(sum(res$n_datapoints))))
 
 
     scores_to_use <- stats::na.omit(res[,
-                                        c("n_datapoints", "anomaly_score")])
+                                        "n_datapoints"])
     nodes_to_keep <- rownames(scores_to_use)[
         which.max(scores_to_use$n_datapoints)]
 
-
-    # nodes_to_keep <- rownames(scores_to_use)[
-    #   which.min(scores_to_use$anomaly_score)
-    # ]
 
     outlier_bins <- selection[as.numeric(nodes_to_keep), ]
     names(outlier_bins) <- seq_along(outlier_bins)
@@ -474,23 +440,11 @@ AppendCellID <- function(new_ff, cell_id){
 
 
 MakeBreaks <- function(events_per_bin, nr_events){
-    # Split the ff up in bins (overlapping)
     breaks <- SplitWithOverlap(seq_len(nr_events),
                                 events_per_bin,
                                 ceiling(events_per_bin/2))
 
     names(breaks) <- seq_along(breaks)
-
-#
-#     # If not enough bins are made, at least 100 should be present
-#     if (length(breaks) < 150){
-#         breaks <- SplitWithOverlap(seq_len(nr_events),
-#                                     events_per_bin,
-#                                     ceiling(events_per_bin/2))
-#
-#         names(breaks) <- seq_along(breaks)
-#
-#     }
 
     return(list("breaks"=breaks, "events_per_bin"=events_per_bin))
 }
@@ -516,7 +470,6 @@ FindEventsPerBin <- function(remove_zeros, ff,
   }
 
 
-
   max_cells <- ceiling((nr_events/max_bins)*2)
   max_cells <- ((max_cells%/%step)*step) + step
 
@@ -524,50 +477,6 @@ FindEventsPerBin <- function(remove_zeros, ff,
 
   return(events_per_bin)
 
-
-
-
-
-    # if (remove_zeros == FALSE){
-    #     if(nr_events < 75000){
-    #         warning(StrMessage("The flowframe consists of less then 50.000 cells.
-    #     This means that the IT analysis could not work properly and will not be
-    #     used for cleaning."))
-    #         events_per_bin <- ceiling(nr_events/150) *2
-    #         return(events_per_bin)
-    #     }
-    #
-    #     find_events <- FALSE
-    #     start_events <- 500
-    #     while(find_events == FALSE){
-    #         if ((round(nr_events/start_events)*2) %in% c(150:500)){
-    #             events_per_bin <- start_events
-    #             return(events_per_bin)
-    #         } else{
-    #             start_events = start_events + 500
-    #         }
-    #     }
-    #   } else{
-    #     find_events <- FALSE
-    #     start_events <- 10000
-    #     max_nr_bins <- min(apply(flowCore::exprs(ff)[,channels], 2,
-    #                              function(x)sum(x != 0)))/150
-    #     while(find_events == FALSE){
-    #          if ((round(nr_events/start_events)*2) %in% c(150:max_nr_bins)){
-    #             events_per_bin <- start_events
-    #             return(events_per_bin)
-    #         } else{
-    #             start_events = start_events - 500
-    #             if (start_events == 0){
-    #                 warning(StrMessage("There are too many zero values for a certain
-    #                                channel to allow for a decent IT analysis."))
-    #                     events_per_bin <- FindEventsPerBin(remove_zeros = FALSE,
-    #                                                        ff, channels) *2
-    #                     return(events_per_bin)
-    #             }
-    #         }
-    #     }
-    # }
     return(events_per_bin)
 }
 

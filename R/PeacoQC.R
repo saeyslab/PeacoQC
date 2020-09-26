@@ -210,7 +210,7 @@ RemoveDoublets <- function(ff,
 #'         events_per_bin=FindEventsPerBin(remove_zeros, ff, channels,
 #'         min_cells, max_bins, step), min_cells=150, max_bins=500, step=500,
 #'         MAD=6, IT_limit=0.6, consecutive_bins=5, remove_zeros=FALSE,
-#'         suffix_fcs="_QC", force_IT=FALSE, ...)
+#'         suffix_fcs="_QC", force_IT=150, ...)
 #'
 #' @param ff A flowframe or the location of an fcs file. Make sure that the
 #' flowframe is compensated and transformed. If it is mass cytometry data, only
@@ -258,8 +258,8 @@ RemoveDoublets <- function(ff,
 #' before the peak detection step. They will not be indicated as 'bad' value.
 #' This is recommended when cleaning mass cytometry data. Default is FALSE.
 #' @param suffix_fcs The suffix given to the new fcs files. Default is "_QC".
-#' @param force_IT If this is set to TRUE, the IT has to be used with flowframes
-#' where less than 150 bins are used. Default is FALSE.
+#' @param force_IT If the number of determined bins is less than this number,
+#' the IT analysis will not be performed. Default is 150 bins.
 #' @param ... Options to pass on to the \code{PlotPeacoQC} function
 #' (display_cells, manual_cells, prefix)
 #'
@@ -317,7 +317,7 @@ PeacoQC <- function(ff,
                     consecutive_bins=5,
                     remove_zeros=FALSE,
                     suffix_fcs="_QC",
-                    force_IT = FALSE,
+                    force_IT = 150,
                     ...
 ){
 
@@ -398,7 +398,7 @@ PeacoQC <- function(ff,
     # ------------------------ Isolation Tree  --------------------------------
 
     if (determine_good_cells == "all" || determine_good_cells == "IT"){
-        if (length(res_breaks$breaks) >= 150 || force_IT){
+        if (length(res_breaks$breaks) >= force_IT ){
             IT_res <- isolationTreeSD(x = all_peaks_res$all_peaks,
                                       gain_limit=IT_limit)
             IT_cells <- RemovedBins(breaks, !IT_res$outlier_bins, nrow(ff))

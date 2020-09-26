@@ -10,7 +10,7 @@ PeacoQC(ff, channels, determine_good_cells="all",
         events_per_bin=FindEventsPerBin(remove_zeros, ff, channels,
         min_cells, max_bins, step), min_cells=150, max_bins=500, step=500,
         MAD=6, IT_limit=0.6, consecutive_bins=5, remove_zeros=FALSE,
-        suffix_fcs="_QC", force_IT=FALSE, ...)
+        suffix_fcs="_QC", force_IT=150, ...)
 }
 \arguments{
 \item{ff}{A flowframe or the location of an fcs file. Make sure that the
@@ -76,8 +76,8 @@ This is recommended when cleaning mass cytometry data. Default is FALSE.}
 
 \item{suffix_fcs}{The suffix given to the new fcs files. Default is "_QC".}
 
-\item{force_IT}{If this is set to TRUE, the IT has to be used with flowframes
-where less than 150 bins are used. Default is FALSE.}
+\item{force_IT}{If the number of determined bins is less than this number,
+the IT analysis will not be performed. Default is 150 bins.}
 
 \item{...}{Options to pass on to the \code{PlotPeacoQC} function
 (display_cells, manual_cells, prefix)}
