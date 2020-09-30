@@ -390,11 +390,11 @@ isolationTreeSD <- function(x, max_depth=as.integer(ceiling(log2(nrow(x)))),
     }
 
     res$n_datapoints=rowSums(selection)
-    # res$anomaly_score=2^(-(res$path_length)/(avgPL(sum(res$n_datapoints))))
+    res$anomaly_score=2^(-(res$path_length)/(avgPL(sum(res$n_datapoints))))
 
 
     scores_to_use <- stats::na.omit(res[,
-                                        "n_datapoints"])
+                                        c("n_datapoints", "anomaly_score")])
     nodes_to_keep <- rownames(scores_to_use)[
         which.max(scores_to_use$n_datapoints)]
 

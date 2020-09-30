@@ -394,6 +394,7 @@ PeacoQC <- function(ff,
                                                 breaks, remove_zeros, results)
     results <- all_peaks_res$results
     outlier_bins <- rep(TRUE, nrow(all_peaks_res$all_peaks))
+    names(outlier_bins) <- seq_along(outlier_bins)
 
     # ------------------------ Isolation Tree  --------------------------------
 
@@ -409,8 +410,8 @@ PeacoQC <- function(ff,
             message("IT analysis removed ", round(results$ITPercentage, 2),
                     "% of the measurements" )
         } else {
-            warning("There are not enough bins for a robust isolation tree
-                    analysis.")
+            warning(StrMessage("There are not enough bins for a robust isolation tree
+                    analysis."))
             results$ITPercentage <- NA
         }
     }
