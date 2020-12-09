@@ -17,9 +17,8 @@ doublet events. Default is "FSC-A"}
 doublet events. Default is "FSC-H"}
 
 \item{width}{Bandwidth above the ratio allowed (cells are kept if their
-ratio is smaller than the median ratio + \code{width}). If NULL (default),
-the bandwidth is estimated as 2 times the median absolute devation of the
-ratios.}
+ratio is smaller than the median ratio + \code{width} times the median 
+absolute devation of the ratios). Default is 4.}
 
 \item{verbose}{If set to TRUE, the median ratio and width will be printed.
 Default is FALSE.}

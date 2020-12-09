@@ -138,7 +138,7 @@ RemoveMargins <- function(
 #' doublet events. Default is "FSC-H"
 #' @param width Bandwidth above the ratio allowed (cells are kept if their
 #' ratio is smaller than the median ratio + \code{width} times the median 
-#' absolute devation). Default is 4.
+#' absolute devation of the ratios). Default is 4.
 #' @param verbose If set to TRUE, the median ratio and width will be printed.
 #' Default is FALSE.
 #' @param output If set to "full", a list with the filtered flowframe and the
