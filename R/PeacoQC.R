@@ -104,7 +104,7 @@ RemoveMargins <- function(
 
 
     if (length(which(selection == FALSE))/length(selection) > 0.1) {
-        warning(StrMessage(c("More then ",
+        warning(StrMessage(c("More than ",
             round(length(which(selection == FALSE))/length(selection) * 100, 2),
             "% is considered as a margin event in file ",
             basename(flowCore::keyword(ff)$FILENAME),
@@ -137,9 +137,8 @@ RemoveMargins <- function(
 #' @param channel2 The second channels that will be used to determine the
 #' doublet events. Default is "FSC-H"
 #' @param width Bandwidth above the ratio allowed (cells are kept if their
-#' ratio is smaller than the median ratio + \code{width}). If NULL (default),
-#' the bandwidth is estimated as 2 times the median absolute devation of the
-#' ratios.
+#' ratio is smaller than the median ratio + \code{width} times the median 
+#' absolute devation). Default is 4.
 #' @param verbose If set to TRUE, the median ratio and width will be printed.
 #' Default is FALSE.
 #' @param output If set to "full", a list with the filtered flowframe and the
@@ -164,7 +163,7 @@ RemoveMargins <- function(
 RemoveDoublets <- function(ff,
                            channel1="FSC-A",
                            channel2="FSC-H",
-                           width=NULL,
+                           width=4,
                            verbose=FALSE,
                            output="frame"){
 
@@ -177,11 +176,11 @@ RemoveDoublets <- function(ff,
 
     # Define the region that is accepted
     r <- stats::median(ratio)
-    if(is.null(width)){ width <- 2*stats::mad(ratio) }
-    if(verbose) message(paste0("Median ratio: ", r,", width: ", width))
+    r_m <- stats::mad(ratio)
+    if(verbose) message(paste0("Median ratio: ", r,", width: ", width*r_m))
 
     # Make selection
-    selection <- ratio < r+width
+    selection <- ratio < r+width*r_m
 
     new_ff <- ff[selection, ]
 
