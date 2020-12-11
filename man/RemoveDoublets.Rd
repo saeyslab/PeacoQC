@@ -16,8 +16,8 @@ doublet events. Default is "FSC-A"}
 \item{channel2}{The second channels that will be used to determine the
 doublet events. Default is "FSC-H"}
 
-\item{width}{Bandwidth above the ratio allowed (cells are kept if their
-ratio is smaller than the median ratio + \code{width} times the median 
+\item{nmad}{Bandwidth above the ratio allowed (cells are kept if their
+ratio is smaller than the median ratio + \code{nmad} times the median 
 absolute devation of the ratios). Default is 4.}
 
 \item{verbose}{If set to TRUE, the median ratio and width will be printed.

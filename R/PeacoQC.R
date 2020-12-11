@@ -136,8 +136,8 @@ RemoveMargins <- function(
 #' doublet events. Default is "FSC-A"
 #' @param channel2 The second channels that will be used to determine the
 #' doublet events. Default is "FSC-H"
-#' @param width Bandwidth above the ratio allowed (cells are kept if their
-#' ratio is smaller than the median ratio + \code{width} times the median 
+#' @param nmad Bandwidth above the ratio allowed (cells are kept if their
+#' ratio is smaller than the median ratio + \code{nmad} times the median 
 #' absolute devation of the ratios). Default is 4.
 #' @param verbose If set to TRUE, the median ratio and width will be printed.
 #' Default is FALSE.
@@ -163,7 +163,7 @@ RemoveMargins <- function(
 RemoveDoublets <- function(ff,
                            channel1="FSC-A",
                            channel2="FSC-H",
-                           width=4,
+                           nmad=4,
                            verbose=FALSE,
                            output="frame"){
 
@@ -177,10 +177,10 @@ RemoveDoublets <- function(ff,
     # Define the region that is accepted
     r <- stats::median(ratio)
     r_m <- stats::mad(ratio)
-    if(verbose) message(paste0("Median ratio: ", r,", width: ", width*r_m))
+    if(verbose) message(paste0("Median ratio: ", r,", width: ", nmad*r_m))
 
     # Make selection
-    selection <- ratio < r+width*r_m
+    selection <- ratio < r+nmad*r_m
 
     new_ff <- ff[selection, ]
 
