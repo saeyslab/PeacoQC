@@ -112,8 +112,8 @@ RemoveMargins <- function(
     }
 
     new_ff <- ff[selection, ]
-    new_ff <- AppendCellID(new_ff, which(selection))
-
+    if (!("Original_ID" %in% colnames(flowCore::exprs(new_ff)))){
+        new_ff <- AppendCellID(new_ff, which(selection))}
     if (output == "full"){
         return(
             list("flowframe"=new_ff,
@@ -128,7 +128,7 @@ RemoveMargins <- function(
 #' @description \code{RemoveDoublets} will remove doublet events from the
 #' flowframe based on two channels.
 #'
-#' @usage RemoveDoublets(ff, channel1="FSC-A", channel2="FSC-H", width=NULL,
+#' @usage RemoveDoublets(ff, channel1="FSC-A", channel2="FSC-H", nmad=4,
 #' verbose=FALSE, output="frame")
 #'
 #' @param ff A flowframe that contains flow cytometry data.
@@ -137,7 +137,7 @@ RemoveMargins <- function(
 #' @param channel2 The second channels that will be used to determine the
 #' doublet events. Default is "FSC-H"
 #' @param nmad Bandwidth above the ratio allowed (cells are kept if their
-#' ratio is smaller than the median ratio + \code{nmad} times the median 
+#' ratio is smaller than the median ratio + \code{nmad} times the median
 #' absolute deviation of the ratios). Default is 4.
 #' @param verbose If set to TRUE, the median ratio and width will be printed.
 #' Default is FALSE.

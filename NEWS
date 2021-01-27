@@ -202,3 +202,10 @@ PeacoQC (version 0.99.41)
 
 Fix errors
 ================================================================================
+
+PeacoQC (version 0.99.42)
+------------------------
+
+Changed width parameter to nmad in RemoveDoublets
+Added check for Original_ID column in RemoveMargins
+================================================================================

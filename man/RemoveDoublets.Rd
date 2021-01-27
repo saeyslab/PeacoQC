@@ -4,7 +4,7 @@
 \alias{RemoveDoublets}
 \title{Remove doublet events from flow cytometry data}
 \usage{
-RemoveDoublets(ff, channel1="FSC-A", channel2="FSC-H", width=NULL,
+RemoveDoublets(ff, channel1="FSC-A", channel2="FSC-H", nmad=4,
 verbose=FALSE, output="frame")
 }
 \arguments{
@@ -17,7 +17,7 @@ doublet events. Default is "FSC-A"}
 doublet events. Default is "FSC-H"}
 
 \item{nmad}{Bandwidth above the ratio allowed (cells are kept if their
-ratio is smaller than the median ratio + \code{nmad} times the median 
+ratio is smaller than the median ratio + \code{nmad} times the median
 absolute deviation of the ratios). Default is 4.}
 
 \item{verbose}{If set to TRUE, the median ratio and width will be printed.
