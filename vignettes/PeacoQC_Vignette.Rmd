@@ -88,7 +88,7 @@ peacoqc_res <- PeacoQC(
     ff=ff, 
     channels=channels, 
     determine_good_cells="all", 
-    save_fcs=TRUE, 
+    save_fcs=FALSE, 
     plot=TRUE,
     output_directory = "PeacoQC_Example1")
 
