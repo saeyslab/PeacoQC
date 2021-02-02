@@ -460,7 +460,7 @@ PeacoQC <- function(ff,
         if (save_fcs & !is.null(output_directory)){
             message("Saving fcs file")
 
-            if (!("Original_ID" %in% colnames(flowCore::exprs(new_ff)))){
+            if (!("Original_ID" %in% colnames(new_ff@exprs))){
                 new_ff <- AppendCellID(new_ff, which(results$GoodCells))}
             flowCore::write.FCS(new_ff,
                     file.path(fcs_directory,
