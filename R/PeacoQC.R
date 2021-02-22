@@ -325,7 +325,7 @@ PeacoQC <- function(ff,
 
     # Make a new directory where all results will be stored
     if(!is.null(output_directory)){
-        suppressWarnings(dir.create(output_directory))
+        suppressWarnings(dir.create(output_directory, recursive = TRUE))
         storing_directory <- file.path(output_directory, name_directory)
         suppressWarnings(dir.create(storing_directory))
         if (save_fcs == TRUE){
