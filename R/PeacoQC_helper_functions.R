@@ -190,14 +190,10 @@ clusterMedian=function(i, data, clusters) {
 # ------------------------- Remove too small clusters -------------------------
 
 TooSmallClusters <- function(data, clusters ){
-    for (cluster in unique(clusters)){
-        if (length(which(clusters == cluster)) <
-            length(unique(data$Bin))*(2/3)){
-            ind <-  which(clusters == cluster)
-            data <- data[-ind, ]
+  nr_bins <- length(unique(data$Bin))
+  to_remove_clusters <- names(table(clusters))[which(table(clusters) < (2/3)*nr_bins)]
+  data <- data[!data$Cluster %in% to_remove_clusters,]
 
-        }
-    }
     return(data)
 }
 
