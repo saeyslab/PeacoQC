@@ -84,13 +84,11 @@ DetermineAllPeaks <- function(channel_data, breaks, remove_zeros){
     }
 
     lengths <- vapply(peaks, length, FUN.VALUE=numeric(1))
-
-
     nr_peaks <- unique(lengths)
     nr_peaks_in_bins <- tabulate(match(lengths, nr_peaks))
 
     most_occuring_peaks <- max(nr_peaks[which(tabulate(match(lengths, nr_peaks))
-                                              > 0.1*length(lengths))])
+                                              > 0.10*length(lengths))])
 
     ind_bins_nr_peaks <- lengths == most_occuring_peaks
     limited_nr_peaks <- do.call(rbind, peaks[ind_bins_nr_peaks])
@@ -190,8 +188,8 @@ clusterMedian=function(i, data, clusters) {
 # ------------------------- Remove too small clusters -------------------------
 
 TooSmallClusters <- function(data, clusters ){
-  nr_bins <- length(unique(data$Bin))
-  to_remove_clusters <- names(table(clusters))[which(table(clusters) < (2/3)*nr_bins)]
+  nr_bins <- max(as.numeric(data$Bin))
+  to_remove_clusters <- names(table(clusters))[which(table(clusters) < (1/2)*nr_bins)]
   data <- data[!data$Cluster %in% to_remove_clusters,]
 
     return(data)
