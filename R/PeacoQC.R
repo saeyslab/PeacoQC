@@ -209,7 +209,8 @@ RemoveDoublets <- function(ff,
 #'         events_per_bin=FindEventsPerBin(remove_zeros, ff, channels,
 #'         min_cells, max_bins, step), min_cells=150, max_bins=500, step=500,
 #'         MAD=6, IT_limit=0.6, consecutive_bins=5, remove_zeros=FALSE,
-#'         suffix_fcs="_QC", force_IT=150, ...)
+#'         suffix_fcs="_QC", force_IT=150, peak_removal = (1/3),
+#'         min_nr_bins_peakdetection = 10, ...)
 #'
 #' @param ff A flowframe or the location of an fcs file. Make sure that the
 #' flowframe is compensated and transformed. If it is mass cytometry data, only
@@ -259,6 +260,11 @@ RemoveDoublets <- function(ff,
 #' @param suffix_fcs The suffix given to the new fcs files. Default is "_QC".
 #' @param force_IT If the number of determined bins is less than this number,
 #' the IT analysis will not be performed. Default is 150 bins.
+#' @param peak_removal During the peak detection step, peaks are only kept if
+#' they are \code{peak_removal} percentage of the maximum height peak. Default is
+#' 1/3
+#' @param min_nr_bins_peakdetection The percentage of number of bins in which
+#' the maximum number of peaks has to be present. Default is 10.
 #' @param ... Options to pass on to the \code{PlotPeacoQC} function
 #' (display_cells, manual_cells, prefix)
 #'
@@ -317,6 +323,8 @@ PeacoQC <- function(ff,
                     remove_zeros=FALSE,
                     suffix_fcs="_QC",
                     force_IT = 150,
+                    peak_removal = (1/3),
+                    min_nr_bins_peakdetection = 10,
                     ...
 ){
 
@@ -390,7 +398,8 @@ PeacoQC <- function(ff,
     results$WeirdChannels <- list_weird_channels[1:3]
 
     all_peaks_res <- DeterminePeaksAllChannels(ff, channels,
-                                                breaks, remove_zeros, results)
+                                                breaks, remove_zeros, results,
+                                               peak_removal, min_nr_bins_peakdetection)
     results <- all_peaks_res$results
     outlier_bins <- rep(TRUE, nrow(all_peaks_res$all_peaks))
     names(outlier_bins) <- seq_along(outlier_bins)

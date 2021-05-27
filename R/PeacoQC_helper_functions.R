@@ -7,7 +7,8 @@ StrMessage <- function(x, prefix=" ", initial=""){
 # ----------------------------- Determine all peaks  --------------------------
 
 DeterminePeaksAllChannels <- function(ff, channels, breaks,
-                                        remove_zeros, results){
+                                        remove_zeros, results,
+                                      peak_removal,min_nr_bins_peakdetection){
 
     peak_values_bin  <- list()
 
@@ -27,7 +28,8 @@ DeterminePeaksAllChannels <- function(ff, channels, breaks,
         i <- i +1
 
         channel_data <- flowCore::exprs(ff)[,channel]
-        peak_frame <- DetermineAllPeaks(channel_data, breaks, remove_zeros)
+        peak_frame <- DetermineAllPeaks(channel_data, breaks, remove_zeros,
+                                        peak_removal,min_nr_bins_peakdetection)
         if (is(peak_frame, "logical")){
             utils::setTxtProgressBar(pb, i)
             next()
@@ -48,10 +50,12 @@ DeterminePeaksAllChannels <- function(ff, channels, breaks,
 }
 
 
-DetermineAllPeaks <- function(channel_data, breaks, remove_zeros){
+DetermineAllPeaks <- function(channel_data, breaks, remove_zeros, peak_removal,
+                              min_nr_bins_peakdetection){
 
     full_channel_peaks <- FindThemPeaks(channel_data,
-                                        remove_zeros)
+                                        remove_zeros,
+                                        peak_removal)
 
     if(all(is.na(full_channel_peaks) == TRUE)) return(NA)
 
@@ -69,7 +73,7 @@ DetermineAllPeaks <- function(channel_data, breaks, remove_zeros){
 
     for (channel_break in names(channel_breaks)){
         result_peak <- FindThemPeaks(channel_breaks[[channel_break]],
-                                     remove_zeros)
+                                     remove_zeros, peak_removal)
         peaks[[channel_break]] <- result_peak
     }
 
@@ -88,7 +92,7 @@ DetermineAllPeaks <- function(channel_data, breaks, remove_zeros){
     nr_peaks_in_bins <- tabulate(match(lengths, nr_peaks))
 
     most_occuring_peaks <- max(nr_peaks[which(tabulate(match(lengths, nr_peaks))
-                                              > 0.10*length(lengths))])
+                                              > min_nr_bins_peakdetection*length(lengths))])
 
     ind_bins_nr_peaks <- lengths == most_occuring_peaks
     limited_nr_peaks <- do.call(rbind, peaks[ind_bins_nr_peaks])
@@ -123,7 +127,7 @@ DetermineAllPeaks <- function(channel_data, breaks, remove_zeros){
 }
 
 
-FindThemPeaks <- function (channel_data, remove_zeros)
+FindThemPeaks <- function (channel_data, remove_zeros, peak_removal = (1/3))
 {
 
 
@@ -144,7 +148,7 @@ FindThemPeaks <- function (channel_data, remove_zeros)
     n <- length(dens$y)
     selection <- (dens$y[2:(n-1)] > dens$y[seq_len(n-2)]) &
         (dens$y[2:(n-1)] > dens$y[3:n] ) &
-        (dens$y[2:(n-1)] > (1/3 * max(dens$y)))
+        (dens$y[2:(n-1)] > (peak_removal * max(dens$y)))
     peaks <- dens$x[-1][selection]
 
     if (all(is.na(peaks))) {
