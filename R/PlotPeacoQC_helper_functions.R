@@ -18,7 +18,7 @@ MakeOverviewBlocks <- function(ff, peaks, time_channel){
 
     }
 
-    fill_blocks <- ifelse(run_length$values == TRUE, "Good values",
+    fill_blocks <- ifelse(run_length$values == TRUE, "Good Values",
                         ifelse(run_length$values == "consecutive",
                                 "In consecutive bins",
                                 ifelse(run_length$values == FALSE, "IT",

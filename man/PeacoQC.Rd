@@ -10,7 +10,8 @@ PeacoQC(ff, channels, determine_good_cells="all",
         events_per_bin=FindEventsPerBin(remove_zeros, ff, channels,
         min_cells, max_bins, step), min_cells=150, max_bins=500, step=500,
         MAD=6, IT_limit=0.6, consecutive_bins=5, remove_zeros=FALSE,
-        suffix_fcs="_QC", force_IT=150, ...)
+        suffix_fcs="_QC", force_IT=150, peak_removal = (1/3),
+        min_nr_bins_peakdetection = 10, ...)
 }
 \arguments{
 \item{ff}{A flowframe or the location of an fcs file. Make sure that the
@@ -78,6 +79,13 @@ This is recommended when cleaning mass cytometry data. Default is FALSE.}
 
 \item{force_IT}{If the number of determined bins is less than this number,
 the IT analysis will not be performed. Default is 150 bins.}
+
+\item{peak_removal}{During the peak detection step, peaks are only kept if
+they are \code{peak_removal} percentage of the maximum height peak. Default is
+1/3}
+
+\item{min_nr_bins_peakdetection}{The percentage of number of bins in which
+the maximum number of peaks has to be present. Default is 10.}
 
 \item{...}{Options to pass on to the \code{PlotPeacoQC} function
 (display_cells, manual_cells, prefix)}

@@ -91,8 +91,8 @@ DetermineAllPeaks <- function(channel_data, breaks, remove_zeros, peak_removal,
     nr_peaks <- unique(lengths)
     nr_peaks_in_bins <- tabulate(match(lengths, nr_peaks))
 
-    most_occuring_peaks <- max(nr_peaks[which(tabulate(match(lengths, nr_peaks))
-                                              > min_nr_bins_peakdetection*length(lengths))])
+    most_occuring_peaks <- max(nr_peaks[which(nr_peaks_in_bins
+                                              > (min_nr_bins_peakdetection/100)*length(lengths))])
 
     ind_bins_nr_peaks <- lengths == most_occuring_peaks
     limited_nr_peaks <- do.call(rbind, peaks[ind_bins_nr_peaks])
