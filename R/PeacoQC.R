@@ -102,12 +102,18 @@ RemoveMargins <- function(
             e[, d] < min(meta[d, "maxRange"], max(e[, d]))
     }
 
+    if (nchar(flowCore::keyword(ff)$FILENAME) > 0) {
+        filename <- basename(flowCore::keyword(ff)[["$FIL"]])
+    } else if (nchar(flowCore::keyword(ff)[["$FIL"]]) > 0) {
+        filename <- basename(flowCore::keyword(ff)$FILENAME)
+    }
+
 
     if (length(which(selection == FALSE))/length(selection) > 0.1) {
         warning(StrMessage(c("More than ",
             round(length(which(selection == FALSE))/length(selection) * 100, 2),
             "% is considered as a margin event in file ",
-            basename(flowCore::keyword(ff)$FILENAME),
+            filename,
             ". This should be verified.")))
     }
 
@@ -369,9 +375,16 @@ PeacoQC <- function(ff,
     }
 
     # Searching for the name of the ff
-    if (length(flowCore::keyword(ff)$FILENAME)>0){
+
+    if (nchar(flowCore::keyword(ff)$FILENAME) > 0) {
+        filename <- flowCore::keyword(ff)[["$FIL"]]
+    } else if (nchar(flowCore::keyword(ff)[["$FIL"]]) > 0) {
+        filename <- flowCore::keyword(ff)$FILENAME
+    }
+
+    if (length(filename)>0){
         message("Starting quality control analysis for ",
-                basename(flowCore::keyword(ff)$FILENAME))
+                basename(filename))
     }
 
     # Make an empty list for the eventual results
@@ -393,7 +406,8 @@ PeacoQC <- function(ff,
 
     list_weird_channels <- FindIncreasingDecreasingChannels(breaks,
                                                             ff, channels,
-                                                            plot)
+                                                            plot,
+                                                            filename)
     plot <- list_weird_channels$plot
     results$WeirdChannels <- list_weird_channels[1:3]
 
@@ -456,7 +470,7 @@ PeacoQC <- function(ff,
 
         if(results$PercentageRemoved > 70){
             warning(StrMessage("More than 70% was removed from file ",
-                        basename(flowCore::keyword(ff)$FILENAME)))
+                        basename(filename)))
         }
 
         if(plot != FALSE &
@@ -475,14 +489,14 @@ PeacoQC <- function(ff,
                     file.path(fcs_directory,
                         paste0(sub(".fcs",
                                 "",
-                            basename(flowCore::keyword(new_ff)$FILENAME)),
+                            basename(filename)),
                             paste0(suffix_fcs, ".fcs"))))
         }
 
         # ----------------- Does an overview file need to be generated? --------
         if (report & !is.null(output_directory)){
             utils::write.table(t(c(
-                basename(flowCore::keyword(ff)$FILENAME),
+                basename(filename),
                 nrow(ff),
                 nrow(new_ff),
                 results$PercentageRemoved,
@@ -629,8 +643,11 @@ PlotPeacoQC <- function(ff,
         scores_time <- ""
     }
 
-    filename <- basename(flowCore::keyword(ff)$FILENAME)
-
+    if (nchar(flowCore::keyword(ff)$FILENAME) > 0) {
+        filename <- basename(flowCore::keyword(ff)[["$FIL"]])
+    } else if (nchar(flowCore::keyword(ff)[["$FIL"]]) > 0) {
+        filename <- basename(flowCore::keyword(ff)$FILENAME)
+    }
     # Name to put on plotfile
     name <- sub(".fcs", "", filename)
 

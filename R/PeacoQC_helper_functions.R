@@ -481,7 +481,8 @@ FindEventsPerBin <- function(remove_zeros, ff,
 
 # ------------------ Find Increasing or decreasing channels -------------------
 
-FindIncreasingDecreasingChannels <- function(breaks, ff, channels, plot){
+FindIncreasingDecreasingChannels <- function(breaks, ff, channels, plot,
+                                             filename){
 
     weird_channel_decreasing <- list()
     weird_channel_increasing <- list()
@@ -519,7 +520,7 @@ FindIncreasingDecreasingChannels <- function(breaks, ff, channels, plot){
         length(weird_channel_increasing) > 0) {
         warning(StrMessage(c("There seems to be an increasing or decreasing
             trend in a channel ",
-            " for ", basename(flowCore::keyword(ff)$FILENAME),
+            " for ", basename(filename),
             ". Please inspect this in the overview figure.")))
         if (plot != FALSE){
             plot <- TRUE
