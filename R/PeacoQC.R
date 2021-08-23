@@ -102,12 +102,14 @@ RemoveMargins <- function(
             e[, d] < min(meta[d, "maxRange"], max(e[, d]))
     }
 
-    if (nchar(flowCore::keyword(ff)$FILENAME) > 0) {
-        filename <- basename(flowCore::keyword(ff)[["$FIL"]])
-    } else if (nchar(flowCore::keyword(ff)[["$FIL"]]) > 0) {
+    if ((length(flowCore::keyword(ff)$FILENAME) > 0) &&
+        !is.na(flowCore::keyword(ff)$FILENAME)) {
         filename <- basename(flowCore::keyword(ff)$FILENAME)
     }
-
+    else if ((length(flowCore::keyword(ff)[["$FIL"]]) > 0) &&
+             !is.na(flowCore::keyword(ff)[["$FIL"]])) {
+        filename <- basename(flowCore::keyword(ff)[["$FIL"]])
+    }
 
     if (length(which(selection == FALSE))/length(selection) > 0.1) {
         warning(StrMessage(c("More than ",
@@ -376,12 +378,14 @@ PeacoQC <- function(ff,
 
     # Searching for the name of the ff
 
-    if (nchar(flowCore::keyword(ff)$FILENAME) > 0) {
-        filename <- flowCore::keyword(ff)[["$FIL"]]
-    } else if (nchar(flowCore::keyword(ff)[["$FIL"]]) > 0) {
-        filename <- flowCore::keyword(ff)$FILENAME
+    if ((length(flowCore::keyword(ff)$FILENAME) > 0) &&
+        !is.na(flowCore::keyword(ff)$FILENAME)) {
+        filename <- basename(flowCore::keyword(ff)$FILENAME)
     }
-
+    else if ((length(flowCore::keyword(ff)[["$FIL"]]) > 0) &&
+             !is.na(flowCore::keyword(ff)[["$FIL"]])) {
+        filename <- basename(flowCore::keyword(ff)[["$FIL"]])
+    }
     if (length(filename)>0){
         message("Starting quality control analysis for ",
                 basename(filename))
@@ -643,10 +647,13 @@ PlotPeacoQC <- function(ff,
         scores_time <- ""
     }
 
-    if (nchar(flowCore::keyword(ff)$FILENAME) > 0) {
-        filename <- basename(flowCore::keyword(ff)[["$FIL"]])
-    } else if (nchar(flowCore::keyword(ff)[["$FIL"]]) > 0) {
+    if ((length(flowCore::keyword(ff)$FILENAME) > 0) &&
+        !is.na(flowCore::keyword(ff)$FILENAME)) {
         filename <- basename(flowCore::keyword(ff)$FILENAME)
+    }
+    else if ((length(flowCore::keyword(ff)[["$FIL"]]) > 0) &&
+             !is.na(flowCore::keyword(ff)[["$FIL"]])) {
+        filename <- basename(flowCore::keyword(ff)[["$FIL"]])
     }
     # Name to put on plotfile
     name <- sub(".fcs", "", filename)
