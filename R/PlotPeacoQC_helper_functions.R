@@ -33,6 +33,7 @@ MakeOverviewBlocks <- function(ff, peaks, time_channel){
                                     y_max=Inf,
                                     fill_blocks=fill_blocks)
 
+    overview_blocks_time <- NULL
     if (length(time_channel) > 0){
 
         x_min <- flowCore::exprs(ff)[, "Time"][c(1,

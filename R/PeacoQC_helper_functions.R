@@ -223,7 +223,7 @@ MADOutliers <- function(peak, MAD) {
 
 MADOutlierMethod<- function(peaks, outlier_bins, MAD, breaks, nr_cells) {
 
-    peak_frame <- peaks[outlier_bins, ]
+    peak_frame <- peaks[outlier_bins, , drop = FALSE]
 
     names_bins <- which(outlier_bins)
 
