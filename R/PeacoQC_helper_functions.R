@@ -458,7 +458,7 @@ FindEventsPerBin <- function(remove_zeros, ff,
   nr_events <- nrow(ff)
 
   if (remove_zeros == TRUE){
-    max_bins_mass <- min(apply(flowCore::exprs(ff)[,channels], 2,
+    max_bins_mass <- min(apply(flowCore::exprs(ff)[,channels, drop = FALSE], 2,
                           function(x)sum(x != 0)))/min_cells
 
     if (max_bins_mass < max_bins){
