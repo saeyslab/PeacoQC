@@ -598,7 +598,8 @@ RemovedBins <- function(breaks, outlier_bins, nr_cells){
 
 # ------------------------- Check input PeacoQCSS ----------------------------
 CheckInputSignalStability <- function(ff, channels, determine_good_cells, plot,
-                                        save_fcs, output_directory, report){
+                                      save_fcs, output_directory, report,
+                                      time_channel_parameter){
     if(!is(ff, "flowFrame") | is.null(ff))
         stop("ff should be a flowFrame.")
     if(is.null(output_directory) & save_fcs == TRUE)
@@ -620,10 +621,10 @@ CheckInputSignalStability <- function(ff, channels, determine_good_cells, plot,
             want to use."))
 
     # Check for time channel
-    time_channel <- grep("time", colnames(flowCore::exprs(ff)),
+    time_channel <- grep(time_channel_parameter, colnames(flowCore::exprs(ff)),
                             ignore.case=TRUE)
     if (any(diff(flowCore::exprs(ff)[, time_channel]) < 0) == TRUE)
-        warning(StrMessage("There is an inconsistancy in the Time channel.
+        warning(StrMessage("There is an inconsistancy in the time channel.
             It seems that not all the cells are ordered according to time
             in the flowframe."))
 

@@ -218,7 +218,8 @@ RemoveDoublets <- function(ff,
 #'         min_cells, max_bins, step), min_cells=150, max_bins=500, step=500,
 #'         MAD=6, IT_limit=0.6, consecutive_bins=5, remove_zeros=FALSE,
 #'         suffix_fcs="_QC", force_IT=150, peak_removal = (1/3),
-#'         min_nr_bins_peakdetection = 10, ...)
+#'         min_nr_bins_peakdetection = 10, time_channel_parameter = "Time",
+#'          ...)
 #'
 #' @param ff A flowframe or the location of an fcs file. Make sure that the
 #' flowframe is compensated and transformed. If it is mass cytometry data, only
@@ -273,6 +274,8 @@ RemoveDoublets <- function(ff,
 #' 1/3
 #' @param min_nr_bins_peakdetection The percentage of number of bins in which
 #' the maximum number of peaks has to be present. Default is 10.
+#' @param time_channel_parameter Name of the time channel in ff if present.
+#' Default is "Time".
 #' @param ... Options to pass on to the \code{PlotPeacoQC} function
 #' (display_cells, manual_cells, prefix)
 #'
@@ -333,11 +336,13 @@ PeacoQC <- function(ff,
                     force_IT = 150,
                     peak_removal = (1/3),
                     min_nr_bins_peakdetection = 10,
+                    time_channel_parameter = "Time",
                     ...
 ){
 
     CheckInputSignalStability(ff, channels, determine_good_cells, plot,
-                                save_fcs, output_directory, report)
+                              save_fcs, output_directory, report,
+                              time_channel_parameter)
 
     # Make a new directory where all results will be stored
     if(!is.null(output_directory)){
@@ -381,8 +386,7 @@ PeacoQC <- function(ff,
     if ((length(flowCore::keyword(ff)$FILENAME) > 0) &&
         !is.na(flowCore::keyword(ff)$FILENAME)) {
         filename <- basename(flowCore::keyword(ff)$FILENAME)
-    }
-    else if ((length(flowCore::keyword(ff)[["$FIL"]]) > 0) &&
+    } else if ((length(flowCore::keyword(ff)[["$FIL"]]) > 0) &&
              !is.na(flowCore::keyword(ff)[["$FIL"]])) {
         filename <- basename(flowCore::keyword(ff)[["$FIL"]])
     }
@@ -545,7 +549,8 @@ PeacoQC <- function(ff,
 #' @usage
 #' PlotPeacoQC(ff, channels, output_directory=".", display_cells=2000,
 #'             manual_cells=NULL, title_FR=NULL, display_peaks=TRUE,
-#'             prefix="PeacoQC_", time_unit=100, ...)
+#'             prefix="PeacoQC_", time_unit=100, time_channel_parameter="Time",
+#'              ...)
 #'
 #' @param ff A flowframe
 #' @param channels Indices of names of the channels in the flowframe that have
@@ -570,6 +575,8 @@ PeacoQC <- function(ff,
 #' @param time_unit The number of time units grouped together for visualising
 #' event rate. The default is set to 100, resulting in events per second for
 #' most flow datasets. Suggested to adapt for mass cytometry data.
+#' @param time_channel_parameter Name of the time channel in ff if present.
+#' Default is "Time".
 #' @param ... Arguments to be given to \code{PeacoQC} if \code{display_peaks}
 #' is set to TRUE.
 #'
@@ -617,6 +624,7 @@ PlotPeacoQC <- function(ff,
     display_peaks=TRUE,
     prefix="PeacoQC_",
     time_unit=100,
+    time_channel_parameter="Time",
     ...) {
 
     requireNamespace("ggplot2")
@@ -633,7 +641,8 @@ PlotPeacoQC <- function(ff,
     plot_list <- list()
 
     # Check for time channel
-    time_channel <- grep("time", colnames(flowCore::exprs(ff)),
+    time_channel <- grep(time_channel_parameter,
+                         colnames(flowCore::exprs(ff)),
                             ignore.case=TRUE)
 
     if (is.numeric(channels)){
@@ -650,8 +659,7 @@ PlotPeacoQC <- function(ff,
     if ((length(flowCore::keyword(ff)$FILENAME) > 0) &&
         !is.na(flowCore::keyword(ff)$FILENAME)) {
         filename <- basename(flowCore::keyword(ff)$FILENAME)
-    }
-    else if ((length(flowCore::keyword(ff)[["$FIL"]]) > 0) &&
+    } else if ((length(flowCore::keyword(ff)[["$FIL"]]) > 0) &&
              !is.na(flowCore::keyword(ff)[["$FIL"]])) {
         filename <- basename(flowCore::keyword(ff)[["$FIL"]])
     }
