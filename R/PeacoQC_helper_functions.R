@@ -298,7 +298,10 @@ isolationTreeSD <- function(x, max_depth=as.integer(ceiling(log2(nrow(x)))),
 
             col <- 1
             for(col in seq_len(ncol(x))){
-                x_col <- sort(x[rows, col])
+                # x_col <- sort(x[rows, col])
+                x_col <- x[rows, col]
+
+
                 base_sd <- stats::sd(x_col)
                 gain_max_col <- 0
                 split_v <- NA

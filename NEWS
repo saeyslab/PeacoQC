@@ -275,3 +275,9 @@ PeacoQC (version 1.3.4)
 Time parameter is now added to PeacoQC and plot function. Other colnames that
 time can be used now.
 ================================================================================
+
+PeacoQC (version 1.5.0)
+------------------------
+
+Update version with new bioconductor commit
+================================================================================
