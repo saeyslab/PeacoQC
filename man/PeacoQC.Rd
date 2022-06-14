@@ -11,7 +11,8 @@ PeacoQC(ff, channels, determine_good_cells="all",
         min_cells, max_bins, step), min_cells=150, max_bins=500, step=500,
         MAD=6, IT_limit=0.6, consecutive_bins=5, remove_zeros=FALSE,
         suffix_fcs="_QC", force_IT=150, peak_removal = (1/3),
-        min_nr_bins_peakdetection = 10, ...)
+        min_nr_bins_peakdetection = 10, time_channel_parameter = "Time",
+         ...)
 }
 \arguments{
 \item{ff}{A flowframe or the location of an fcs file. Make sure that the
@@ -86,6 +87,9 @@ they are \code{peak_removal} percentage of the maximum height peak. Default is
 
 \item{min_nr_bins_peakdetection}{The percentage of number of bins in which
 the maximum number of peaks has to be present. Default is 10.}
+
+\item{time_channel_parameter}{Name of the time channel in ff if present.
+Default is "Time".}
 
 \item{...}{Options to pass on to the \code{PlotPeacoQC} function
 (display_cells, manual_cells, prefix)}

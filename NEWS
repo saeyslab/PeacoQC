@@ -281,3 +281,9 @@ PeacoQC (version 1.5.0)
 
 Update version with new bioconductor commit
 ================================================================================
+
+PeacoQC (version 1.7.1)
+------------------------
+
+Solve which error in isolation tree function
+================================================================================

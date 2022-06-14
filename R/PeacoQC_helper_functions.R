@@ -352,20 +352,14 @@ isolationTreeSD <- function(x, max_depth=as.integer(ceiling(log2(nrow(x)))),
                 max_node <- nrow(res)
                 left_id <- max_node + 1
                 right_id <- max_node + 2
-                # the following commented statement had as side effect that
-                # the whole dataframe was converted to character
-                # (because use of c() which creates a vector => same type)
-                # res[node, c("left_child", "right_child", "gain",
-                #             "split_column", "split_value", "to_split")] <- c(
-                #                 left_id, right_id, gain_max,
-                #                 colnames(x)[split_col], split_value, FALSE)
+
                 res[node, "left_child"] <- left_id
                 res[node, "right_child"] <- right_id
                 res[node, "gain"] <- gain_max
                 res[node, "split_column"] <- colnames(x)[split_col]
                 res[node, "split_value"] <- split_value
                 res[node, "to_split"] <- FALSE
-                
+
                 gain_limit <- gain_max
                 res <- rbind(res,
                             data.frame(id=c(left_id, right_id),

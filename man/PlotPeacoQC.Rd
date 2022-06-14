@@ -6,7 +6,8 @@
 \usage{
 PlotPeacoQC(ff, channels, output_directory=".", display_cells=2000,
             manual_cells=NULL, title_FR=NULL, display_peaks=TRUE,
-            prefix="PeacoQC_", time_unit=100, ...)
+            prefix="PeacoQC_", time_unit=100, time_channel_parameter="Time",
+             ...)
 }
 \arguments{
 \item{ff}{A flowframe}
@@ -40,6 +41,9 @@ Default is "PeacoQC_".}
 \item{time_unit}{The number of time units grouped together for visualising
 event rate. The default is set to 100, resulting in events per second for
 most flow datasets. Suggested to adapt for mass cytometry data.}
+
+\item{time_channel_parameter}{Name of the time channel in ff if present.
+Default is "Time".}
 
 \item{...}{Arguments to be given to \code{PeacoQC} if \code{display_peaks}
 is set to TRUE.}
