@@ -57,7 +57,7 @@ DetermineAllPeaks <- function(channel_data, breaks, remove_zeros, peak_removal,
                                         remove_zeros,
                                         peak_removal)
 
-    if(all(is.na(full_channel_peaks) == TRUE)) return(NA)
+    if(all(is.na(full_channel_peaks))) return(NA)
 
     peak_results <- list()
 
@@ -234,7 +234,7 @@ MADOutlierMethod<- function(peaks, outlier_bins, MAD, breaks, nr_cells) {
         removed <- RemovedBins(breaks, x, nr_cells)
         round((length(removed$cell_ids)/nr_cells)*100, 2)
     })
-    names(outlier_bins_MAD) <- which(outlier_bins == TRUE)
+    names(outlier_bins_MAD) <- which(outlier_bins)
 
     return(list("MAD_bins"=outlier_bins_MAD,
                 "Contribution_MAD"=contribution_MAD))
@@ -298,8 +298,8 @@ isolationTreeSD <- function(x, max_depth=as.integer(ceiling(log2(nrow(x)))),
 
             col <- 1
             for(col in seq_len(ncol(x))){
-                # x_col <- sort(x[rows, col])
-                x_col <- x[rows, col]
+                x_col <- sort(x[rows, col])
+                # x_col <- x[rows, col]
 
 
                 base_sd <- stats::sd(x_col)
@@ -352,20 +352,14 @@ isolationTreeSD <- function(x, max_depth=as.integer(ceiling(log2(nrow(x)))),
                 max_node <- nrow(res)
                 left_id <- max_node + 1
                 right_id <- max_node + 2
-                # the following commented statement had as side effect that
-                # the whole dataframe was converted to character
-                # (because use of c() which creates a vector => same type)
-                # res[node, c("left_child", "right_child", "gain",
-                #             "split_column", "split_value", "to_split")] <- c(
-                #                 left_id, right_id, gain_max,
-                #                 colnames(x)[split_col], split_value, FALSE)
+
                 res[node, "left_child"] <- left_id
                 res[node, "right_child"] <- right_id
                 res[node, "gain"] <- gain_max
                 res[node, "split_column"] <- colnames(x)[split_col]
                 res[node, "split_value"] <- split_value
                 res[node, "to_split"] <- FALSE
-                
+
                 gain_limit <- gain_max
                 res <- rbind(res,
                             data.frame(id=c(left_id, right_id),
@@ -470,7 +464,7 @@ FindEventsPerBin <- function(remove_zeros, ff,
 
   nr_events <- nrow(ff)
 
-  if (remove_zeros == TRUE){
+  if (remove_zeros){
     max_bins_mass <- min(apply(flowCore::exprs(ff)[,channels, drop = FALSE], 2,
                           function(x)sum(x != 0)))/min_cells
 
@@ -615,13 +609,13 @@ CheckInputSignalStability <- function(ff, channels, determine_good_cells, plot,
                                       time_channel_parameter){
     if(!is(ff, "flowFrame") | is.null(ff))
         stop("ff should be a flowFrame.")
-    if(is.null(output_directory) & save_fcs == TRUE)
+    if(is.null(output_directory) & save_fcs)
         warning("Since the output directory is NULL,
             no fcs files will be stored.")
-    if(is.null(output_directory) & report == TRUE)
+    if(is.null(output_directory) & report)
         warning("Since the output directory is NULL,
             no report will be generated.")
-    if(is.null(output_directory) & plot == TRUE)
+    if(is.null(output_directory) & plot)
         warning("Since the output directory is NULL,
             no plots will be generated.")
     if(!(determine_good_cells %in% c("all", "IT", "MAD", FALSE)))
@@ -636,7 +630,7 @@ CheckInputSignalStability <- function(ff, channels, determine_good_cells, plot,
     # Check for time channel
     time_channel <- grep(time_channel_parameter, colnames(flowCore::exprs(ff)),
                             ignore.case=TRUE)
-    if (any(diff(flowCore::exprs(ff)[, time_channel]) < 0) == TRUE)
+    if (any(diff(flowCore::exprs(ff)[, time_channel]) < 0))
         warning(StrMessage("There is an inconsistancy in the time channel.
             It seems that not all the cells are ordered according to time
             in the flowframe."))

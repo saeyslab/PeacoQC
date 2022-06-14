@@ -349,11 +349,11 @@ PeacoQC <- function(ff,
         suppressWarnings(dir.create(output_directory, recursive = TRUE))
         storing_directory <- file.path(output_directory, name_directory)
         suppressWarnings(dir.create(storing_directory))
-        if (save_fcs == TRUE){
+        if (save_fcs){
             fcs_directory <- file.path(storing_directory, "fcs_files")
             suppressWarnings(dir.create(fcs_directory))
         }
-        if (report == TRUE & determine_good_cells %in% c("all", "IT", "MAD")){
+        if (report & determine_good_cells %in% c("all", "IT", "MAD")){
             # Make initial percentages in case only one analysis is used
             perc_IT <- "Not_used"
             perc_MAD <- "Not_used"
@@ -519,7 +519,7 @@ PeacoQC <- function(ff,
 
     #---------------- Does the file need to be plotted? ------------------------
 
-    if(plot == TRUE){
+    if(plot){
         if (!is.null(output_directory)){
             if(determine_good_cells %in% c("all", "IT", "MAD")){
                 title_FR <- paste0(round(results$PercentageRemoved, 3),
