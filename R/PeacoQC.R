@@ -560,7 +560,7 @@ PeacoQC <- function(ff,
 #' directory.
 #' @param display_cells The number of measurements that should be displayed.
 #' (The number of dots that are displayed for every channel) The default is
-#' 5000.
+#' 2000.
 #' @param manual_cells Give a vector (TRUE/FALSE) with annotations for each cell
 #' to compare the automated QC with. The default is NULL.
 #' @param title_FR The title that has to be displayed above the flow rate
