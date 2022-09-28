@@ -390,7 +390,7 @@ isolationTreeSD <- function(x, max_depth=as.integer(ceiling(log2(nrow(x)))),
 
         }
 
-        nodes_to_split <- which(res$to_split)
+        nodes_to_split <- base::which(res$to_split)
 
     }
 

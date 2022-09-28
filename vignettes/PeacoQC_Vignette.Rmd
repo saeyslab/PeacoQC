@@ -2,7 +2,14 @@
 title: "PeacoQC"
 author: "Annelies Emmaneel"
 package: PeacoQC
-output: BiocStyle::html_document
+output: BiocStyle::pdf_document
+header-includes:
+    - \pagenumbering{gobble}
+    - \pagestyle{fancy}
+    - \fancyfoot[LE,RO]{\thepage}
+    - \fancyhead[LO,RE]{}
+geometry: margin=0.5cm
+
 vignette: >
     %\VignetteIndexEntry{PeacoQC_Vignette}
     %\VignetteEngine{knitr::rmarkdown}
@@ -16,16 +23,11 @@ comment="#>"
 )
 ```
 
-## Introduction
+# Introduction
 
-The PeacoQC package provides quality control functions that will check 
-for monotonic increasing channels, that will remove outliers and unstable 
-events introduced due to e.g. clogs, speed changes etc. during the measurement 
-of your sample. It also provides the functionality of visualising the quality
-control result of only one sample and the visualisation of the results of 
-multiple samples in one experiment.
+The PeacoQC package provides quality control functions that will check for monotonic increasing channels, that will remove outliers and unstable events introduced due to e.g. clogs, speed changes etc. during the measurement of your sample. It also provides the functionality of visualising the quality control result of only one sample and the visualisation of the results of multiple samples in one experiment.
 
-## Installing PeacoQC
+# Installing PeacoQC
 
 ```{r setup}
 # install.packages("devtools")
@@ -37,25 +39,16 @@ library(PeacoQC)
 
 
 ## WARNING
-Please be aware of the fact that this vignette will create a directory in your
-current working directory. Since this package is meant to be run on multiple 
-files and the figures are directly created in this directory. 
-Please check the folders corresponding to the output_directory variable when 
-called for in the chuncks of code.
+Please be aware of the fact that this vignette will create a directory in your current working directory. Since this package is meant to be run on multiple files and the figures are directly created in this directory. 
+Please check the folders corresponding to the output_directory variable when called for in the chuncks of code.
 
 
-## Standard pre-processing and quality control pipeline
+# Standard pre-processing and quality control pipeline
 
 The following pipeline is recommended to use for pre-processing your data.
-The pipeline starts with a flowframe (flow cytometry or mass cytometry data) 
-and will first remove margins, then it will compensate and transform while 
-ending with the PeacoQC quality control. This will give back a list with the 
-cleaned flowframe and the different parameter settings, it will also save the 
-flowframe in a new fcs file and it will make a plot of the quality control for 
-this sample.
+The pipeline starts with a flowframe (flow cytometry or mass cytometry data) and will first remove margins, then it will compensate and transform while ending with the PeacoQC quality control. This will give back a list with the cleaned flowframe and the different parameter settings, it will also save the flowframe in a new fcs file and it will make a plot of the quality control for this sample.
 
-Note that the remove margins functionality and compensation is not necessary 
-for mass cytometry data as explained in the code below this example.
+Note that the remove margins functionality and compensation is not necessary for mass cytometry data as explained in the code below this example.
 
 ```{r, warning=FALSE, fig.show='hide'}
 # Specify flowframe path and read your flowframe
@@ -100,20 +93,12 @@ ff <- peacoqc_res$FinalFF
 
 ```
 
-## Mass cytometry data
+# Mass cytometry data
 
 If you want to clean mass cytometry data files you should alter some parameters.
-The parameter remove_zeros should be set to TRUE. The IT_limit will range 
-between 0.6 and 0.65 since some channels will be more sparse than flow cytometry
-results. The time_units parameter in the plot function should be also be altered
-since mass cytometry data is typically measures for a longer time than the flow 
-cytometry data. You should play a bit with the parameter until you don't see
-the picketfencing effect anymore in the event rate plot (Top left in the 
-overview).
+The parameter remove_zeros should be set to TRUE. The IT_limit will range between 0.6 and 0.65 since some channels will be more sparse than flow cytometry results. The time_units parameter in the plot function should be also be altered since mass cytometry data is typically measures for a longer time than the flow cytometry data. You should play a bit with the parameter until you don't see the picketfencing effect anymore in the event rate plot (Top left in the overview).
 
-Note that this chunck of code will not be excecuted and that no results will 
-appear in your working directory. This is an example of how to work with mass
-cytometry data.
+Note that this chunck of code will not be excecuted and that no results will appear in your working directory. This is an example of how to work with mass cytometry data.
 
 ```{r, eval = FALSE}
 # # Example of how the code could look for mass cytometry data
@@ -138,14 +123,9 @@ peacoqc_results <- PeacoQC(ff,
 ```
 
 
-## Large dataset
+# Large dataset
 
-If you have a large dataset and you want to run your preprocessing pipeline
-for multiple files, it is recommended to run it first on a couple of files to 
-tweak your parameters. If your dataset inlcudes channels that have a sparse 
-pattern (e.g. in mass data), the IT_limit should probably be increased in order 
-to be more strict. If it seems that the MAD parameter removes too much, you can
-also increase this to make PeacoQC less strict.
+If you have a large dataset and you want to run your preprocessing pipeline for multiple files, it is recommended to run it first on a couple of files to tweak your parameters. If your dataset inlcudes channels that have a sparse pattern (e.g. in mass data), the IT_limit should probably be increased in order to be more strict. If it seems that the MAD parameter removes too much, you can also increase this to make PeacoQC less strict.
 
 You can then run all your files with the parameters you chose.
 
@@ -228,35 +208,34 @@ for (file in files){
 ```
 
 
-## PeacoQCHeatmap
+# PeacoQCHeatmap
 
-In order to get an overview on how much the quality control removed, 
-the PeacoQCHeatmap allows for a visualised representation of the different 
-conditions and the different percentages that were removed in different runs.
+In order to get an overview on how much the quality control removed, the PeacoQCHeatmap allows for a visualised representation of the different conditions and the different percentages that were removed in different runs.
 
-```{r}
+```{r, warning = FALSE}
 # Find the path to the report that was created by using the PeacoQC function
 location <- system.file("extdata", "PeacoQC_report.txt", package="PeacoQC")
 
 # Make heatmap overview of the quality control run
-PeacoQCHeatmap(report_location=location)
+PeacoQCHeatmap(report_location=location, show_values = FALSE,
+               show_row_names = FALSE)
 
 # Make heatmap with only the runs of the last test
-PeacoQCHeatmap(report_location=location, latest_tests=TRUE)
+PeacoQCHeatmap(report_location=location, show_values = FALSE, 
+               latest_tests=TRUE, show_row_names = FALSE)
 
 # Make heatmap with row annotation
-PeacoQCHeatmap(report_location=location, 
+PeacoQCHeatmap(report_location=location, show_values = FALSE,
+               show_row_names = FALSE,
     row_split=c(rep("r1",7), rep("r2", 55)))
 
 ```
 
 
 
-## PlotPeacoQC without quality control
+# PlotPeacoQC without quality control
 
-The PlotPeacoQC function can also be used to only display the peaks of the 
-different channels without doing any quality control. It can even be used to 
-only display the measurements.
+The PlotPeacoQC function can also be used to only display the peaks of the different channels without doing any quality control. It can even be used to only display the measurements.
 
 These results will appear in the PeacoQC_plots folder.
 
