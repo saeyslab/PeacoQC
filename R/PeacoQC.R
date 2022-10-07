@@ -486,12 +486,13 @@ PeacoQC <- function(ff,
         } else {plot <- FALSE}
         new_ff <- ff[results$GoodCells, ]
 
+        if (!("Original_ID" %in% colnames(new_ff@exprs))){
+          new_ff <- AppendCellID(new_ff, which(results$GoodCells))}
+        
         # -----------------  Does the file need to be saved in an fcs? ---------
         if (save_fcs & !is.null(output_directory)){
             message("Saving fcs file")
 
-            if (!("Original_ID" %in% colnames(new_ff@exprs))){
-                new_ff <- AppendCellID(new_ff, which(results$GoodCells))}
             flowCore::write.FCS(new_ff,
                     file.path(fcs_directory,
                         paste0(sub(".fcs",
