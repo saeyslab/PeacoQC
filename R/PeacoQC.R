@@ -105,8 +105,7 @@ RemoveMargins <- function(
     if ((length(flowCore::keyword(ff)$FILENAME) > 0) &&
         !is.na(flowCore::keyword(ff)$FILENAME)) {
         filename <- basename(flowCore::keyword(ff)$FILENAME)
-    }
-    else if ((length(flowCore::keyword(ff)[["$FIL"]]) > 0) &&
+    } else if ((length(flowCore::keyword(ff)[["$FIL"]]) > 0) &&
              !is.na(flowCore::keyword(ff)[["$FIL"]])) {
         filename <- basename(flowCore::keyword(ff)[["$FIL"]])
     }
@@ -482,9 +481,9 @@ PeacoQC <- function(ff,
         }
 
         if(plot != FALSE &
-           results$PercentageRemoved >= plot | plot %in% c(TRUE, "all")){
+           (results$PercentageRemoved >= plot | plot %in% c(TRUE, "all"))){
             plot <- TRUE
-        }
+        } else {plot <- FALSE}
         new_ff <- ff[results$GoodCells, ]
 
         # -----------------  Does the file need to be saved in an fcs? ---------
