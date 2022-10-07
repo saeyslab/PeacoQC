@@ -118,7 +118,7 @@ cytometry data.
 ```{r, eval = FALSE}
 # # Example of how the code could look for mass cytometry data
 
-ff <- read.FCS(file)
+ff <- flowCore::read.FCS(file)
 
 # You don't have to remove margin events or compensate the data but you
 # should transform it
