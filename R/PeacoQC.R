@@ -487,7 +487,9 @@ PeacoQC <- function(ff,
         new_ff <- ff[results$GoodCells, ]
 
         if (!("Original_ID" %in% colnames(new_ff@exprs))){
-          new_ff <- AppendCellID(new_ff, which(results$GoodCells))}
+          new_ff <- AppendCellID(new_ff, which(results$GoodCells))
+          results$FinalFF <- new_ff
+        }
         
         # -----------------  Does the file need to be saved in an fcs? ---------
         if (save_fcs & !is.null(output_directory)){
