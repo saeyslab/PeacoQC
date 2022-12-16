@@ -467,7 +467,6 @@ PeacoQC <- function(ff,
 
     if (determine_good_cells %in% c("all", "IT", "MAD")){
 
-        ## Sofie: New function RemoveShortRegions
         results <- RemoveShortRegions(ff, outlier_bins, consecutive_bins,
                                         breaks, results)
 
