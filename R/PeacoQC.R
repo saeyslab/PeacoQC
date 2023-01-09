@@ -83,8 +83,14 @@ RemoveMargins <- function(
     rownames(meta) <- meta[, "name"]
 
     if(!is.null(channel_specifications)){
-        meta[names(channel_specifications),
-            c("minRange", "maxRange")] <- do.call(rbind, channel_specifications)
+        for(n in names(channel_specifications)) {
+            meta[n, "minRange"] <- channel_specifications[[n]]$minRange
+            meta[n, "maxRange"] <- channel_specifications[[n]]$maxRange
+        }
+        # meta[names(channel_specifications),
+        #     c("minRange", "maxRange")] <- 
+        #       do.call(rbind, channel_specifications)
+        
     }
 
     # Initialize variables
