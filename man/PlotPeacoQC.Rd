@@ -21,7 +21,7 @@ directory.}
 
 \item{display_cells}{The number of measurements that should be displayed.
 (The number of dots that are displayed for every channel) The default is
-5000.}
+2000.}
 
 \item{manual_cells}{Give a vector (TRUE/FALSE) with annotations for each cell
 to compare the automated QC with. The default is NULL.}

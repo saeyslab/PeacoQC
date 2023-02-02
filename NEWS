@@ -1,230 +1,37 @@
-================================================================================
-
-PeacoQC (version 0.99.1)
+PeacoQC (version 1.9.3)
 ------------------------
 
-First version of the package.
-
+Changed examples in RemoveMargins and changed NEWS page
 ================================================================================
 
-PeacoQC (version 0.99.2)
+PeacoQC (version 1.9.2)
 ------------------------
 
-Include time channel check.
-
+Added base before which issue
 ================================================================================
 
-PeacoQC (version 0.99.3)
+PeacoQC (version 1.9.1)
 ------------------------
 
-Made one big PeacoQC function where margins are removed, where the data is
-compensated and transformed and where PeacoQC signal stability is used for
-quality control.
-
+Change in mistake in documentation
 ================================================================================
 
-PeacoQC (version 0.99.9)
+PeacoQC (version 1.7.2)
 ------------------------
 
-Changed peak detection to allow for negative peaks and modify PeacoQC function
-to make compensation and transformation not obligatory.
-
+Fix plot bug
 ================================================================================
 
-PeacoQC (version 0.99.10)
+PeacoQC (version 1.7.1)
 ------------------------
 
-Make changes to allow for better mass cytometry data cleaning.
-Added the remove_zeros parameter and the time_units parameter.
-
+Solve which error in isolation tree function
 ================================================================================
 
-PeacoQC (version 0.99.11)
+PeacoQC (version 1.5.0)
 ------------------------
 
-Allow the usage of marker names instead of only allowing the indices.
-Change colors of PeacoQCHeatmap
-
-================================================================================
-
-PeacoQC (version 0.99.13)
-------------------------
-
-Improve the messages and errors
-
-================================================================================
-
-PeacoQC (version 0.99.15)
-------------------------
-
-Make sure that the plot can also be made if there is no time channel present
-in the flowframe
-
-================================================================================
-
-PeacoQC (version 0.99.16)
-------------------------
-
-Adapt warnings increasing and decreasing channel
-
-================================================================================
-
-PeacoQC (version 0.99.17)
-------------------------
-
-Split up PeacoQCSignastability in multiple functions and alter descriptions
-================================================================================
-
-PeacoQC (version 0.99.18)
-------------------------
-
-Split up PlotPeacoQC in multiple functions
-Alter code to suffice to Bioconductor rules
-Add warning to vignette that directories will be made in the working directory
-Remove figure from package
-================================================================================
-
-PeacoQC (version 0.99.19)
-------------------------
-
-Remove general PeacoQC function and rename PeacoQCSignalStability to PeacoQC
-================================================================================
-
-PeacoQC (version 0.99.20)
-------------------------
-
-Imported "Original_ID" column to cleaned flowframes.
-================================================================================
-
-PeacoQC (version 0.99.21)
-------------------------
-
-Removed ff error
-================================================================================
-
-PeacoQC (version 0.99.22)
-------------------------
-
-Replaced description function with keyword function of flowCore
-================================================================================
-
-PeacoQC (version 0.99.23-25)
-------------------------
-
-Test 100 bin max value
-================================================================================
-
-PeacoQC (version 0.99.26)
-------------------------
-
-Typo corrections + Original_ID bug fixed
-================================================================================
-
-PeacoQC (version 0.99.27-28)
-------------------------
-
-Correct for different events_per_bin situations. Increase IT_limit default.
-Change kernel function for smooth.spline in MAD detection (less strict)
-================================================================================
-
-PeacoQC (version 0.99.29)
-------------------------
-
-Added RemoveDoublets function
-================================================================================
-
-PeacoQC (version 0.99.30)
-------------------------
-
-Alter plot function to only show MAD and IT results when necessary
-Add consecutive bin results to heatmap
-================================================================================
-
-PeacoQC (version 0.99.31)
-------------------------
-
-Alter plot parameter in PeacoQC to a number when to plot
-Add Events per bin parameter in PeacoQC heatmap
-================================================================================
-
-PeacoQC (version 0.99.32)
-------------------------
-
-Fix determine_good_cells = FALSE bug
-================================================================================
-
-PeacoQC (version 0.99.33)
-------------------------
-
-Alter FindEventsPerBin function
-================================================================================
-
-PeacoQC (version 0.99.34)
-------------------------
-
-Modify FindEventsPerBin to allow for better mass cytometry analysis
-Alter PeacoQC Peakfinding algorithm to speed up and improve
-================================================================================
-
-PeacoQC (version 0.99.35)
-------------------------
-
-Update FindEventsPerBin
-================================================================================
-
-PeacoQC (version 0.99.36)
-------------------------
-
-Update FindEventsPerBin
-================================================================================
-
-PeacoQC (version 0.99.38)
-------------------------
-
-Update FindEventsPerBin and heatmap
-================================================================================
-
-PeacoQC (version 0.99.39)
-------------------------
-
-Remove kmeans clustering
-================================================================================
-
-PeacoQC (version 0.99.40)
-------------------------
-
-Clean up data
-================================================================================
-
-PeacoQC (version 0.99.41)
-------------------------
-
-Fix errors
-================================================================================
-
-PeacoQC (version 0.99.42)
-------------------------
-
-Changed width parameter to nmad in RemoveDoublets
-Added check for Original_ID column in RemoveMargins
-================================================================================
-
-PeacoQC (version 1.1.1)
-------------------------
-
-Official release on Bioconductor
-================================================================================
-
-PeacoQC (version 1.4.0)
-------------------------
-
-dir.create has recursive set to TRUE
-================================================================================
-
-PeacoQC (version 1.1.2)
-------------------------
-
-Change package number
+Update version with new bioconductor commit
 ================================================================================
 
 PeacoQC (version 1.1.3)
@@ -245,22 +52,11 @@ PeacoQC (version 1.1.5)
 Add peak detection parameters
 ================================================================================
 
-PeacoQC (version 1.3.0)
+PeacoQC (version 1.3.4)
 ------------------------
 
-New description label due to publication on Bioconductor
-================================================================================
-
-PeacoQC (version 1.3.1)
-------------------------
-
-Remove bugs
-================================================================================
-
-PeacoQC (version 1.3.2)
-------------------------
-
-Looking for filename in $FIL as well as $FILENAME
+Time parameter is now added to PeacoQC and plot function. Other colnames that
+time can be used now.
 ================================================================================
 
 PeacoQC (version 1.3.3)
@@ -269,39 +65,237 @@ PeacoQC (version 1.3.3)
 Fix bugs
 ================================================================================
 
-PeacoQC (version 1.3.4)
+PeacoQC (version 1.3.2)
 ------------------------
 
-Time parameter is now added to PeacoQC and plot function. Other colnames that
-time can be used now.
+Looking for filename in $FIL as well as $FILENAME
 ================================================================================
 
-PeacoQC (version 1.5.0)
+PeacoQC (version 1.3.1)
 ------------------------
 
-Update version with new bioconductor commit
+Remove bugs
 ================================================================================
 
-PeacoQC (version 1.7.1)
+PeacoQC (version 1.3.0)
 ------------------------
 
-Solve which error in isolation tree function
+New description label due to publication on Bioconductor
 ================================================================================
 
-PeacoQC (version 1.7.2)
+PeacoQC (version 1.1.2)
 ------------------------
 
-Fix plot bug
+Change package number
 ================================================================================
 
-PeacoQC (version 1.9.1)
+PeacoQC (version 1.4.0)
 ------------------------
 
-Change in mistake in documentation
+dir.create has recursive set to TRUE
 ================================================================================
 
-PeacoQC (version 1.9.1)
+PeacoQC (version 1.1.1)
 ------------------------
 
-Added base before which issue
+Official release on Bioconductor
 ================================================================================
+
+PeacoQC (version 0.99.42)
+------------------------
+
+Changed width parameter to nmad in RemoveDoublets
+Added check for Original_ID column in RemoveMargins
+================================================================================
+
+PeacoQC (version 0.99.41)
+------------------------
+
+Fix errors
+================================================================================
+
+PeacoQC (version 0.99.40)
+------------------------
+
+Clean up data
+================================================================================
+
+PeacoQC (version 0.99.39)
+------------------------
+
+Remove kmeans clustering
+================================================================================
+
+PeacoQC (version 0.99.38)
+------------------------
+
+Update FindEventsPerBin and heatmap
+================================================================================
+
+PeacoQC (version 0.99.36)
+------------------------
+
+Update FindEventsPerBin
+================================================================================
+
+PeacoQC (version 0.99.35)
+------------------------
+
+Update FindEventsPerBin
+================================================================================
+
+PeacoQC (version 0.99.34)
+------------------------
+
+Modify FindEventsPerBin to allow for better mass cytometry analysis
+Alter PeacoQC Peakfinding algorithm to speed up and improve
+================================================================================
+
+PeacoQC (version 0.99.33)
+------------------------
+
+Alter FindEventsPerBin function
+================================================================================
+
+PeacoQC (version 0.99.32)
+------------------------
+
+Fix determine_good_cells = FALSE bug
+================================================================================
+
+PeacoQC (version 0.99.31)
+------------------------
+
+Alter plot parameter in PeacoQC to a number when to plot
+Add Events per bin parameter in PeacoQC heatmap
+================================================================================
+
+PeacoQC (version 0.99.30)
+------------------------
+
+Alter plot function to only show MAD and IT results when necessary
+Add consecutive bin results to heatmap
+================================================================================
+
+PeacoQC (version 0.99.29)
+------------------------
+
+Added RemoveDoublets function
+================================================================================
+
+PeacoQC (version 0.99.27-28)
+------------------------
+
+Correct for different events_per_bin situations. Increase IT_limit default.
+Change kernel function for smooth.spline in MAD detection (less strict)
+================================================================================
+
+PeacoQC (version 0.99.26)
+------------------------
+
+Typo corrections + Original_ID bug fixed
+================================================================================
+
+PeacoQC (version 0.99.23-25)
+------------------------
+
+Test 100 bin max value
+================================================================================
+
+PeacoQC (version 0.99.22)
+------------------------
+
+Replaced description function with keyword function of flowCore
+================================================================================
+
+PeacoQC (version 0.99.21)
+------------------------
+
+Removed ff error
+================================================================================
+
+PeacoQC (version 0.99.20)
+------------------------
+
+Imported "Original_ID" column to cleaned flowframes.
+================================================================================
+
+PeacoQC (version 0.99.19)
+------------------------
+
+Remove general PeacoQC function and rename PeacoQCSignalStability to PeacoQC
+================================================================================
+
+PeacoQC (version 0.99.18)
+------------------------
+
+Split up PlotPeacoQC in multiple functions
+Alter code to suffice to Bioconductor rules
+Add warning to vignette that directories will be made in the working directory
+Remove figure from package
+================================================================================
+
+PeacoQC (version 0.99.17)
+------------------------
+
+Split up PeacoQCSignastability in multiple functions and alter descriptions
+================================================================================
+
+PeacoQC (version 0.99.16)
+------------------------
+
+Adapt warnings increasing and decreasing channel
+================================================================================
+
+PeacoQC (version 0.99.15)
+------------------------
+
+Make sure that the plot can also be made if there is no time channel present
+in the flowframe
+================================================================================
+
+PeacoQC (version 0.99.13)
+------------------------
+
+Improve the messages and errors
+================================================================================
+
+PeacoQC (version 0.99.11)
+------------------------
+
+Allow the usage of marker names instead of only allowing the indices.
+Change colors of PeacoQCHeatmap
+================================================================================
+
+PeacoQC (version 0.99.10)
+------------------------
+
+Make changes to allow for better mass cytometry data cleaning.
+Added the remove_zeros parameter and the time_units parameter.
+================================================================================
+
+PeacoQC (version 0.99.9)
+------------------------
+
+Changed peak detection to allow for negative peaks and modify PeacoQC function
+to make compensation and transformation not obligatory.
+================================================================================
+
+PeacoQC (version 0.99.3)
+------------------------
+
+Made one big PeacoQC function where margins are removed, where the data is
+compensated and transformed and where PeacoQC signal stability is used for
+quality control.
+================================================================================
+
+PeacoQC (version 0.99.2)
+------------------------
+
+Include time channel check.
+================================================================================
+
+PeacoQC (version 0.99.1)
+------------------------
+
+First version of the package.

@@ -13,14 +13,14 @@ channel_specifications=NULL, output="frame")
 \item{channels}{The channel indices or channel names that have to be checked
 for margin events}
 
-\item{channel_specifications}{A list of lists with parameter specifications
+\item{channel_specifications}{A list of vectors with parameter specifications
 for certain channels. This parameter should only be used if the values in
 the internal parameters description is too strict or wrong for a number or
 all channels. This should be one list per channel with first a minRange and
-then a maxRange value. This list should have the channel name found back in
-\code{colnames(flowCore::exprs(ff))}. If a channel is not listed in this
-parameter, its default internal values will be used. The default of this
-parameter is NULL.}
+then a maxRange value in a vector. This list should have the channel name
+found back in \code{colnames(flowCore::exprs(ff))}. If a channel is not
+listed in this parameter, its default internal values will be used. The
+default of this parameter is NULL.}
 
 \item{output}{If set to "full", a list with the filtered flowframe and the
 indices of the margin event is returned. If set to "frame", only the
@@ -51,7 +51,8 @@ ff_cleaned <- RemoveMargins(ff, channels)
 
 # If an internal value is wrong for a channels (e.g. FSC-A)
 
-channel_specifications <- list("FSC-A"=c(-111, 262144))
+channel_specifications <- list("FSC-A"=c(-111, 262144),
+                               "SSC-A"=c(-111, 262144))
 ff_cleaned <- RemoveMargins(
     ff,
     channels,
