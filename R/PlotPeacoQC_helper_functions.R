@@ -33,6 +33,7 @@ MakeOverviewBlocks <- function(ff, peaks, time_channel){
                                     y_max=Inf,
                                     fill_blocks=fill_blocks)
 
+    if(!is.null(time_channel)){
     overview_blocks_time <- NULL
     if (length(time_channel) > 0){
 
@@ -45,7 +46,7 @@ MakeOverviewBlocks <- function(ff, peaks, time_channel){
                                             y_min=-Inf,
                                             y_max=Inf,
                                             fill_blocks=fill_blocks)
-    }
+    }} else{overview_blocks_time <- NULL}
 
     return(list("Overview_blocks"=overview_blocks,
                 "overview_blocks_time"=overview_blocks_time))

@@ -51,31 +51,31 @@
 #' @export
 
 RemoveMargins <- function(
-    ff,
-    channels,
-    channel_specifications=NULL,
-    output="frame") {
+        ff,
+        channels,
+        channel_specifications=NULL,
+        output="frame") {
 
     if (!is(ff, "flowFrame"))
         stop("ff should be a flowframe.")
     if (!is(channel_specifications, "list") &
-            !is.null(channel_specifications))
+        !is.null(channel_specifications))
         stop("channel_specifications should be a list of lists.")
     if(!all(lengths(channel_specifications) == 2) &
-            !is.null(channel_specifications))
+       !is.null(channel_specifications))
         stop(StrMessage("channel_specifications should be a list of lists.
             Every list should have the channel name and should contain a
             minRange and maxRange value."))
     if(is.null(names(channel_specifications)) &
-            !is.null(channel_specifications))
+       !is.null(channel_specifications))
         stop(StrMessage("channel_specifications should be a list of named lists.
             Make sure that the names correspond with the channel names."))
     if(!all(names(channel_specifications) %in% colnames(flowCore::exprs(ff))) &
-            !is.null(channel_specifications))
+       !is.null(channel_specifications))
         stop(StrMessage("channel_specifications should be a list of named lists.
             Make sure that the names correspond with the channel names."))
     if(!is.numeric(channels) & !all(channels%in% colnames(flowCore::exprs(ff)))|
-            is.null(channels))
+       is.null(channels))
         stop(StrMessage("Make sure that you use indices or the colnames in the
             expression matrix in the flowframe to indicate which channels you
             want to use."))
@@ -85,7 +85,7 @@ RemoveMargins <- function(
 
     if(!is.null(channel_specifications)){
         meta[names(channel_specifications),
-            c("minRange", "maxRange")] <- do.call(rbind, channel_specifications)
+             c("minRange", "maxRange")] <- do.call(rbind, channel_specifications)
     }
 
     # Initialize variables
@@ -95,7 +95,7 @@ RemoveMargins <- function(
     if(is.numeric(channels)){
         channels <- colnames(flowCore::exprs(ff))[channels]
     }
-        # Make selection
+    # Make selection
     for (d in channels) {
 
         selection <- selection &
@@ -107,16 +107,16 @@ RemoveMargins <- function(
         !is.na(flowCore::keyword(ff)$FILENAME)) {
         filename <- basename(flowCore::keyword(ff)$FILENAME)
     } else if ((length(flowCore::keyword(ff)[["$FIL"]]) > 0) &&
-             !is.na(flowCore::keyword(ff)[["$FIL"]])) {
+               !is.na(flowCore::keyword(ff)[["$FIL"]])) {
         filename <- basename(flowCore::keyword(ff)[["$FIL"]])
     }
 
     if (length(which(selection == FALSE))/length(selection) > 0.1) {
         warning(StrMessage(c("More than ",
-            round(length(which(selection == FALSE))/length(selection) * 100, 2),
-            "% is considered as a margin event in file ",
-            filename,
-            ". This should be verified.")))
+                             round(length(which(selection == FALSE))/length(selection) * 100, 2),
+                             "% is considered as a margin event in file ",
+                             filename,
+                             ". This should be verified.")))
     }
 
     new_ff <- ff[selection, ]
@@ -125,7 +125,7 @@ RemoveMargins <- function(
     if (output == "full"){
         return(
             list("flowframe"=new_ff,
-                "indices_margins"=which(selection == FALSE)))
+                 "indices_margins"=which(selection == FALSE)))
     } else if (output == "frame"){
         return(new_ff)
     }
@@ -359,20 +359,20 @@ PeacoQC <- function(ff,
             perc_MAD <- "Not_used"
 
             report_location <- file.path(storing_directory,
-                                            paste0("PeacoQC_report", ".txt"))
+                                         paste0("PeacoQC_report", ".txt"))
             if (!file.exists(report_location)) {
                 utils::write.table(t(c("Filename",
                                        "Nr. Measurements before cleaning",
                                        "Nr. Measurements after cleaning",
-                                        "% Full analysis", "Analysis by",
-                                        "% IT analysis", "% MAD analysis",
-                                        "% Consecutive cells",
-                                        "MAD", "IT limit", "Consecutive bins",
-                                        "Events per bin",
-                                        "Increasing/Decreasing channel")),
-                                        report_location, sep="\t",
-                                        row.names=FALSE,
-                                        quote=FALSE, col.names=FALSE)
+                                       "% Full analysis", "Analysis by",
+                                       "% IT analysis", "% MAD analysis",
+                                       "% Consecutive cells",
+                                       "MAD", "IT limit", "Consecutive bins",
+                                       "Events per bin",
+                                       "Increasing/Decreasing channel")),
+                                   report_location, sep="\t",
+                                   row.names=FALSE,
+                                   quote=FALSE, col.names=FALSE)
             }
         }
     } else { # If the directory is NULL, no things can be saved in any location
@@ -387,7 +387,7 @@ PeacoQC <- function(ff,
         !is.na(flowCore::keyword(ff)$FILENAME)) {
         filename <- basename(flowCore::keyword(ff)$FILENAME)
     } else if ((length(flowCore::keyword(ff)[["$FIL"]]) > 0) &&
-             !is.na(flowCore::keyword(ff)[["$FIL"]])) {
+               !is.na(flowCore::keyword(ff)[["$FIL"]])) {
         filename <- basename(flowCore::keyword(ff)[["$FIL"]])
     }
     if (length(filename)>0){
@@ -420,7 +420,7 @@ PeacoQC <- function(ff,
     results$WeirdChannels <- list_weird_channels[1:3]
 
     all_peaks_res <- DeterminePeaksAllChannels(ff, channels,
-                                                breaks, remove_zeros, results,
+                                               breaks, remove_zeros, results,
                                                peak_removal, min_nr_bins_peakdetection)
     results <- all_peaks_res$results
     outlier_bins <- rep(TRUE, nrow(all_peaks_res$all_peaks))
@@ -469,7 +469,7 @@ PeacoQC <- function(ff,
     if (determine_good_cells %in% c("all", "IT", "MAD")){
 
         results <- RemoveShortRegions(ff, outlier_bins, consecutive_bins,
-                                        breaks, results)
+                                      breaks, results)
 
         message("The algorithm removed ",
                 round(results$PercentageRemoved, 2),
@@ -477,7 +477,7 @@ PeacoQC <- function(ff,
 
         if(results$PercentageRemoved > 70){
             warning(StrMessage("More than 70% was removed from file ",
-                        basename(filename)))
+                               basename(filename)))
         }
 
         if(plot != FALSE &
@@ -487,8 +487,8 @@ PeacoQC <- function(ff,
         new_ff <- ff[results$GoodCells, ]
 
         if (!("Original_ID" %in% colnames(new_ff@exprs))){
-          new_ff <- AppendCellID(new_ff, which(results$GoodCells))
-          results$FinalFF <- new_ff
+            new_ff <- AppendCellID(new_ff, which(results$GoodCells))
+            results$FinalFF <- new_ff
         }
 
         # -----------------  Does the file need to be saved in an fcs? ---------
@@ -496,11 +496,11 @@ PeacoQC <- function(ff,
             message("Saving fcs file")
 
             flowCore::write.FCS(new_ff,
-                    file.path(fcs_directory,
-                        paste0(sub(".fcs",
-                                "",
-                            basename(filename)),
-                            paste0(suffix_fcs, ".fcs"))))
+                                file.path(fcs_directory,
+                                          paste0(sub(".fcs",
+                                                     "",
+                                                     basename(filename)),
+                                                 paste0(suffix_fcs, ".fcs"))))
         }
 
         # ----------------- Does an overview file need to be generated? --------
@@ -618,22 +618,22 @@ PeacoQC <- function(ff,
 #'
 #' @export
 PlotPeacoQC <- function(ff,
-    channels,
-    output_directory=".",
-    display_cells=2000,
-    manual_cells=NULL,
-    title_FR=NULL,
-    display_peaks=TRUE,
-    prefix="PeacoQC_",
-    time_unit=100,
-    time_channel_parameter="Time",
-    ...) {
+                        channels,
+                        output_directory=".",
+                        display_cells=2000,
+                        manual_cells=NULL,
+                        title_FR=NULL,
+                        display_peaks=TRUE,
+                        prefix="PeacoQC_",
+                        time_unit=100,
+                        time_channel_parameter="Time",
+                        ...) {
 
     requireNamespace("ggplot2")
 
 
     input_res <- CheckInputPlot(ff, channels, output_directory,
-                                    display_cells, display_peaks, ...)
+                                display_cells, display_peaks, ...)
     display_cells <- input_res$display_cells
     peaks <- input_res$peaks
     plot_directory <- input_res$plot_directory
@@ -643,9 +643,11 @@ PlotPeacoQC <- function(ff,
     plot_list <- list()
 
     # Check for time channel
-    time_channel <- grep(time_channel_parameter,
-                         colnames(flowCore::exprs(ff)),
-                            ignore.case=TRUE)
+    if (!is.null(time_channel_parameter)){
+        time_channel <- grep(time_channel_parameter,
+                             colnames(flowCore::exprs(ff)),
+                             ignore.case=TRUE)
+    } else(time_channel <-  NULL)
 
     if (is.numeric(channels)){
         channels <- colnames(flowCore::exprs(ff))[channels]
@@ -662,7 +664,7 @@ PlotPeacoQC <- function(ff,
         !is.na(flowCore::keyword(ff)$FILENAME)) {
         filename <- basename(flowCore::keyword(ff)$FILENAME)
     } else if ((length(flowCore::keyword(ff)[["$FIL"]]) > 0) &&
-             !is.na(flowCore::keyword(ff)[["$FIL"]])) {
+               !is.na(flowCore::keyword(ff)[["$FIL"]])) {
         filename <- basename(flowCore::keyword(ff)[["$FIL"]])
     }
     # Name to put on plotfile
@@ -682,7 +684,7 @@ PlotPeacoQC <- function(ff,
         manual_blocks <- NULL
     }
 
-    if (length(time_channel) > 0){
+    if (!is.null(time_channel)){
         if (is(display_peaks, "list") && display_peaks$Analysis != FALSE){
             p_time <- BuildTimePlot(ff, blocks$overview_blocks_time,
                                     scores_time, time_unit)
@@ -694,11 +696,11 @@ PlotPeacoQC <- function(ff,
     }
 
     plot_list <- BuildChannelPlots(channels, peaks, display_peaks,
-                                    display_cells, manual_cells, manual_blocks,
-                                    ff, blocks, plot_list)
+                                   display_cells, manual_cells, manual_blocks,
+                                   ff, blocks, plot_list)
 
     MakeNicePlots(display_peaks, plot_list, channels, plot_directory,
-                    prefix, name)
+                  prefix, name)
 }
 
 #' @title Make overview heatmap of quality control analysis
@@ -753,12 +755,12 @@ PlotPeacoQC <- function(ff,
 #' @export
 
 PeacoQCHeatmap <- function(
-    report_location,
-    show_values=TRUE,
-    show_row_names=TRUE,
-    latest_tests=FALSE,
-    title="PeacoQC report",
-    ...){
+        report_location,
+        show_values=TRUE,
+        show_row_names=TRUE,
+        latest_tests=FALSE,
+        title="PeacoQC report",
+        ...){
 
     if (!file.exists(report_location))
         stop(StrMessage("The path specified in the report_location parameter
@@ -769,13 +771,13 @@ PeacoQCHeatmap <- function(
             they will be displayed on the heatmap without their filename."))
 
     report_table <- utils::read.delim(report_location,
-        check.names=FALSE,
-        stringsAsFactors=FALSE)
+                                      check.names=FALSE,
+                                      stringsAsFactors=FALSE)
     report_table[report_table == "Not_used"] <- NA
 
     if (latest_tests){
         report_table <- report_table[!duplicated(report_table$Filename,
-            fromLast=TRUE), ]
+                                                 fromLast=TRUE), ]
         rownames(report_table) <- report_table$Filename
     } else {
 
@@ -786,7 +788,7 @@ PeacoQCHeatmap <- function(
 
         unique_table_names[tmp] <- paste0(unique_table_names[tmp], ".0")
         unique_table_names <- sub("(.*.fcs)(\\.)(.*)",
-            "\\1_\\3", unique_table_names)
+                                  "\\1_\\3", unique_table_names)
 
         rownames(report_table)  <- unique_table_names
     }
@@ -814,7 +816,7 @@ PeacoQCHeatmap <- function(
 
 
     col_events <- colorRamp2(c(0, max(annotation_frame$`Events per bin`)),
-                                   c("#5AAA95", "#474973"))
+                             c("#5AAA95", "#474973"))
     # t4 <- colorRampPalette(c("#5AAA95", "#474973"))
     # col_events <- t4(length(unique(annotation_frame$`Events per bin`)))
 
@@ -828,15 +830,15 @@ PeacoQCHeatmap <- function(
 
     if("all" %in% analysis | all(c("IT", "MAD") %in% analysis)){
         ha <- rowAnnotation(df=annotation_frame,
-            col=list("Consecutive bins"=col_cons,
-                "MAD"=col_MAD,
-                "IT limit"=col_IT,
-                "Events per bin"=col_events),
-                annotation_legend_param =
-                    list("IT limit" = list(ncol = 1),
-                        "MAD" = list(ncol = 1),
-                        "Consecutive bins" = list(ncol = 1),
-                        "Events per bin" = list(direction = "horizontal")))
+                            col=list("Consecutive bins"=col_cons,
+                                     "MAD"=col_MAD,
+                                     "IT limit"=col_IT,
+                                     "Events per bin"=col_events),
+                            annotation_legend_param =
+                                list("IT limit" = list(ncol = 1),
+                                     "MAD" = list(ncol = 1),
+                                     "Consecutive bins" = list(ncol = 1),
+                                     "Events per bin" = list(direction = "horizontal")))
 
     } else if(length(unique(analysis)) == 1 & unique(analysis) == "IT"){
         ha <- rowAnnotation(
@@ -845,10 +847,10 @@ PeacoQCHeatmap <- function(
             col=list("Consecutive bins"=col_cons,
                      "IT limit"=col_IT,
                      "Events per bin"=col_events),
-                     annotation_legend_param = list(
-                         "IT limit" = list(ncol = 1),
-                         "Consecutive bins" = list(ncol = 1),
-                         "Events per bin" = list(direction = "horizontal")))
+            annotation_legend_param = list(
+                "IT limit" = list(ncol = 1),
+                "Consecutive bins" = list(ncol = 1),
+                "Events per bin" = list(direction = "horizontal")))
     } else if(length(unique(analysis)) == 1 & unique(analysis) == "MAD"){
         ha <- rowAnnotation(
             "Consecutive bins"=annotation_frame$`Consecutive bins`,
@@ -866,27 +868,27 @@ PeacoQCHeatmap <- function(
     col_incr_decr_channel <- c()
 
     if("No increasing or decreasing effect" %in%
-            report_table$`Increasing/Decreasing channel`){
+       report_table$`Increasing/Decreasing channel`){
         col_incr_decr_channel <- c(col_incr_decr_channel,
-            "No increasing or decreasing effect"="#26C485")
+                                   "No increasing or decreasing effect"="#26C485")
     }
     if ("Increasing channel" %in% report_table$`Increasing/Decreasing channel`){
         col_incr_decr_channel <- c(col_incr_decr_channel,
-            "Increasing channel"="#AF3800")
+                                   "Increasing channel"="#AF3800")
     }
     if ("Decreasing channel" %in% report_table$`Increasing/Decreasing channel`){
         col_incr_decr_channel <- c(col_incr_decr_channel,
-            "Decreasing channel"="#721817")
+                                   "Decreasing channel"="#721817")
     }
     if ("Increasing and decreasing channel" %in%
-            report_table$`Increasing/Decreasing channel`){
+        report_table$`Increasing/Decreasing channel`){
         col_incr_decr_channel <- c(col_incr_decr_channel,
-            "Increasing and decreasing channel"="#A50104")
+                                   "Increasing and decreasing channel"="#A50104")
     }
 
     annotation_right <- rowAnnotation(
         "Incr/Decr"=as.factor(report_table[,
-            "Increasing/Decreasing channel"]),
+                                           "Increasing/Decreasing channel"]),
         col=list("Incr/Decr"=col_incr_decr_channel))
 
     report_matrix <- data.matrix(report_table[, c(4, 6, 7, 8)])
@@ -895,26 +897,26 @@ PeacoQCHeatmap <- function(
         cell_fun=function(j, i, x, y, width, height, fill)
         {
             grid.text(sprintf("%.1f", report_matrix[i, j]), x, y,
-                gp=gpar(fontsize=10))
+                      gp=gpar(fontsize=10))
         }
     } else{
         cell_fun=NULL
     }
 
     ph <- Heatmap(report_matrix,
-        cell_fun=cell_fun,
-        cluster_columns=FALSE,
-        cluster_rows=FALSE,
-        column_title=title,
-        column_title_gp=grid::gpar(fontface="bold"),
-        col=circlize::colorRamp2(c(0, 20, 100), c("#EBEBD3", "#FFD151", "red")),
-        left_annotation=ha,
-        right_annotation=annotation_right,
-        heatmap_legend_param=list(direction="horizontal"),
-        name="Removed percentage",
-        na_col="Grey",
-        show_row_names=show_row_names,
-        ...)
+                  cell_fun=cell_fun,
+                  cluster_columns=FALSE,
+                  cluster_rows=FALSE,
+                  column_title=title,
+                  column_title_gp=grid::gpar(fontface="bold"),
+                  col=circlize::colorRamp2(c(0, 20, 100), c("#EBEBD3", "#FFD151", "red")),
+                  left_annotation=ha,
+                  right_annotation=annotation_right,
+                  heatmap_legend_param=list(direction="horizontal"),
+                  name="Removed percentage",
+                  na_col="Grey",
+                  show_row_names=show_row_names,
+                  ...)
 
     draw(ph, annotation_legend_side="bottom", heatmap_legend_side="bottom")
 }
