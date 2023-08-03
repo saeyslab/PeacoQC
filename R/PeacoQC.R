@@ -180,7 +180,7 @@ RemoveDoublets <- function(ff,
 
     # Calculate the ratios
     ratio <- flowCore::exprs(ff)[,channel1] /
-        (1+ flowCore::exprs(ff)[,channel2])
+        (1e-10+ flowCore::exprs(ff)[,channel2])
 
     # Define the region that is accepted
     r <- stats::median(ratio)
