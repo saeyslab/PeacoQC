@@ -37,9 +37,9 @@ MakeOverviewBlocks <- function(ff, peaks, time_channel){
     overview_blocks_time <- NULL
     if (length(time_channel) > 0){
 
-        x_min <- flowCore::exprs(ff)[, "Time"][c(1,
+        x_min <- flowCore::exprs(ff)[, time_channel][c(1,
             cumsum(run_length$lengths)[-length(run_length$lengths)])]
-        x_max <- flowCore::exprs(ff)[, "Time"][cumsum(run_length$lengths)]
+        x_max <- flowCore::exprs(ff)[, time_channel][cumsum(run_length$lengths)]
 
         overview_blocks_time <- data.frame(x_min=x_min,
                                             x_max=x_max,
@@ -75,7 +75,7 @@ MakeManualBlocks <- function(manual_cells){
 }
 
 
-BuildTimePlot <- function(ff, blocks=NULL, scores_time, time_unit=100){
+BuildTimePlot <- function(ff, blocks=NULL, scores_time, time_unit=100, time_id){
     if (nrow(ff) >=50000) {
         subset_timeplot <- sort(sample(seq_len(nrow(ff)), 50000))
     } else {
@@ -83,13 +83,13 @@ BuildTimePlot <- function(ff, blocks=NULL, scores_time, time_unit=100){
     }
 
 
-    h <- graphics::hist(flowCore::exprs(ff)[subset_timeplot, "Time"],
-                        breaks=seq(min(flowCore::exprs(ff)[, "Time"]),
-                                        max(flowCore::exprs(ff)[, "Time"]) +
+    h <- graphics::hist(flowCore::exprs(ff)[subset_timeplot, time_id],
+                        breaks=seq(min(flowCore::exprs(ff)[, time_id]),
+                                        max(flowCore::exprs(ff)[, time_id]) +
                                         time_unit, by=time_unit),
                         plot=FALSE)
 
-    idcs <- findInterval(flowCore::exprs(ff)[subset_timeplot, "Time"], h$breaks)
+    idcs <- findInterval(flowCore::exprs(ff)[subset_timeplot, time_id], h$breaks)
 
     p_time <- ggplot() + theme_bw()
 

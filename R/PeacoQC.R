@@ -644,9 +644,14 @@ PlotPeacoQC <- function(ff,
 
     # Check for time channel
     if (!is.null(time_channel_parameter)){
+        if (all(!grepl(time_channel_parameter,
+                  colnames(flowCore::exprs(ff)),
+                  ignore.case=TRUE))){
+            time_channel <- NULL
+        } else{
         time_channel <- grep(time_channel_parameter,
                              colnames(flowCore::exprs(ff)),
-                             ignore.case=TRUE)
+                             ignore.case=TRUE)}
     } else(time_channel <-  NULL)
 
     if (is.numeric(channels)){
@@ -687,9 +692,11 @@ PlotPeacoQC <- function(ff,
     if (!is.null(time_channel)){
         if (is(display_peaks, "list") && display_peaks$Analysis != FALSE){
             p_time <- BuildTimePlot(ff, blocks$overview_blocks_time,
-                                    scores_time, time_unit)
+                                    scores_time, time_unit,
+                                    time_id = time_channel)
         } else{ p_time <- BuildTimePlot(ff, scores_time=scores_time,
-                                        time_unit=time_unit) }
+                                        time_unit=time_unit,
+                                        time_id = time_channel) }
 
         plot_list[["Time"]] <- p_time
 
