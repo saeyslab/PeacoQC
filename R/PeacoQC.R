@@ -259,7 +259,7 @@ RemoveDoublets <- function(ff,
 #' Default is calculated based on the rows in \code{ff}
 #' @param MAD The MAD parameter. Default is 6. If this is increased, the
 #' algorithm becomes less strict.
-#' @param IT_limit The IsolationTree parameter. Default is 0.55. If this is
+#' @param IT_limit The IsolationTree parameter. Default is 0.6. If this is
 #' increased, the algorithm becomes less strict.
 #' @param consecutive_bins If 'good' bins are located between bins that are
 #' removed, they will also be marked as 'bad'. The default is 5.
