@@ -1,6 +1,6 @@
 Package: PeacoQC
 Title: Peak-based selection of high quality cytometry data
-Version: 1.11.2
+Version: 1.11.4
 Authors@R: 
     person(given = "Annelies",
            family = "Emmaneel",
@@ -26,7 +26,7 @@ Imports:
   plyr,
   stats,
   utils
-RoxygenNote: 7.2.0
+RoxygenNote: 7.3.2
 Suggests: 
     knitr,
     rmarkdown,

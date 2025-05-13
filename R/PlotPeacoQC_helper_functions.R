@@ -76,20 +76,14 @@ MakeManualBlocks <- function(manual_cells){
 
 
 BuildTimePlot <- function(ff, blocks=NULL, scores_time, time_unit=100, time_id){
-    if (nrow(ff) >=50000) {
-        subset_timeplot <- sort(sample(seq_len(nrow(ff)), 50000))
-    } else {
-        subset_timeplot <- seq_len(nrow(ff))
-    }
 
-
-    h <- graphics::hist(flowCore::exprs(ff)[subset_timeplot, time_id],
+    h <- graphics::hist(flowCore::exprs(ff)[ seq_len(nrow(ff)), time_id],
                         breaks=seq(min(flowCore::exprs(ff)[, time_id]),
                                         max(flowCore::exprs(ff)[, time_id]) +
                                         time_unit, by=time_unit),
                         plot=FALSE)
 
-    idcs <- findInterval(flowCore::exprs(ff)[subset_timeplot, time_id], h$breaks)
+    idcs <- findInterval(flowCore::exprs(ff)[ seq_len(nrow(ff)), time_id], h$breaks)
 
     p_time <- ggplot() + theme_bw()
 

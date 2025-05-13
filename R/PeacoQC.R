@@ -50,7 +50,7 @@
 #' flowframe and a TRUE/FALSE list indicating the margin events. An extra column
 #' named "Original_ID" is added to the flowframe where the cells are given their
 #'  original cell id.
-#' @importFrom flowWorkspace pData
+#' @importFrom flowCore pData
 #' @importFrom methods is
 #' @export
 
@@ -86,7 +86,7 @@ RemoveMargins <- function(
             expression matrix in the flowframe to indicate which channels you
             want to use."))
 
-    meta <- flowWorkspace::pData(flowCore::parameters(ff))
+    meta <- flowCore::pData(flowCore::parameters(ff))
     rownames(meta) <- meta[, "name"]
 
     if(!is.null(channel_specifications)){
