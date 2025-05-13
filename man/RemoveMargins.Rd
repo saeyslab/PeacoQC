@@ -25,6 +25,12 @@ default of this parameter is NULL.}
 \item{output}{If set to "full", a list with the filtered flowframe and the
 indices of the margin event is returned. If set to "frame", only the
 filtered flowframe is returned. The default is "frame".}
+
+\item{remove_min}{The channel indices or channel names that have to be checked
+for minimum margins. The default of this parameter is channels.}
+
+\item{remove_max}{The channel indices or channel names that have to be checked
+for maximum margins. The default of this parameter is channels.}
 }
 \value{
 This function returns either a filtered flowframe when the

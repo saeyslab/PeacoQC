@@ -17,6 +17,10 @@
 #' found back in \code{colnames(flowCore::exprs(ff))}. If a channel is not
 #' listed in this parameter, its default internal values will be used. The
 #' default of this parameter is NULL.
+#' @param remove_min The channel indices or channel names that have to be checked
+#' for minimum margins. The default of this parameter is channels.
+#' @param remove_max The channel indices or channel names that have to be checked
+#' for maximum margins. The default of this parameter is channels.
 #' @param output If set to "full", a list with the filtered flowframe and the
 #' indices of the margin event is returned. If set to "frame", only the
 #' filtered flowframe is returned. The default is "frame".
@@ -54,7 +58,9 @@ RemoveMargins <- function(
         ff,
         channels,
         channel_specifications=NULL,
-        output="frame") {
+        output="frame",
+        remove_min = channels,
+        remove_max = channels) {
 
     if (!is(ff, "flowFrame"))
         stop("ff should be a flowframe.")
@@ -96,11 +102,21 @@ RemoveMargins <- function(
         channels <- colnames(flowCore::exprs(ff))[channels]
     }
     # Make selection
+    margin_matrix <- matrix(nrow = length(channels), ncol = 2, dimnames = list(channels, c("min", "max")))
     for (d in channels) {
 
-        selection <- selection &
-            e[, d] > max(min(meta[d, "minRange"], 0), min(e[, d])) &
-            e[, d] < min(meta[d, "maxRange"], max(e[, d]))
+      if(d %in% remove_min){
+        min_margin_ev <- e[, d] <= max(min(meta[d, "minRange"], 0), min(e[, d]))
+        margin_matrix[d, "min"] <- sum(min_margin_ev)
+        selection <- selection & !min_margin_ev
+      }
+      if(d %in% remove_max){
+        max_margin_ev <- e[, d] > min(meta[d, "maxRange"], max(e[, d]))
+        margin_matrix[d, "max"] <- sum(max_margin_ev)
+        selection <- selection & !max_margin_ev
+            
+      }
+      
     }
 
     if ((length(flowCore::keyword(ff)$FILENAME) > 0) &&
@@ -120,6 +136,7 @@ RemoveMargins <- function(
     }
 
     new_ff <- ff[selection, ]
+    attr(new_ff, "margin_matrix") <- margin_matrix
     if (!("Original_ID" %in% colnames(flowCore::exprs(new_ff)))){
         new_ff <- AppendCellID(new_ff, which(selection))}
     if (output == "full"){
