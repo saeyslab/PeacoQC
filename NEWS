@@ -1,3 +1,8 @@
+PeacoQC (version 1.11.5)
+------------------------
+
+Added channel selection for min and max margins in RemoveMargins +
+added an attribute ("margin_matrix") to the resulting flowframe with the margin counts================================================================================
 PeacoQC (version 1.11.4)
 ------------------------
 
