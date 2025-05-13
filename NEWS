@@ -1,8 +1,15 @@
+PeacoQC (version 1.11.6)
+------------------------
+
+Changed time_unit parameter in PlotPeacoqc. Time_unit is now read from TIMESTEP keyword in ff.
+================================================================================
+
 PeacoQC (version 1.11.5)
 ------------------------
 
 Added channel selection for min and max margins in RemoveMargins +
-added an attribute ("margin_matrix") to the resulting flowframe with the margin counts================================================================================
+added an attribute ("margin_matrix") to the resulting flowframe with the margin counts
+================================================================================
 PeacoQC (version 1.11.4)
 ------------------------
 

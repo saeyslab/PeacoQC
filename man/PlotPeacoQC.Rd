@@ -39,8 +39,9 @@ displayed. Default is TRUE.}
 Default is "PeacoQC_".}
 
 \item{time_unit}{The number of time units grouped together for visualising
-event rate. The default is set to 100, resulting in events per second for
-most flow datasets. Suggested to adapt for mass cytometry data.}
+event rate. The default is read from the $`TIMESTEP` keyword in the flowframe. 
+If this keyword is not found, time_unit is set to 10.000. If the time plot has stacked lines, 
+change this value.}
 
 \item{time_channel_parameter}{Name of the time channel in ff if present.
 Default is "Time".}

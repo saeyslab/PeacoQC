@@ -592,8 +592,9 @@ PeacoQC <- function(ff,
 #' @param prefix The prefix that will be given to the generated png file.
 #' Default is "PeacoQC_".
 #' @param time_unit The number of time units grouped together for visualising
-#' event rate. The default is set to 100, resulting in events per second for
-#' most flow datasets. Suggested to adapt for mass cytometry data.
+#' event rate. The default is read from the $`TIMESTEP` keyword in the flowframe. 
+#' If this keyword is not found, time_unit is set to 10.000. If the time plot has stacked lines, 
+#' change this value.
 #' @param time_channel_parameter Name of the time channel in ff if present.
 #' Default is "Time".
 #' @param ... Arguments to be given to \code{PeacoQC} if \code{display_peaks}
@@ -642,7 +643,7 @@ PlotPeacoQC <- function(ff,
                         title_FR=NULL,
                         display_peaks=TRUE,
                         prefix="PeacoQC_",
-                        time_unit=100,
+                        time_unit=GetTimeUnit(ff),
                         time_channel_parameter="Time",
                         ...) {
 

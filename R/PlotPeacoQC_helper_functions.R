@@ -393,3 +393,16 @@ MakeNicePlots <- function(display_peaks, plot_list, channels, plot_directory,
             final_plots, width=n_col * 5,
             height=n_row * 3, limitsize=FALSE)
 }
+
+GetTimeUnit <- function(ff){
+  time_unit <- 10000
+  
+  if(!is.null(ff@description$`$TIMESTEP`)){
+    unit <- as.numeric(ff@description$`$TIMESTEP`)
+    time_unit<- 1/unit
+  } else {
+    warning('`$TIMESTEP` value not found in the FlowFrame, running PlotPeacoQC with deafult `time_unit`=10000',
+            call.=FALSE)
+  }
+  return(time_unit)
+}
