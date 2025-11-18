@@ -1,3 +1,8 @@
+PeacoQC (version 1.11.7)
+------------------------
+
+Added parameter in RemoveDoublets to shift the accepted ratio.
+================================================================================
 PeacoQC (version 1.11.6)
 ------------------------
 

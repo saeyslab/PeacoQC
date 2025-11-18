@@ -169,6 +169,7 @@ RemoveMargins <- function(
 #' @param output If set to "full", a list with the filtered flowframe and the
 #' indices of the doublet event is returned. If set to "frame", only the
 #' filtered flowframe is returned. The default is "frame".
+#' @param b Parameter to manually shift the accepted ratio.
 #'
 #' @examples
 #' # Read in data
@@ -190,14 +191,15 @@ RemoveDoublets <- function(ff,
                            channel2="FSC-H",
                            nmad=4,
                            verbose=FALSE,
-                           output="frame"){
+                           output="frame",
+                           b=0){
 
     if (!is(ff, "flowFrame"))
         stop("ff should be a flowframe.")
 
     # Calculate the ratios
     ratio <- flowCore::exprs(ff)[,channel1] /
-        (1e-10+ flowCore::exprs(ff)[,channel2])
+        (1e-10+ flowCore::exprs(ff)[,channel2] + b)
 
     # Define the region that is accepted
     r <- stats::median(ratio)

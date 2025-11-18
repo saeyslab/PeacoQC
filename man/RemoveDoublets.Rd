@@ -26,6 +26,8 @@ Default is FALSE.}
 \item{output}{If set to "full", a list with the filtered flowframe and the
 indices of the doublet event is returned. If set to "frame", only the
 filtered flowframe is returned. The default is "frame".}
+
+\item{b}{Parameter to manually shift the accepted ratio.}
 }
 \value{
 This function returns either a filtered flowframe when the
