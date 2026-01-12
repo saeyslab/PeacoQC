@@ -111,12 +111,12 @@ RemoveMargins <- function(
         selection <- selection & !min_margin_ev
       }
       if(d %in% remove_max){
-        max_margin_ev <- e[, d] > min(meta[d, "maxRange"], max(e[, d]))
+        max_margin_ev <- e[, d] >= min(meta[d, "maxRange"], max(e[, d]))
         margin_matrix[d, "max"] <- sum(max_margin_ev)
         selection <- selection & !max_margin_ev
-            
+
       }
-      
+
     }
 
     if ((length(flowCore::keyword(ff)$FILENAME) > 0) &&
@@ -594,8 +594,8 @@ PeacoQC <- function(ff,
 #' @param prefix The prefix that will be given to the generated png file.
 #' Default is "PeacoQC_".
 #' @param time_unit The number of time units grouped together for visualising
-#' event rate. The default is read from the $`TIMESTEP` keyword in the flowframe. 
-#' If this keyword is not found, time_unit is set to 10.000. If the time plot has stacked lines, 
+#' event rate. The default is read from the $`TIMESTEP` keyword in the flowframe.
+#' If this keyword is not found, time_unit is set to 10.000. If the time plot has stacked lines,
 #' change this value.
 #' @param time_channel_parameter Name of the time channel in ff if present.
 #' Default is "Time".
