@@ -198,7 +198,7 @@ BuildPeaksPlot <- function(p, peaks, channel, mid_breaks, contributions){
         p <- p + geom_line(data=peak_frame, aes(x=Bin,
                                                 y=Peak,
                                                 color=Cluster),
-                            size=1,
+                            linewidth=1,
                             show.legend=FALSE) +
             scale_color_manual(values=colours)
     } else {

@@ -1,3 +1,7 @@
+PeacoQC (version 1.11.9)
+------------------------
+
+"size" aesthetic in geom_line is depricated in ggplot, replaced by "linewidth"
 PeacoQC (version 1.11.8)
 ------------------------
 
