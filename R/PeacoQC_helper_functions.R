@@ -631,7 +631,7 @@ CheckInputSignalStability <- function(ff, channels, determine_good_cells, plot,
     time_channel <- grep(time_channel_parameter, colnames(flowCore::exprs(ff)),
                             ignore.case=TRUE)
     if (any(diff(flowCore::exprs(ff)[, time_channel]) < 0))
-        warning(StrMessage("There is an inconsistancy in the time channel.
+        warning(StrMessage("There is an inconsistency in the time channel.
             It seems that not all the cells are ordered according to time
             in the flowframe."))
 

@@ -401,7 +401,7 @@ GetTimeUnit <- function(ff){
     unit <- as.numeric(ff@description$`$TIMESTEP`)
     time_unit<- 1/unit
   } else {
-    warning('`$TIMESTEP` value not found in the FlowFrame, running PlotPeacoQC with deafult `time_unit`=10000',
+    warning('`$TIMESTEP` value not found in the FlowFrame, running PlotPeacoQC with default `time_unit`=10000',
             call.=FALSE)
   }
   return(time_unit)
